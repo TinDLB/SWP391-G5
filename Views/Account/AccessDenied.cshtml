@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập - Tiệm Bánh BMS";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card text-center p-5" style="max-width: 600px;">
+        <div class="mb-4">
+            <i class="bi bi-shield-lock-fill text-warning" style="font-size: 4rem;"></i>
+        </div>
+        <h2 class="fw-bold mb-3" style="color: var(--bakery-dark);">Từ Chối Truy Cập</h2>
+        <p class="text-muted mb-4">
+            Bạn không có quyền truy cập vào chức năng hoặc trang này. Vui lòng đăng nhập bằng tài khoản có vai trò phù hợp (Cashier, Baker hoặc Admin).
+        </p>
+        <div class="d-flex justify-content-center gap-2">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-bakery-outline">
+                <i class="bi bi-house me-1"></i> Về Trang Chủ
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="btn btn-bakery">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập Tài Khoản Khác
+            </a>
+        </div>
+    </div>
+</div>

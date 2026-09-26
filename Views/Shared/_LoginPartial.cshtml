@@ -1,0 +1,49 @@
+@using System.Security.Claims
+
+<ul class="navbar-nav align-items-lg-center gap-2">
+@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Customer";
+    var email = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.9rem;">
+                @(string.IsNullOrEmpty(User.Identity.Name) ? "U" : User.Identity.Name.Substring(0, 1).ToUpper())
+            </div>
+            <div class="text-start d-none d-md-block">
+                <div class="fw-semibold small text-dark lh-sm">@User.Identity.Name</div>
+                <span class="user-role-badge">@role</span>
+            </div>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2" aria-labelledby="userDropdown">
+            <li class="px-3 py-2 border-bottom">
+                <div class="fw-bold small text-dark">@User.Identity.Name</div>
+                <div class="text-muted small">@email</div>
+                <span class="badge bg-warning text-dark mt-1">Vai trò: @role</span>
+            </li>
+            <li>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 rounded-2">
+                        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link" asp-controller="Account" asp-action="Register">
+            <i class="bi bi-person-plus me-1"></i> Đăng Ký
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="btn btn-bakery btn-sm px-3" asp-controller="Account" asp-action="Login">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
+        </a>
+    </li>
+}
+</ul>

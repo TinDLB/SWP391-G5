@@ -1,0 +1,137 @@
+@model SWP391_G5.Models.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng Nhập - Tiệm Bánh BMS";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="row g-0">
+            <!-- Cột trái: Banner Tiệm Bánh -->
+            <div class="col-lg-5 d-none d-lg-flex auth-banner">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-cake2-fill fs-2 text-warning"></i>
+                        <span class="fs-4 fw-bold">Bakery BMS</span>
+                    </div>
+                    <h1 class="auth-banner-title">Hương Vị Bánh Tươi Mỗi Ngày</h1>
+                    <p class="auth-banner-subtitle">
+                        Đăng nhập để khám phá hàng trăm loại bánh thơm ngon, theo dõi trạng thái đơn hàng và nhận ưu đãi độc quyền dành riêng cho bạn.
+                    </p>
+
+                    <ul class="auth-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Bánh nướng mới nóng hổi mỗi sáng</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Tích điểm đổi quà theo từng đơn hàng</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Giao hàng tận tay nhanh chóng</li>
+                    </ul>
+                </div>
+
+                <div class="text-white-50 small mt-4">
+                    © 2026 Bakery Management System • SWP391 Group 5
+                </div>
+            </div>
+
+            <!-- Cột phải: Form Đăng Nhập -->
+            <div class="col-lg-7 auth-form-side">
+                <div class="auth-header">
+                    <h2>Đăng Nhập</h2>
+                    <p>Chào mừng bạn quay trở lại! Vui lòng điền thông tin tài khoản.</p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5"></i>
+                        <div>
+                            @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+                            {
+                                <div>@error.ErrorMessage</div>
+                            }
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form asp-action="Login" asp-controller="Account" method="post" id="loginForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" autofocus />
+                        <label asp-for="Email"><i class="bi bi-envelope me-1"></i> Địa chỉ Email</label>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-floating mb-3 position-relative">
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" id="passwordInput" />
+                        <label asp-for="Password"><i class="bi bi-lock me-1"></i> Mật khẩu</label>
+                        <button type="button" class="btn btn-sm btn-link position-absolute end-0 top-50 translate-middle-y me-2 text-muted text-decoration-none" id="togglePasswordBtn" tabindex="-1">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMeCheck" />
+                            <label asp-for="RememberMe" class="form-check-label text-muted small" for="rememberMeCheck">
+                                Ghi nhớ đăng nhập
+                            </label>
+                        </div>
+                        <a href="javascript:void(0);" onclick="alert('Vui lòng liên hệ nhân viên tiệm bánh để được cấp lại mật khẩu.')" class="small text-decoration-none" style="color: var(--bakery-primary);">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-bakery w-100 py-3 mb-3">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
+                    </button>
+
+                    <div class="text-center text-muted small mb-4">
+                        Chưa có tài khoản? 
+                        <a asp-action="Register" asp-controller="Account" asp-route-returnUrl="@Model?.ReturnUrl" class="fw-bold text-decoration-none" style="color: var(--bakery-primary);">
+                            Đăng ký ngay
+                        </a>
+                    </div>
+
+                    <!-- Hộp gợi ý tài khoản mẫu để test cho thành viên nhóm / giảng viên -->
+                    <div class="p-3 rounded-3" style="background-color: var(--bakery-cream); border: 1px dashed var(--bakery-secondary);">
+                        <div class="d-flex align-items-center gap-1 small fw-bold mb-1" style="color: var(--bakery-dark);">
+                            <i class="bi bi-info-circle-fill text-warning"></i> Tài khoản mẫu dùng để kiểm thử (Mật khẩu: <code>123456</code>):
+                        </div>
+                        <div class="small text-muted">
+                            • Khách hàng (Customer): <a href="javascript:void(0)" onclick="fillCredentials('customer@bakery.com')" class="text-decoration-underline text-dark fw-semibold">customer@bakery.com</a><br />
+                            • Quản trị viên (Admin): <a href="javascript:void(0)" onclick="fillCredentials('admin@bakery.com')" class="text-decoration-underline text-dark fw-semibold">admin@bakery.com</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function fillCredentials(email) {
+            document.getElementById('Email').value = email;
+            document.getElementById('passwordInput').value = '123456';
+        }
+
+        const toggleBtn = document.getElementById('togglePasswordBtn');
+        const passInput = document.getElementById('passwordInput');
+        const passIcon = document.getElementById('togglePasswordIcon');
+
+        if (toggleBtn && passInput && passIcon) {
+            toggleBtn.addEventListener('click', function () {
+                if (passInput.type === 'password') {
+                    passInput.type = 'text';
+                    passIcon.classList.remove('bi-eye');
+                    passIcon.classList.add('bi-eye-slash');
+                } else {
+                    passInput.type = 'password';
+                    passIcon.classList.remove('bi-eye-slash');
+                    passIcon.classList.add('bi-eye');
+                }
+            });
+        }
+    </script>
+}

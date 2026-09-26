@@ -1,0 +1,124 @@
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Trang Chủ - Tiệm Bánh BMS";
+}
+
+<div class="container py-4">
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Customer";
+        var email = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+        var phone = User.FindFirst("PhoneNumber")?.Value ?? "Chưa cập nhật";
+        var address = User.FindFirst("Address")?.Value ?? "Chưa cập nhật";
+
+        <div class="hero-section text-center p-5 mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-white shadow-sm mb-3">
+                <i class="bi bi-person-check-fill fs-1" style="color: var(--bakery-primary);"></i>
+            </div>
+            <h1 class="fw-bold mb-2" style="color: var(--bakery-dark);">Xin Chào, @User.Identity.Name!</h1>
+            <p class="text-muted fs-5 mb-4">
+                Bạn đã đăng nhập thành công vào hệ thống tiệm bánh với vai trò 
+                <span class="badge bg-warning text-dark px-3 py-2 fs-6">@role</span>
+            </p>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card border-0 shadow-sm rounded-4 text-start p-4 bg-white">
+                        <h5 class="fw-bold mb-3 border-bottom pb-2" style="color: var(--bakery-primary);">
+                            <i class="bi bi-card-checklist me-2"></i>Thông Tin Tài Khoản Của Bạn:
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Họ và tên:</span>
+                                <strong>@User.Identity.Name</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Địa chỉ Email:</span>
+                                <strong>@email</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Số điện thoại:</span>
+                                <strong>@phone</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <span class="text-muted small d-block">Vai trò hệ thống:</span>
+                                <span class="badge bg-light text-dark border">@role</span>
+                            </div>
+                            <div class="col-12">
+                                <span class="text-muted small d-block">Địa chỉ nhận hàng:</span>
+                                <strong>@address</strong>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Phiên làm việc đã được mã hóa an toàn qua Cookie.</span>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="hero-section text-center p-5 mb-5">
+            <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle bg-white shadow-sm mb-3">
+                <i class="bi bi-cake2-fill fs-1" style="color: var(--bakery-primary);"></i>
+            </div>
+            <h1 class="display-5 fw-bold mb-3" style="color: var(--bakery-dark);">Bakery Management System</h1>
+            <p class="lead text-muted mx-auto mb-4" style="max-width: 700px;">
+                Chào mừng bạn đến với hệ thống quản lý tiệm bánh. Vui lòng đăng nhập hoặc đăng ký tài khoản khách hàng để trải nghiệm các tính năng của hệ thống.
+            </p>
+
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a asp-controller="Account" asp-action="Login" class="btn btn-bakery px-4 py-3 fs-5">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Đăng Nhập
+                </a>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-bakery-outline px-4 py-3 fs-5">
+                    <i class="bi bi-person-plus me-2"></i> Đăng Ký Tài Khoản Mới
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 rounded-4 shadow-sm bg-white">
+                    <div class="mb-3 text-warning">
+                        <i class="bi bi-shield-check" style="font-size: 2.5rem; color: var(--bakery-primary);"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Bảo Mật Cao</h5>
+                    <p class="text-muted small">
+                        Xác thực danh tính an toàn với chuẩn Cookie Authentication và mã hóa mật khẩu PBKDF2.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 rounded-4 shadow-sm bg-white">
+                    <div class="mb-3 text-warning">
+                        <i class="bi bi-person-gear" style="font-size: 2.5rem; color: var(--bakery-primary);"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Phân Quyền Rõ Ràng</h5>
+                    <p class="text-muted small">
+                        Hỗ trợ 4 Actor theo yêu cầu đồ án SWP391: Customer, Cashier, Baker và Quản trị viên (Admin).
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 p-4 rounded-4 shadow-sm bg-white">
+                    <div class="mb-3 text-warning">
+                        <i class="bi bi-shop" style="font-size: 2.5rem; color: var(--bakery-primary);"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Sẵn Sàng Mở Rộng</h5>
+                    <p class="text-muted small">
+                        Cấu trúc MVC chuẩn chỉnh, dễ dàng tích hợp các module bán hàng online, giỏ hàng và POS.
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

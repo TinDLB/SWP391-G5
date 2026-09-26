@@ -1,0 +1,166 @@
+@model SWP391_G5.Models.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Đăng Ký Tài Khoản Khách Hàng - Tiệm Bánh BMS";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card" style="max-width: 1020px;">
+        <div class="row g-0">
+            <!-- Cột trái: Banner Ưu Đãi Hội Viên -->
+            <div class="col-lg-5 d-none d-lg-flex auth-banner">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-gift-fill fs-2 text-warning"></i>
+                        <span class="fs-4 fw-bold">Bakery BMS</span>
+                    </div>
+                    <h1 class="auth-banner-title">Trở Thành Khách Hàng Thân Thiết</h1>
+                    <p class="auth-banner-subtitle">
+                        Đăng ký tài khoản để nhận ngay vô vàn đặc quyền tại tiệm bánh: đặt bánh sinh nhật theo yêu cầu, giao hàng tận nơi và tích điểm thành viên.
+                    </p>
+
+                    <ul class="auth-features">
+                        <li><i class="bi bi-stars"></i> Tặng voucher 20% cho đơn hàng đầu tiên</li>
+                        <li><i class="bi bi-stars"></i> Quà tặng ngọt ngào vào tháng sinh nhật của bạn</li>
+                        <li><i class="bi bi-stars"></i> Lưu nhiều địa chỉ nhận bánh tiện lợi khi checkout</li>
+                        <li><i class="bi bi-stars"></i> Theo dõi lịch sử và tiến độ nướng bánh trực tiếp</li>
+                    </ul>
+                </div>
+
+                <div class="text-white-50 small mt-4">
+                    © 2026 Bakery Management System • SWP391 Group 5
+                </div>
+            </div>
+
+            <!-- Cột phải: Form Đăng Ký -->
+            <div class="col-lg-7 auth-form-side">
+                <div class="auth-header">
+                    <h2>Đăng Ký Tài Khoản</h2>
+                    <p>Khởi tạo tài khoản khách hàng chỉ trong 30 giây.</p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5"></i>
+                        <div>
+                            @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+                            {
+                                <div>@error.ErrorMessage</div>
+                            }
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form asp-action="Register" asp-controller="Account" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" id="registerForm">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-12">
+                            <div class="form-floating">
+                                <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" autofocus />
+                                <label asp-for="FullName"><i class="bi bi-person me-1"></i> Họ và tên</label>
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" />
+                                <label asp-for="Email"><i class="bi bi-envelope me-1"></i> Email</label>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="0912345678" />
+                                <label asp-for="PhoneNumber"><i class="bi bi-telephone me-1"></i> Số điện thoại</label>
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Address" class="form-control" placeholder="Số nhà, tên đường, quận/huyện..." />
+                        <label asp-for="Address"><i class="bi bi-geo-alt me-1"></i> Địa chỉ giao hàng (Tùy chọn)</label>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <div class="form-floating position-relative">
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" id="regPassword" />
+                                <label asp-for="Password"><i class="bi bi-lock me-1"></i> Mật khẩu</label>
+                                <button type="button" class="btn btn-sm btn-link position-absolute end-0 top-50 translate-middle-y me-2 text-muted text-decoration-none" id="toggleRegPassword" tabindex="-1">
+                                    <i class="bi bi-eye" id="toggleRegIcon"></i>
+                                </button>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating position-relative">
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" id="regConfirmPassword" />
+                                <label asp-for="ConfirmPassword"><i class="bi bi-shield-lock me-1"></i> Xác nhận mật khẩu</label>
+                                <button type="button" class="btn btn-sm btn-link position-absolute end-0 top-50 translate-middle-y me-2 text-muted text-decoration-none" id="toggleRegConfirmPassword" tabindex="-1">
+                                    <i class="bi bi-eye" id="toggleRegConfirmIcon"></i>
+                                </button>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input asp-for="AgreeTerms" class="form-check-input" type="checkbox" id="agreeTermsCheck" />
+                            <label class="form-check-label text-muted small" for="agreeTermsCheck">
+                                Tôi đồng ý với <a href="javascript:void(0)" class="text-decoration-none" style="color: var(--bakery-primary);">Điều khoản dịch vụ</a> và <a href="javascript:void(0)" class="text-decoration-none" style="color: var(--bakery-primary);">Chính sách bảo mật</a> của tiệm bánh.
+                            </label>
+                        </div>
+                        <span asp-validation-for="AgreeTerms" class="text-danger small d-block"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-bakery w-100 py-3 mb-3">
+                        <i class="bi bi-person-plus-fill me-1"></i> Đăng Ký Tài Khoản Khách Hàng
+                    </button>
+
+                    <div class="text-center text-muted small">
+                        Bạn đã có tài khoản rồi? 
+                        <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@ViewData["ReturnUrl"]" class="fw-bold text-decoration-none" style="color: var(--bakery-primary);">
+                            Đăng nhập ngay
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function setupToggle(buttonId, inputId, iconId) {
+            const btn = document.getElementById(buttonId);
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (btn && input && icon) {
+                btn.addEventListener('click', function () {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('bi-eye');
+                        icon.classList.add('bi-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('bi-eye-slash');
+                        icon.classList.add('bi-eye');
+                    }
+                });
+            }
+        }
+
+        setupToggle('toggleRegPassword', 'regPassword', 'toggleRegIcon');
+        setupToggle('toggleRegConfirmPassword', 'regConfirmPassword', 'toggleRegConfirmIcon');
+    </script>
+}
