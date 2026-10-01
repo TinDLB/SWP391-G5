@@ -8,6 +8,10 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
+        if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+        {
+            return RedirectToAction("Dashboard", "Admin");
+        }
         return View();
     }
 

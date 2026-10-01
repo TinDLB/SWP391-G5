@@ -1,0 +1,251 @@
+@using SWP391_G5.Models.Entities
+@model IEnumerable<Product>
+
+@{
+    ViewData["Title"] = "Quản lý bánh";
+    ViewData["PageTitle"] = "Quản lý bánh";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var categories = ViewBag.Categories as IEnumerable<Category> ?? Enumerable.Empty<Category>();
+    int totalActive   = ViewBag.TotalActive   ?? 0;
+    int totalInactive = ViewBag.TotalInactive ?? 0;
+    int totalInStock  = ViewBag.TotalInStock  ?? 0;
+    int totalOut      = ViewBag.TotalOutOfStock ?? 0;
+    string? search    = ViewBag.Search as string;
+    string? selCat    = ViewBag.Category as string;
+    string? selStatus = ViewBag.Status as string;
+}
+
+<!-- ── Stat Cards ── -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="width:46px;height:46px;background:rgba(232,98,26,.12);flex-shrink:0;">
+                    <i class="bi bi-basket3-fill" style="color:#e8621a;font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:.75rem;">Đang bán</div>
+                    <div class="fw-bold fs-5 lh-1">@totalActive</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="width:46px;height:46px;background:rgba(108,117,125,.12);flex-shrink:0;">
+                    <i class="bi bi-archive text-secondary" style="font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:.75rem;">Tạm ngưng</div>
+                    <div class="fw-bold fs-5 lh-1">@totalInactive</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="width:46px;height:46px;background:rgba(25,135,84,.12);flex-shrink:0;">
+                    <i class="bi bi-check2-circle text-success" style="font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:.75rem;">Còn hàng</div>
+                    <div class="fw-bold fs-5 lh-1">@totalInStock</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body p-3 d-flex align-items-center gap-3">
+                <div class="rounded-3 d-flex align-items-center justify-content-center"
+                     style="width:46px;height:46px;background:rgba(220,53,69,.12);flex-shrink:0;">
+                    <i class="bi bi-x-circle text-danger" style="font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size:.75rem;">Hết hàng</div>
+                    <div class="fw-bold fs-5 lh-1">@totalOut</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Filter + Table ── -->
+<div class="card border-0 shadow-sm rounded-3">
+    <div class="card-header bg-white border-bottom px-4 py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <h6 class="fw-semibold mb-0">
+            <i class="bi bi-basket3 me-2" style="color:#e8621a;"></i>Danh sách sản phẩm bánh
+        </h6>
+        <button class="btn btn-sm rounded-pill px-3" style="background:#e8621a;color:#fff;" disabled>
+            <i class="bi bi-plus-lg me-1"></i> Thêm bánh
+        </button>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="card-body border-bottom bg-light px-4 py-3">
+        <form method="get" asp-controller="Admin" asp-action="Products" class="row g-2 align-items-end">
+            <div class="col-sm-4 col-lg-5">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search" value="@search" class="form-control border-start-0 ps-0"
+                           placeholder="Tìm tên bánh..." />
+                </div>
+            </div>
+            <div class="col-sm-3 col-lg-3">
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">Tất cả danh mục</option>
+                    @foreach (var c in categories)
+                    {
+                        <option value="@c.CategoryId" selected="@(selCat == c.CategoryId.ToString())">
+                            @c.Name
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-2 col-lg-2">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active"   selected="@(selStatus == "active")">Đang bán</option>
+                    <option value="inactive" selected="@(selStatus == "inactive")">Tạm ngưng</option>
+                </select>
+            </div>
+            <div class="col-auto d-flex gap-1">
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Lọc</button>
+                @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(selCat) || !string.IsNullOrEmpty(selStatus))
+                {
+                    <a asp-controller="Admin" asp-action="Products" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox display-5 d-block mb-3 opacity-50"></i>
+                <p class="mb-0">Không tìm thấy sản phẩm nào phù hợp.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size:.9rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4" style="width:50px;">#</th>
+                            <th style="width:64px;">Ảnh</th>
+                            <th>Tên bánh</th>
+                            <th>Danh mục</th>
+                            <th class="text-end">Giá bán</th>
+                            <th class="text-center">Tồn kho</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center pe-4" style="width:100px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{int idx = 1;}
+                        @foreach (var p in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 text-muted">@(idx++)</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(p.ImageUrl))
+                                    {
+                                        <img src="@p.ImageUrl" alt="@p.Name"
+                                             class="rounded-2 object-fit-cover"
+                                             style="width:48px;height:48px;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="rounded-2 d-flex align-items-center justify-content-center bg-light"
+                                             style="width:48px;height:48px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@p.Name</div>
+                                    @if (!string.IsNullOrEmpty(p.Description))
+                                    {
+                                        <div class="text-muted small text-truncate" style="max-width:200px;">
+                                            @p.Description
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill bg-light text-dark border" style="font-weight:500;">
+                                        @p.Category?.Name
+                                    </span>
+                                </td>
+                                <td class="text-end fw-semibold" style="color:#e8621a;">
+                                    @p.Price.ToString("N0") đ
+                                </td>
+                                <td class="text-center">
+                                    @if (p.StockQty == 0)
+                                    {
+                                        <span class="badge bg-danger rounded-pill">Hết hàng</span>
+                                    }
+                                    else if (p.StockQty <= 5)
+                                    {
+                                        <span class="badge bg-warning text-dark rounded-pill">
+                                            @p.StockQty còn lại
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success rounded-pill">@p.StockQty</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (p.IsActive)
+                                    {
+                                        <span class="badge rounded-pill" style="background:rgba(25,135,84,.12);color:#198754;">
+                                            <i class="bi bi-circle-fill me-1" style="font-size:.45rem;vertical-align:middle;"></i>Đang bán
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-light text-secondary border">
+                                            <i class="bi bi-circle me-1" style="font-size:.45rem;vertical-align:middle;"></i>Tạm ngưng
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button class="btn btn-sm btn-light rounded-2" title="Xem chi tiết" disabled>
+                                            <i class="bi bi-eye text-primary"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-light rounded-2" title="Chỉnh sửa" disabled>
+                                            <i class="bi bi-pencil text-warning"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer summary -->
+            <div class="px-4 py-3 border-top text-muted small bg-light rounded-bottom">
+                Hiển thị <strong>@Model.Count()</strong> sản phẩm
+                @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(selCat) || !string.IsNullOrEmpty(selStatus))
+                {
+                    <span> (đã lọc)</span>
+                }
+            </div>
+        }
+    </div>
+</div>

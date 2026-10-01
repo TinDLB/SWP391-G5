@@ -11,10 +11,7 @@ namespace SWP391_G5.Services
 
         public string HashPassword(string password)
         {
-            byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
-            byte[] hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithm, KeySize);
-
-            return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         public bool VerifyPassword(string password, string passwordHash)
@@ -22,6 +19,19 @@ namespace SWP391_G5.Services
             if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(passwordHash))
             {
                 return false;
+            }
+
+            // Hỗ trợ kiểm tra mật khẩu dạng BCrypt (dữ liệu trong BakeryManagementDB)
+            if (passwordHash.StartsWith("$2a$") || passwordHash.StartsWith("$2b$") || passwordHash.StartsWith("$2y$"))
+            {
+                try
+                {
+                    return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+                }
+                catch
+                {
+                    return false;
+                }
             }
 
             // Hỗ trợ kiểm tra mật khẩu mẫu chưa băm (trong trường hợp seed data thủ công)

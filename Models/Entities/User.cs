@@ -1,39 +1,49 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
-namespace SWP391_G5.Models.Entities
+namespace SWP391_G5.Models.Entities;
+
+public partial class User
 {
-    [Table("Users")]
-    public class User
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+    public int UserId { get; set; }
 
-        [Required]
-        [MaxLength(100)]
-        public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = null!;
 
-        [Required]
-        [EmailAddress]
-        [MaxLength(150)]
-        public string Email { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = null!;
 
-        [Required]
-        public string PasswordHash { get; set; } = string.Empty;
+    public string FullName { get; set; } = null!;
 
-        [MaxLength(20)]
-        public string? PhoneNumber { get; set; }
+    public string? Phone { get; set; }
 
-        [MaxLength(255)]
-        public string? Address { get; set; }
+    public string Role { get; set; } = null!;
 
-        [Required]
-        [MaxLength(50)]
-        public string Role { get; set; } = Entities.Role.Customer;
+    public bool IsActive { get; set; }
 
-        public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    }
+    public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();
+
+    public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
+
+    public virtual ICollection<GoodsReceipt> GoodsReceipts { get; set; } = new List<GoodsReceipt>();
+
+    public virtual ICollection<InventoryTransaction> InventoryTransactions { get; set; } = new List<InventoryTransaction>();
+
+    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+
+    public virtual ICollection<Order> OrderCashiers { get; set; } = new List<Order>();
+
+    public virtual ICollection<Order> OrderCustomers { get; set; } = new List<Order>();
+
+    public virtual ICollection<ProductionTask> ProductionTaskAssignedBakerNavigations { get; set; } = new List<ProductionTask>();
+
+    public virtual ICollection<ProductionTask> ProductionTaskCreatedByNavigations { get; set; } = new List<ProductionTask>();
+
+    public virtual ICollection<PurchaseOrder> PurchaseOrders { get; set; } = new List<PurchaseOrder>();
+
+    public virtual ICollection<StockAdjustment> StockAdjustments { get; set; } = new List<StockAdjustment>();
+
+    public virtual ICollection<StockCount> StockCounts { get; set; } = new List<StockCount>();
 }

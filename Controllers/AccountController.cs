@@ -12,12 +12,12 @@ namespace SWP391_G5.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly BakeryDbContext _context;
+        private readonly BakeryManagementDbContext _context;
         private readonly IPasswordService _passwordService;
         private readonly ILogger<AccountController> _logger;
 
         public AccountController(
-            BakeryDbContext context,
+            BakeryManagementDbContext context,
             IPasswordService passwordService,
             ILogger<AccountController> logger)
         {
@@ -70,12 +70,11 @@ namespace SWP391_G5.Controllers
             // Tạo danh sách Claims xác thực
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.FullName),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role),
-                new Claim("PhoneNumber", user.PhoneNumber ?? string.Empty),
-                new Claim("Address", user.Address ?? string.Empty)
+                new Claim("PhoneNumber", user.Phone ?? string.Empty)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -95,7 +94,7 @@ namespace SWP391_G5.Controllers
 
             TempData["SuccessMessage"] = $"Đăng nhập thành công! Chào mừng {user.FullName} trở lại tiệm bánh.";
 
-            return RedirectToLocal(model.ReturnUrl);
+            return RedirectToLocal(model.ReturnUrl, user.Role);
         }
 
         // GET: /Account/Register
@@ -140,10 +139,9 @@ namespace SWP391_G5.Controllers
             {
                 FullName = model.FullName.Trim(),
                 Email = normalizedEmail,
-                PhoneNumber = model.PhoneNumber.Trim(),
-                Address = model.Address?.Trim(),
+                Phone = model.PhoneNumber.Trim(),
                 PasswordHash = _passwordService.HashPassword(model.Password),
-                Role = Role.Customer,
+                Role = "Customer",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -156,12 +154,11 @@ namespace SWP391_G5.Controllers
             // Tự động đăng nhập sau khi đăng ký thành công
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, newUser.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, newUser.UserId.ToString()),
                 new Claim(ClaimTypes.Name, newUser.FullName),
                 new Claim(ClaimTypes.Email, newUser.Email),
                 new Claim(ClaimTypes.Role, newUser.Role),
-                new Claim("PhoneNumber", newUser.PhoneNumber ?? string.Empty),
-                new Claim("Address", newUser.Address ?? string.Empty)
+                new Claim("PhoneNumber", newUser.Phone ?? string.Empty)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -192,11 +189,16 @@ namespace SWP391_G5.Controllers
             return View();
         }
 
-        private IActionResult RedirectToLocal(string? returnUrl)
+        private IActionResult RedirectToLocal(string? returnUrl, string? role = null)
         {
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
+            }
+
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) || User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Dashboard", "Admin");
             }
 
             return RedirectToAction("Index", "Home");

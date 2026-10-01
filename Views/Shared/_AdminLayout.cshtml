@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin | BMS</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #1a1f2e;
+            --sidebar-hover: #2d3548;
+            --sidebar-active: #e8621a;
+            --sidebar-text: #c8cdd8;
+            --sidebar-heading: #6b7280;
+            --topbar-height: 60px;
+        }
+
+        body { background: #f0f2f5; overflow-x: hidden; }
+
+        /* ── Sidebar ── */
+        #adminSidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            z-index: 1040;
+            transition: width .25s ease;
+            overflow: hidden;
+        }
+
+        .sidebar-brand {
+            height: var(--topbar-height);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+        .sidebar-brand .brand-icon { font-size: 1.5rem; color: var(--sidebar-active); }
+        .sidebar-brand .brand-text {
+            margin-left: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .sidebar-brand .brand-text span { color: var(--sidebar-active); }
+
+        .sidebar-section-title {
+            padding: 16px 20px 6px;
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--sidebar-heading);
+        }
+
+        .sidebar-nav { flex: 1; overflow-y: auto; padding-bottom: 16px; }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 4px; }
+
+        .nav-item-admin { list-style: none; }
+
+        .nav-link-admin {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: .9rem;
+            border-left: 3px solid transparent;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+        .nav-link-admin:hover {
+            background: var(--sidebar-hover);
+            color: #fff;
+        }
+        .nav-link-admin.active {
+            background: rgba(232,98,26,.12);
+            color: #fff;
+            border-left-color: var(--sidebar-active);
+        }
+        .nav-link-admin i { font-size: 1.05rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+        .sidebar-footer {
+            border-top: 1px solid rgba(255,255,255,.07);
+            padding: 12px 20px;
+        }
+        .sidebar-footer .user-info { color: var(--sidebar-text); font-size: .82rem; }
+        .sidebar-footer .user-name { color: #fff; font-weight: 600; font-size: .9rem; }
+
+        /* ── Topbar ── */
+        #adminTopbar {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--topbar-height);
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 1030;
+            gap: 12px;
+            transition: left .25s ease;
+        }
+
+        .topbar-title { font-weight: 600; font-size: 1.05rem; color: #1a1f2e; flex: 1; }
+
+        /* ── Main Content ── */
+        #adminMain {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--topbar-height);
+            min-height: calc(100vh - var(--topbar-height));
+            padding: 28px;
+            transition: margin-left .25s ease;
+        }
+
+        /* ── Alerts ── */
+        .admin-alerts { margin-bottom: 0; }
+
+        @@media (max-width: 991.98px) {
+            #adminSidebar { width: 0; }
+            #adminSidebar.show { width: var(--sidebar-width); }
+            #adminTopbar { left: 0; }
+            #adminMain { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── SIDEBAR ── -->
+    <nav id="adminSidebar">
+        <a class="sidebar-brand" asp-controller="Admin" asp-action="Dashboard">
+            <i class="bi bi-cake2-fill brand-icon"></i>
+            <span class="brand-text">Bakery <span>Admin</span></span>
+        </a>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-section-title">Tổng quan</div>
+            <ul class="list-unstyled mb-0">
+                <li class="nav-item-admin">
+                    <a class="nav-link-admin @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Dashboard">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-section-title mt-2">Sản phẩm</div>
+            <ul class="list-unstyled mb-0">
+                <li class="nav-item-admin">
+                    <a class="nav-link-admin @(ViewContext.RouteData.Values["action"]?.ToString() == "Products" ? "active" : "")"
+                       asp-controller="Admin" asp-action="Products">
+                        <i class="bi bi-basket3"></i> Quản lý bánh
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-section-title mt-2">Kho hàng</div>
+            <ul class="list-unstyled mb-0">
+                <li class="nav-item-admin">
+                    <a class="nav-link-admin" href="#">
+                        <i class="bi bi-boxes"></i> Nguyên liệu
+                    </a>
+                </li>
+                <li class="nav-item-admin">
+                    <a class="nav-link-admin" href="#">
+                        <i class="bi bi-arrow-left-right"></i> Giao dịch kho
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-section-title mt-2">Đơn hàng</div>
+            <ul class="list-unstyled mb-0">
+                <li class="nav-item-admin">
+                    <a class="nav-link-admin" href="#">
+                        <i class="bi bi-receipt"></i> Quản lý đơn hàng
+                    </a>
+                </li>
+                <li class="nav-item-admin">
+                    <a class="nav-link-admin" href="#">
+                        <i class="bi bi-cart-check"></i> Đơn mua hàng
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-section-title mt-2">Hệ thống</div>
+            <ul class="list-unstyled mb-0">
+                <li class="nav-item-admin">
+                    <a class="nav-link-admin" href="#">
+                        <i class="bi bi-people"></i> Người dùng
+                    </a>
+                </li>
+                <li class="nav-item-admin">
+                    <a class="nav-link-admin" href="#">
+                        <i class="bi bi-bar-chart-line"></i> Báo cáo
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center"
+                     style="width:36px;height:36px;flex-shrink:0;">
+                    <i class="bi bi-person-fill text-dark"></i>
+                </div>
+                <div>
+                    <div class="user-name">@User.Identity!.Name</div>
+                    <div class="user-info">Administrator</div>
+                </div>
+                <form method="post" asp-controller="Account" asp-action="Logout" class="ms-auto">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-link text-secondary p-0" title="Đăng xuất">
+                        <i class="bi bi-box-arrow-right fs-5"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── TOPBAR ── -->
+    <div id="adminTopbar">
+        <button class="btn btn-sm btn-link text-secondary d-lg-none p-0 me-2" id="sidebarToggle">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+        <span class="topbar-title">@(ViewData["PageTitle"] ?? ViewData["Title"])</span>
+
+        <!-- Alerts inline -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible d-flex align-items-center mb-0 py-1 px-3 rounded-3 admin-alerts" role="alert" style="font-size:.85rem;">
+                <i class="bi bi-check-circle-fill me-1"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="alert alert-info alert-dismissible d-flex align-items-center mb-0 py-1 px-3 rounded-3 admin-alerts" role="alert" style="font-size:.85rem;">
+                <i class="bi bi-info-circle-fill me-1"></i> @TempData["InfoMessage"]
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible d-flex align-items-center mb-0 py-1 px-3 rounded-3 admin-alerts" role="alert" style="font-size:.85rem;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+            </div>
+        }
+    </div>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main id="adminMain">
+        @RenderBody()
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Mobile sidebar toggle
+        document.getElementById('sidebarToggle')?.addEventListener('click', function () {
+            document.getElementById('adminSidebar').classList.toggle('show');
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
