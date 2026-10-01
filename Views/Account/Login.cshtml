@@ -95,11 +95,13 @@
                     <!-- Hộp gợi ý tài khoản mẫu để test cho thành viên nhóm / giảng viên -->
                     <div class="p-3 rounded-3" style="background-color: var(--bakery-cream); border: 1px dashed var(--bakery-secondary);">
                         <div class="d-flex align-items-center gap-1 small fw-bold mb-1" style="color: var(--bakery-dark);">
-                            <i class="bi bi-info-circle-fill text-warning"></i> Tài khoản mẫu dùng để kiểm thử (Mật khẩu: <code>123456</code>):
+                            <i class="bi bi-info-circle-fill text-warning"></i> Tài khoản mẫu dùng để kiểm thử (Mật khẩu: <code>Bakery@@123</code>):
                         </div>
                         <div class="small text-muted">
-                            • Khách hàng (Customer): <a href="javascript:void(0)" onclick="fillCredentials('customer@bakery.com')" class="text-decoration-underline text-dark fw-semibold">customer@bakery.com</a><br />
-                            • Quản trị viên (Admin): <a href="javascript:void(0)" onclick="fillCredentials('admin@bakery.com')" class="text-decoration-underline text-dark fw-semibold">admin@bakery.com</a>
+                            • Khách hàng (Customer): <a href="javascript:void(0)" onclick="fillCredentials('khach01@example.com', 'Bakery@123')" class="text-decoration-underline text-dark fw-semibold">khach01@example.com</a><br />
+                            • Quản trị viên (Admin): <a href="javascript:void(0)" onclick="fillCredentials('tindlbhe171497@fpt.edu.vn', 'Bakery@123')" class="text-decoration-underline text-dark fw-semibold">tindlbhe171497@fpt.edu.vn</a><br />
+                            • Thu ngân (Cashier): <a href="javascript:void(0)" onclick="fillCredentials('thaitqhe171880@fpt.edu.vn', 'Bakery@123')" class="text-decoration-underline text-dark fw-semibold">thaitqhe171880@fpt.edu.vn</a><br />
+                            • Thợ làm bánh (Baker): <a href="javascript:void(0)" onclick="fillCredentials('datpmhe176115@fpt.edu.vn', 'Bakery@123')" class="text-decoration-underline text-dark fw-semibold">datpmhe176115@fpt.edu.vn</a>
                         </div>
                     </div>
                 </form>
@@ -111,9 +113,9 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        function fillCredentials(email) {
+        function fillCredentials(email, password = 'Bakery@123') {
             document.getElementById('Email').value = email;
-            document.getElementById('passwordInput').value = '123456';
+            document.getElementById('passwordInput').value = password;
         }
 
         const toggleBtn = document.getElementById('togglePasswordBtn');

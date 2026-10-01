@@ -13,6 +13,10 @@
     --bakery-shadow-hover: 0 15px 35px rgba(74, 46, 24, 0.15);
 }
 
+html {
+    background-color: var(--bakery-light);
+}
+
 body {
     background-color: var(--bakery-light);
     color: var(--bakery-dark-text);
@@ -20,6 +24,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    margin: 0;
 }
 
 /* Navbar */
@@ -47,7 +52,7 @@ body {
 .nav-link {
     font-weight: 500;
     color: #555 !important;
-    transition: all 0.2s ease;
+    transition: color 0.15s ease, background-color 0.15s ease;
     padding: 0.5rem 1rem !important;
     border-radius: 8px;
 }
