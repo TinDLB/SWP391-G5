@@ -16,7 +16,7 @@
     string? selStatus = ViewBag.Status as string;
 }
 
-<!-- ── Stat Cards ── -->
+<!-- ── 1. Thống kê tổng quan (Số liệu cố định hệ thống, không bị nhảy khi lọc) ── -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-xl-3">
         <div class="card border-0 shadow-sm rounded-3">
@@ -76,21 +76,23 @@
     </div>
 </div>
 
-<!-- ── Filter + Table ── -->
-<div class="card border-0 shadow-sm rounded-3">
+<!-- ── 2. Bộ lọc & Khung danh sách bánh (Cố định chiều cao min-height để không bị giật trang) ── -->
+<div class="card border-0 shadow-sm rounded-3" style="min-height:540px;">
     <div class="card-header bg-white border-bottom px-4 py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
         <h6 class="fw-semibold mb-0">
             <i class="bi bi-basket3 me-2" style="color:#e8621a;"></i>Danh sách sản phẩm bánh
         </h6>
-        <button class="btn btn-sm rounded-pill px-3" style="background:#e8621a;color:#fff;" disabled>
-            <i class="bi bi-plus-lg me-1"></i> Thêm bánh
+        <button class="btn btn-sm rounded-pill px-3 shadow-sm text-white"
+                style="background:#e8621a;"
+                data-bs-toggle="modal" data-bs-target="#createProductModal">
+            <i class="bi bi-plus-lg me-1"></i> Thêm bánh mới
         </button>
     </div>
 
-    <!-- Filter bar -->
+    <!-- Thanh lọc dữ liệu -->
     <div class="card-body border-bottom bg-light px-4 py-3">
-        <form method="get" asp-controller="Admin" asp-action="Products" class="row g-2 align-items-end">
-            <div class="col-sm-4 col-lg-5">
+        <form method="get" asp-controller="Admin" asp-action="Products" class="row g-2 align-items-center" id="filterForm">
+            <div class="col-sm-5 col-lg-5">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white border-end-0">
                         <i class="bi bi-search text-muted"></i>
@@ -100,7 +102,7 @@
                 </div>
             </div>
             <div class="col-sm-3 col-lg-3">
-                <select name="category" class="form-select form-select-sm">
+                <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="">Tất cả danh mục</option>
                     @foreach (var c in categories)
                     {
@@ -111,47 +113,47 @@
                 </select>
             </div>
             <div class="col-sm-2 col-lg-2">
-                <select name="status" class="form-select form-select-sm">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="">Tất cả trạng thái</option>
                     <option value="active"   selected="@(selStatus == "active")">Đang bán</option>
                     <option value="inactive" selected="@(selStatus == "inactive")">Tạm ngưng</option>
                 </select>
             </div>
-            <div class="col-auto d-flex gap-1">
+            <div class="col-auto d-flex gap-1 ms-auto">
                 <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Lọc</button>
                 @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(selCat) || !string.IsNullOrEmpty(selStatus))
                 {
-                    <a asp-controller="Admin" asp-action="Products" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                        <i class="bi bi-x-lg"></i>
+                    <a asp-controller="Admin" asp-action="Products" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Xóa bộ lọc">
+                        <i class="bi bi-x-lg"></i> Xóa lọc
                     </a>
                 }
             </div>
         </form>
     </div>
 
-    <!-- Table -->
-    <div class="card-body p-0">
+    <!-- Bảng danh sách bánh -->
+    <div class="card-body p-0 d-flex flex-column justify-content-between" style="min-height:380px;">
         @if (!Model.Any())
         {
-            <div class="text-center py-5 text-muted">
+            <div class="text-center py-5 text-muted my-auto">
                 <i class="bi bi-inbox display-5 d-block mb-3 opacity-50"></i>
-                <p class="mb-0">Không tìm thấy sản phẩm nào phù hợp.</p>
+                <p class="mb-0">Không tìm thấy sản phẩm bánh nào phù hợp với bộ lọc.</p>
             </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size:.9rem;">
+                <table class="table table-hover align-middle mb-0" style="font-size:.9rem; table-layout: fixed; width: 100%;">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4" style="width:50px;">#</th>
-                            <th style="width:64px;">Ảnh</th>
-                            <th>Tên bánh</th>
-                            <th>Danh mục</th>
-                            <th class="text-end">Giá bán</th>
-                            <th class="text-center">Tồn kho</th>
-                            <th class="text-center">Trạng thái</th>
-                            <th class="text-center pe-4" style="width:100px;">Thao tác</th>
+                            <th class="ps-4" style="width: 50px;">#</th>
+                            <th style="width: 70px;">Ảnh</th>
+                            <th style="width: 27%;">Tên sản phẩm</th>
+                            <th style="width: 16%;">Danh mục</th>
+                            <th class="text-end" style="width: 14%;">Giá bán</th>
+                            <th class="text-center" style="width: 14%;">Tồn kho</th>
+                            <th class="text-center" style="width: 15%;">Trạng thái</th>
+                            <th class="text-center pe-4" style="width: 100px;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -159,76 +161,78 @@
                         @foreach (var p in Model)
                         {
                             <tr>
-                                <td class="ps-4 text-muted">@(idx++)</td>
+                                <td class="ps-4 text-muted fw-normal">@(idx++)</td>
                                 <td>
                                     @if (!string.IsNullOrEmpty(p.ImageUrl))
                                     {
                                         <img src="@p.ImageUrl" alt="@p.Name"
-                                             class="rounded-2 object-fit-cover"
-                                             style="width:48px;height:48px;" />
+                                             class="rounded-3 object-fit-cover border"
+                                             style="width:44px;height:44px;" />
                                     }
                                     else
                                     {
-                                        <div class="rounded-2 d-flex align-items-center justify-content-center bg-light"
-                                             style="width:48px;height:48px;">
-                                            <i class="bi bi-image text-muted"></i>
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center bg-light border text-muted"
+                                             style="width:44px;height:44px;">
+                                            <i class="bi bi-cake2 fs-5"></i>
                                         </div>
                                     }
                                 </td>
-                                <td>
-                                    <div class="fw-semibold">@p.Name</div>
+                                <td class="text-truncate" style="max-width: 0;">
+                                    <div class="fw-semibold text-dark text-truncate" title="@p.Name">@p.Name</div>
                                     @if (!string.IsNullOrEmpty(p.Description))
                                     {
-                                        <div class="text-muted small text-truncate" style="max-width:200px;">
+                                        <div class="text-muted small text-truncate" title="@p.Description">
                                             @p.Description
                                         </div>
                                     }
                                 </td>
-                                <td>
-                                    <span class="badge rounded-pill bg-light text-dark border" style="font-weight:500;">
-                                        @p.Category?.Name
+                                <td class="text-truncate" style="max-width: 0;">
+                                    <span class="badge rounded-pill bg-light text-dark border px-2 py-1 text-truncate" style="max-width: 100%; font-weight:500;" title="@p.Category?.Name">
+                                        @(p.Category?.Name ?? "Chưa phân loại")
                                     </span>
                                 </td>
-                                <td class="text-end fw-semibold" style="color:#e8621a;">
+                                <td class="text-end fw-bold text-nowrap" style="color:#e8621a;">
                                     @p.Price.ToString("N0") đ
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     @if (p.StockQty == 0)
                                     {
-                                        <span class="badge bg-danger rounded-pill">Hết hàng</span>
+                                        <span class="badge bg-danger rounded-pill px-2 py-1">Hết hàng</span>
                                     }
                                     else if (p.StockQty <= 5)
                                     {
-                                        <span class="badge bg-warning text-dark rounded-pill">
+                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-1">
                                             @p.StockQty còn lại
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-success rounded-pill">@p.StockQty</span>
+                                        <span class="badge bg-success rounded-pill px-2 py-1">@p.StockQty bánh</span>
                                     }
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center text-nowrap">
                                     @if (p.IsActive)
                                     {
-                                        <span class="badge rounded-pill" style="background:rgba(25,135,84,.12);color:#198754;">
+                                        <span class="badge rounded-pill px-2 py-1" style="background:rgba(25,135,84,.12);color:#198754;">
                                             <i class="bi bi-circle-fill me-1" style="font-size:.45rem;vertical-align:middle;"></i>Đang bán
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="badge rounded-pill bg-light text-secondary border">
+                                        <span class="badge rounded-pill bg-light text-secondary border px-2 py-1">
                                             <i class="bi bi-circle me-1" style="font-size:.45rem;vertical-align:middle;"></i>Tạm ngưng
                                         </span>
                                     }
                                 </td>
-                                <td class="text-center pe-4">
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <button class="btn btn-sm btn-light rounded-2" title="Xem chi tiết" disabled>
-                                            <i class="bi bi-eye text-primary"></i>
+                                <td class="text-center pe-4 text-nowrap">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-info" title="Xem chi tiết"
+                                                onclick="showDetailsModal(@p.ProductId)">
+                                            <i class="bi bi-eye"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-light rounded-2" title="Chỉnh sửa" disabled>
-                                            <i class="bi bi-pencil text-warning"></i>
+                                        <button type="button" class="btn btn-outline-warning" title="Chỉnh sửa"
+                                                onclick="showEditModal(@p.ProductId)">
+                                            <i class="bi bi-pencil"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -239,13 +243,277 @@
             </div>
 
             <!-- Footer summary -->
-            <div class="px-4 py-3 border-top text-muted small bg-light rounded-bottom">
-                Hiển thị <strong>@Model.Count()</strong> sản phẩm
+            <div class="px-4 py-3 border-top text-muted small bg-light rounded-bottom mt-auto">
+                Hiển thị <strong>@Model.Count()</strong> bánh
                 @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(selCat) || !string.IsNullOrEmpty(selStatus))
                 {
-                    <span> (đã lọc)</span>
+                    <span> (kết quả lọc)</span>
                 }
             </div>
         }
     </div>
 </div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- ── MODAL 1: THÊM BÁNH MỚI ── -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="createProductModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <form method="post" asp-controller="Admin" asp-action="CreateProduct" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-header border-bottom bg-light">
+                    <h5 class="modal-title fw-semibold" id="createModalLabel">
+                        <i class="bi bi-plus-circle me-2" style="color:#e8621a;"></i>Thêm bánh mới vào kho
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold">Tên bánh <span class="text-danger">*</span></label>
+                            <input type="text" name="Name" class="form-control" placeholder="Nhập tên bánh..." required />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                            <select name="CategoryId" class="form-select" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                @foreach (var c in categories)
+                                {
+                                    <option value="@c.CategoryId">@c.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" name="Price" class="form-control" placeholder="0" min="0" step="500" required />
+                                <span class="input-group-text">đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số lượng tồn kho <span class="text-danger">*</span></label>
+                            <input type="number" name="StockQty" class="form-control" placeholder="0" min="0" value="10" required />
+                        </div>
+
+                        <!-- 🖼️ UPLOAD ẢNH BÁNH -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-image me-1"></i> Tải ảnh bánh lên</span>
+                                <small class="text-muted">(Lưu vào: wwwroot/uploads/products/)</small>
+                            </label>
+                            <input type="file" name="imageFile" accept="image/*" class="form-control" onchange="previewImage(this, '#createImagePreview')" />
+                            <div class="mt-2 text-center d-none" id="createPreviewBox">
+                                <img id="createImagePreview" src="" class="rounded-3 border object-fit-cover shadow-sm" style="max-height:140px;" />
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Trạng thái kinh doanh</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" name="IsActive" value="true" id="createIsActive" checked />
+                                <label class="form-check-label" for="createIsActive">Đang mở bán sản phẩm này</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Mô tả sản phẩm</label>
+                            <textarea name="Description" class="form-control" rows="3" placeholder="Nhập hương vị, thành phần chính, lưu ý bảo quản..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" style="background:#e8621a;border-color:#e8621a;">
+                        <i class="bi bi-check-lg me-1"></i> Luu sản phẩm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- ── MODAL 2: XEM CHI TIẾT BÁNH ── -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="detailsProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom bg-light">
+                <h5 class="modal-title fw-semibold">
+                    <i class="bi bi-info-circle me-2 text-info"></i>Chi tiết sản phẩm bánh
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center" id="detailsModalBody">
+                <div class="spinner-border text-primary my-4" role="status"></div>
+            </div>
+            <div class="modal-footer border-top bg-light">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- ── MODAL 3: CHỈNH SỬA BÁNH ── -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <form method="post" asp-controller="Admin" asp-action="EditProduct" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ProductId" id="editProductId" />
+
+                <div class="modal-header border-bottom bg-light">
+                    <h5 class="modal-title fw-semibold">
+                        <i class="bi bi-pencil-square me-2 text-warning"></i>Chỉnh sửa thông tin bánh
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold">Tên bánh <span class="text-danger">*</span></label>
+                            <input type="text" name="Name" id="editName" class="form-control" required />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                            <select name="CategoryId" id="editCategoryId" class="form-select" required>
+                                @foreach (var c in categories)
+                                {
+                                    <option value="@c.CategoryId">@c.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" name="Price" id="editPrice" class="form-control" min="0" step="500" required />
+                                <span class="input-group-text">đ</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Số lượng tồn kho <span class="text-danger">*</span></label>
+                            <input type="number" name="StockQty" id="editStockQty" class="form-control" min="0" required />
+                        </div>
+
+                        <!-- 🖼️ UPLOAD / ĐỔI ẢNH BÁNH -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-image me-1"></i> Thay đổi ảnh bánh (Không bắt buộc)</span>
+                                <small class="text-muted">(Lưu vào: wwwroot/uploads/products/)</small>
+                            </label>
+                            <input type="file" name="imageFile" accept="image/*" class="form-control" onchange="previewImage(this, '#editImagePreview')" />
+                            <div class="mt-2 text-center">
+                                <img id="editImagePreview" src="" class="rounded-3 border object-fit-cover shadow-sm" style="max-height:140px;" />
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Trạng thái kinh doanh</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" name="IsActive" value="true" id="editIsActive" />
+                                <label class="form-check-label" for="editIsActive">Đang mở bán sản phẩm này</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Mô tả sản phẩm</label>
+                            <textarea name="Description" id="editDescription" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning text-dark rounded-pill px-4 fw-semibold">
+                        <i class="bi bi-save me-1"></i> Cập nhật thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Preview ảnh khi chọn file
+        function previewImage(input, previewImgSelector) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const $img = $(previewImgSelector);
+                    $img.attr('src', e.target.result);
+                    $img.parent().removeClass('d-none');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Xem chi tiết bánh
+        function showDetailsModal(id) {
+            const modal = new bootstrap.Modal(document.getElementById('detailsProductModal'));
+            $('#detailsModalBody').html('<div class="spinner-border text-primary my-4" role="status"></div>');
+            modal.show();
+
+            $.get('/Admin/GetProductJson/' + id, function (data) {
+                const formattedPrice = new Intl.NumberFormat('vi-VN').format(data.price) + ' đ';
+                const statusBadge = data.isActive 
+                    ? '<span class="badge bg-success rounded-pill px-3 py-2">Đang mở bán</span>' 
+                    : '<span class="badge bg-secondary rounded-pill px-3 py-2">Tạm ngưng</span>';
+                
+                const stockBadge = data.stockQty > 5 
+                    ? `<span class="badge bg-success rounded-pill px-3 py-2">${data.stockQty} bánh</span>`
+                    : (data.stockQty > 0 
+                        ? `<span class="badge bg-warning text-dark rounded-pill px-3 py-2">${data.stockQty} bánh còn lại</span>`
+                        : `<span class="badge bg-danger rounded-pill px-3 py-2">Hết hàng</span>`);
+
+                const imgHtml = data.imageUrl 
+                    ? `<img src="${data.imageUrl}" class="rounded-3 border object-fit-cover shadow-sm mb-3" style="width:160px;height:160px;" />`
+                    : `<div class="rounded-3 bg-light border d-inline-flex align-items-center justify-content-center text-muted mb-3" style="width:160px;height:160px;"><i class="bi bi-cake2 display-4"></i></div>`;
+
+                const html = `
+                    ${imgHtml}
+                    <h4 class="fw-bold text-dark mb-1">${data.name}</h4>
+                    <div class="mb-3"><span class="badge bg-light text-dark border">${data.categoryName || 'Chưa phân loại'}</span></div>
+                    
+                    <div class="row g-2 text-start bg-light p-3 rounded-3 mb-3">
+                        <div class="col-6"><strong>Giá bán:</strong> <span class="text-danger fw-bold fs-5">${formattedPrice}</span></div>
+                        <div class="col-6"><strong>Tồn kho:</strong> ${stockBadge}</div>
+                        <div class="col-12 mt-2"><strong>Trạng thái:</strong> ${statusBadge}</div>
+                    </div>
+
+                    <div class="text-start">
+                        <strong>Mô tả:</strong>
+                        <p class="text-muted small mt-1 mb-0">${data.description || 'Không có mô tả cho bánh này.'}</p>
+                    </div>
+                `;
+                $('#detailsModalBody').html(html);
+            }).fail(function() {
+                $('#detailsModalBody').html('<div class="text-danger my-3">Không thể tải thông tin sản phẩm.</div>');
+            });
+        }
+
+        // Mở Modal Chỉnh sửa
+        function showEditModal(id) {
+            $.get('/Admin/GetProductJson/' + id, function (data) {
+                $('#editProductId').val(data.productId);
+                $('#editName').val(data.name);
+                $('#editCategoryId').val(data.categoryId);
+                $('#editPrice').val(data.price);
+                $('#editStockQty').val(data.stockQty);
+                $('#editDescription').val(data.description);
+                $('#editIsActive').prop('checked', data.isActive);
+
+                if (data.imageUrl) {
+                    $('#editImagePreview').attr('src', data.imageUrl).parent().removeClass('d-none');
+                } else {
+                    $('#editImagePreview').attr('src', '').parent().addClass('d-none');
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+                modal.show();
+            });
+        }
+    </script>
+}
