@@ -1,22 +1,32 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SWP391_G5.Data;
+using SWP391_G5.Services;
 
 namespace SWP391_G5.Controllers
 {
     [Authorize(Roles = "Baker")]
     public class BakerController : Controller
     {
-        private readonly BakeryManagementDbContext _context;
+        private readonly IBakerService _bakerService;
 
-        public BakerController(BakeryManagementDbContext context)
+        public BakerController(IBakerService bakerService)
         {
-            _context = context;
+            _bakerService = bakerService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdClaim, out int bakerId))
+            {
+                return Unauthorized();
+            }
+
+            var tasks = await _bakerService.GetAssignedTasksAsync(bakerId);
+
+            return View(tasks);
         }
     }
 }
