@@ -12,6 +12,9 @@ public class HomeController : Controller
         {
             return RedirectToAction("Dashboard", "Admin");
         }
+
+        if (User.IsInRole("Cashier")) return RedirectToAction("Dashboard", "Cashier");
+
         return View();
     }
 

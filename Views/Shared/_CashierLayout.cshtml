@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Cashier | Bakery Management System</title>
+    <meta name="view-transition" content="same-origin" />
+    <style>
+        html, body { background-color: #FFFBF5; }
+        @@view-transition { navigation: auto; }
+
+        /* Chỉ dùng cho khu vực Cashier */
+        .stat-card { border: 0; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+        .cashier-subnav .nav-link { color: var(--bakery-dark); font-weight: 500; }
+        .cashier-subnav .nav-link.active { color: var(--bakery-primary); font-weight: 700; }
+    </style>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/bakery.css" asp-append-version="true" />
+</head>
+<body>
+    @{
+        var action = ViewContext.RouteData.Values["action"]?.ToString();
+    }
+    <header>
+        <nav class="navbar navbar-expand-lg bakery-navbar">
+            <div class="container">
+                <a class="navbar-brand bakery-brand" asp-controller="Cashier" asp-action="Dashboard">
+                    <i class="bi bi-cake2-fill" style="color: var(--bakery-primary);"></i>
+                    <span>Bakery</span> Cashier
+                </a>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarBakery" aria-controls="navbarBakery"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarBakery">
+                    <ul class="navbar-nav me-auto cashier-subnav">
+                        <li class="nav-item">
+                            <a class="nav-link @(action == "Dashboard" ? "active" : "")" asp-controller="Cashier" asp-action="Dashboard">
+                                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(action == "Profile" || action == "ChangePassword" ? "active" : "")" asp-controller="Cashier" asp-action="Profile">
+                                <i class="bi bi-person-circle me-1"></i> Hồ sơ cá nhân
+                            </a>
+                        </li>
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Thông báo TempData -->
+    <div class="container mt-3">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center rounded-3 shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                <div>@TempData["SuccessMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["InfoMessage"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show d-flex align-items-center rounded-3 shadow-sm" role="alert">
+                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                <div>@TempData["InfoMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center rounded-3 shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                <div>@TempData["ErrorMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+    </div>
+
+    <main role="main" class="container py-3 pb-4">
+        @RenderBody()
+    </main>
+
+    <footer class="bakery-footer">
+        <div class="container text-center">
+            <div>
+                <i class="bi bi-cake2 me-1" style="color: var(--bakery-primary);"></i>
+                <strong>Bakery Management System (BMS)</strong>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
