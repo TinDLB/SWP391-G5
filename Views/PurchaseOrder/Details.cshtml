@@ -1,0 +1,225 @@
+@using SWP391_G5.Models.Entities
+@model PurchaseOrder
+
+@{
+    ViewData["Title"] = $"Chi tiết đơn {Model.PoCode}";
+    ViewData["PageTitle"] = $"Đơn mua hàng: {Model.PoCode}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var progressList = ViewBag.Progress as IEnumerable<VwPurchaseOrderProgress> ?? Enumerable.Empty<VwPurchaseOrderProgress>();
+}
+
+<div class="mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-2 d-inline-flex align-items-center gap-1">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+    </a>
+
+    <!-- Action Buttons for Status -->
+    <div class="d-flex align-items-center gap-2">
+        @if (Model.Status == "Draft")
+        {
+            <form method="post" asp-action="UpdateStatus" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.PoId" />
+                <input type="hidden" name="newStatus" value="Sent" />
+                <button type="submit" class="btn btn-primary btn-sm rounded-2 px-3"
+                        onclick="return confirm('Bạn có chắc chắn muốn chuyển đơn hàng này sang trạng thái ĐÃ GỬI nhà cung cấp?')">
+                    <i class="bi bi-send me-1"></i> Gửi đơn cho NCC
+                </button>
+            </form>
+
+            <form method="post" asp-action="UpdateStatus" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.PoId" />
+                <input type="hidden" name="newStatus" value="Cancelled" />
+                <button type="submit" class="btn btn-outline-danger btn-sm rounded-2 px-3"
+                        onclick="return confirm('Bạn có chắc chắn muốn HỦY đơn đặt hàng này?')">
+                    <i class="bi bi-x-circle me-1"></i> Hủy đơn
+                </button>
+            </form>
+        }
+        else if (Model.Status == "Sent")
+        {
+            <form method="post" asp-action="UpdateStatus" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.PoId" />
+                <input type="hidden" name="newStatus" value="Cancelled" />
+                <button type="submit" class="btn btn-outline-danger btn-sm rounded-2 px-3"
+                        onclick="return confirm('Bạn có chắc chắn muốn HỦY đơn đặt hàng này?')">
+                    <i class="bi bi-x-circle me-1"></i> Hủy đơn
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Cột trái: Thông tin đơn & Nhà cung cấp -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-white py-3 border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="fw-bold">Thông tin đơn hàng</span>
+                    @switch (Model.Status)
+                    {
+                        case "Draft":
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">Nháp</span>
+                            break;
+                        case "Sent":
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">Đã gửi NCC</span>
+                            break;
+                        case "PartiallyFulfilled":
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">Giao 1 phần</span>
+                            break;
+                        case "Completed":
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Hoàn thành</span>
+                            break;
+                        case "Cancelled":
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Đã hủy</span>
+                            break;
+                        default:
+                            <span class="badge bg-light text-dark">@Model.Status</span>
+                            break;
+                    }
+                </div>
+            </div>
+            <div class="card-body p-3">
+                <dl class="row mb-0 small">
+                    <dt class="col-5 text-muted">Mã đơn:</dt>
+                    <dd class="col-7 fw-bold text-dark">@Model.PoCode</dd>
+
+                    <dt class="col-5 text-muted">Ngày đặt:</dt>
+                    <dd class="col-7">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    <dt class="col-5 text-muted">Dự kiến giao:</dt>
+                    <dd class="col-7">@(Model.ExpectedDate?.ToString("dd/MM/yyyy") ?? "Chưa xác định")</dd>
+
+                    <dt class="col-5 text-muted">Người tạo:</dt>
+                    <dd class="col-7">@(Model.CreatedByNavigation?.FullName ?? "Admin")</dd>
+
+                    <dt class="col-5 text-muted">Tổng tiền đặt:</dt>
+                    <dd class="col-7 fw-bold fs-6 text-danger">@Model.TotalAmount.ToString("N0") đ</dd>
+
+                    <dt class="col-5 text-muted">Ghi chú:</dt>
+                    <dd class="col-7 text-secondary">@(string.IsNullOrWhiteSpace(Model.Note) ? "Không có" : Model.Note)</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-bottom">
+                <span class="fw-bold">Nhà cung cấp</span>
+            </div>
+            <div class="card-body p-3 small">
+                <div class="fw-bold fs-6 mb-1 text-dark">@Model.Supplier?.Name</div>
+                <div class="text-muted mb-1"><i class="bi bi-person me-2"></i>@(Model.Supplier?.ContactPerson ?? "Chưa rõ")</div>
+                <div class="text-muted mb-1"><i class="bi bi-telephone me-2"></i>@(Model.Supplier?.Phone ?? "Chưa có SĐT")</div>
+                <div class="text-muted mb-1"><i class="bi bi-envelope me-2"></i>@(Model.Supplier?.Email ?? "Chưa có email")</div>
+                <div class="text-muted"><i class="bi bi-geo-alt me-2"></i>@(Model.Supplier?.Address ?? "Chưa có địa chỉ")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Chi tiết nguyên liệu & Tiến độ giao nhận -->
+    <div class="col-12 col-lg-8">
+        <!-- Danh sách nguyên liệu đặt -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <span class="fw-bold">Danh sách nguyên liệu đặt hàng</span>
+                <span class="badge bg-light text-secondary border">@Model.PurchaseOrderItems.Count mặt hàng</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 small">
+                    <thead class="table-light text-secondary">
+                        <tr>
+                            <th class="ps-3">Nguyên liệu</th>
+                            <th class="text-center">ĐVT</th>
+                            <th class="text-end">Số lượng đặt</th>
+                            <th class="text-end">Đơn giá</th>
+                            <th class="text-end pe-3">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.PurchaseOrderItems)
+                        {
+                            var subtotal = item.OrderedQty * item.UnitPrice;
+                            <tr>
+                                <td class="ps-3 fw-medium">@item.Ingredient?.Name</td>
+                                <td class="text-center text-muted">@item.Ingredient?.Unit</td>
+                                <td class="text-end fw-semibold">@item.OrderedQty.ToString("N1")</td>
+                                <td class="text-end">@item.UnitPrice.ToString("N0") đ</td>
+                                <td class="text-end pe-3 fw-bold text-dark">@subtotal.ToString("N0") đ</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold ps-3">Tổng cộng:</td>
+                            <td class="text-end pe-3 fw-bold text-danger fs-6">@Model.TotalAmount.ToString("N0") đ</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tiến độ giao nhận hàng (vw_PurchaseOrderProgress) -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="fw-bold">Tiến độ giao nhận hàng thực tế</span>
+                    <small class="text-muted d-block" style="font-size:.75rem;">Dữ liệu tổng hợp từ các đợt kiểm tra và nhập kho nguyên liệu</small>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 small">
+                    <thead class="table-light text-secondary">
+                        <tr>
+                            <th class="ps-3">Nguyên liệu</th>
+                            <th class="text-end">SL đặt</th>
+                            <th class="text-end">Đã nhận đạt</th>
+                            <th class="text-end">Còn thiếu</th>
+                            <th class="pe-3" style="width: 25%;">Tỷ lệ nhận</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (progressList.Any())
+                        {
+                            foreach (var p in progressList)
+                            {
+                                var accepted = p.AcceptedQty ?? 0;
+                                var percent = p.OrderedQty > 0 ? (int)Math.Min(100, Math.Round(accepted * 100 / p.OrderedQty)) : 0;
+                                var isDone = (p.RemainingQty ?? 0) <= 0;
+
+                                <tr>
+                                    <td class="ps-3 fw-medium">@p.IngredientName</td>
+                                    <td class="text-end">@p.OrderedQty.ToString("N1") @p.Unit</td>
+                                    <td class="text-end text-success fw-semibold">@accepted.ToString("N1") @p.Unit</td>
+                                    <td class="text-end @(isDone ? "text-muted" : "text-danger fw-bold")">
+                                        @((p.RemainingQty ?? 0) > 0 ? (p.RemainingQty!.Value.ToString("N1") + " " + p.Unit) : "Đã đủ")
+                                    </td>
+                                    <td class="pe-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar @(isDone ? "bg-success" : "bg-warning")"
+                                                     role="progressbar" style="width: @percent%"></div>
+                                            </div>
+                                            <span class="small fw-semibold text-muted" style="min-width: 35px;">@percent%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    Chưa có đợt nhận hàng nào được ghi nhận cho đơn này.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
