@@ -1,0 +1,55 @@
+@model List<SWP391_G5.Models.ViewModels.BakerProductionTaskViewModel>
+
+@{
+    ViewData["Title"] = "Baker Dashboard";
+}
+
+<div class="container py-4">
+    <h2>Baker Dashboard</h2>
+
+    <p>
+        Welcome, @User.Identity?.Name
+    </p>
+
+    <hr />
+
+    <h4>Assigned Production Tasks</h4>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            No production tasks assigned.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Task ID</th>
+                        <th>Product</th>
+                        <th>Target Quantity</th>
+                        <th>Status</th>
+                        <th>Deadline</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var task in Model)
+                    {
+                        <tr>
+                            <td>@task.TaskId</td>
+                            <td>@task.ProductName</td>
+                            <td>@task.TargetQty</td>
+                            <td>@task.Status</td>
+                            <td>
+                                @(task.Deadline?.ToString("dd/MM/yyyy HH:mm") ?? "No deadline")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
