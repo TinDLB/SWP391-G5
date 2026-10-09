@@ -1,0 +1,148 @@
+@model List<SWP391_G5.Models.Entities.CartItem>
+@{
+    ViewData["Title"] = "Giỏ Hàng Của Bạn - Bakery Management System";
+    decimal totalAmount = Model?.Sum(i => i.Quantity * i.Product.Price) ?? 0;
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chủ</a></li>
+            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Giỏ Hàng</li>
+        </ol>
+    </nav>
+
+    <h3 class="fw-bold text-dark mb-4"><i class="bi bi-bag-check-fill text-warning me-2"></i>GIỎ HÀNG CỦA BẠN</h3>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            <!-- Cột danh sách món bánh -->
+            <div class="col-lg-8">
+                <div class="bg-white rounded-4 shadow-sm border p-3 p-md-4">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light small text-uppercase">
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Đơn giá</th>
+                                    <th class="text-center" style="width: 140px;">Số lượng</th>
+                                    <th class="text-end">Thành tiền</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    string pImg = string.IsNullOrEmpty(item.Product.ImageUrl) 
+                                        ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80" 
+                                        : item.Product.ImageUrl;
+                                    decimal lineTotal = item.Quantity * item.Product.Price;
+
+                                    <tr id="cartRow_@item.ProductId">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <img src="@pImg" alt="@item.Product.Name" class="rounded-3 object-fit-cover shadow-sm" style="width: 60px; height: 60px;" />
+                                                <div>
+                                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.ProductId" class="fw-bold text-dark text-decoration-none d-block">
+                                                        @item.Product.Name
+                                                    </a>
+                                                    <small class="text-muted">Mã: SP0@(item.ProductId)</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="fw-semibold">
+                                            @item.Product.Price.ToString("N0")đ
+                                        </td>
+                                        <td>
+                                            <div class="input-group input-group-sm">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="updateItemQty(@item.ProductId, @(item.Quantity - 1))">-</button>
+                                                <input type="text" class="form-control text-center fw-bold" value="@item.Quantity" readonly />
+                                                <button class="btn btn-outline-secondary" type="button" onclick="updateItemQty(@item.ProductId, @(item.Quantity + 1))">+</button>
+                                            </div>
+                                        </td>
+                                        <td class="text-end fw-bold text-danger">
+                                            @lineTotal.ToString("N0")đ
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-link text-danger p-0" onclick="removeItem(@item.ProductId)" title="Xóa món">
+                                                <i class="bi bi-trash-fill fs-5"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <a asp-controller="Product" asp-action="Index" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                            <i class="bi bi-arrow-left me-1"></i> Tiếp tục mua bánh
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột tóm tắt đơn hàng -->
+            <div class="col-lg-4">
+                <div class="bg-white rounded-4 shadow-sm border p-4 sticky-top" style="top: 90px;">
+                    <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">TÓM TẮT ĐƠN HÀNG</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tạm tính:</span>
+                        <strong class="text-dark">@totalAmount.ToString("N0")đ</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phí vận chuyển:</span>
+                        <span class="text-success fw-semibold">Miễn phí (nội thành)</span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold fs-5 text-dark">Tổng cộng:</span>
+                        <span class="fw-bold fs-4 text-danger">@totalAmount.ToString("N0")đ</span>
+                    </div>
+
+                    <a href="javascript:void(0)" onclick="alert('Tính năng Thanh toán Online (UC-06) sẽ hoàn thiện ở Iteration 3!')" class="btn btn-dark w-100 py-3 rounded-pill fw-bold mb-2">
+                        TIẾN HÀNH ĐẶT HÀNG <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    <small class="text-muted text-center d-block">Hỗ trợ thanh toán khi nhận hàng (COD) hoặc Chuyển khoản QR</small>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-5">
+            <i class="bi bi-bag-x display-1 text-muted opacity-50 mb-3 d-block"></i>
+            <h4 class="fw-bold text-dark">Giỏ hàng của bạn đang trống</h4>
+            <p class="text-muted mb-4">Hãy chọn những chiếc bánh thơm ngon yêu thích từ thực đơn của Anh Hòa Bakery nhé!</p>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-warning rounded-pill px-4 py-2 fw-bold">
+                <i class="bi bi-basket3-fill me-2"></i> KHÁM PHÁ THỰC ĐƠN NGAY
+            </a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function updateItemQty(productId, qty) {
+            $.post('/Cart/UpdateQuantity', { productId: productId, quantity: qty }, function (res) {
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            });
+        }
+
+        function removeItem(productId) {
+            if (confirm('Bạn có chắc muốn xóa món bánh này khỏi giỏ hàng?')) {
+                $.post('/Cart/RemoveItem', { productId: productId }, function (res) {
+                    if (res.success) {
+                        location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+}

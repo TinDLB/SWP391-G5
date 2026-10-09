@@ -1,0 +1,132 @@
+@model IEnumerable<SWP391_G5.Models.Entities.Product>
+@{
+    ViewData["Title"] = "Danh Sách Sản Phẩm - Bakery Management System";
+    var categories = ViewBag.Categories as IEnumerable<SWP391_G5.Models.Entities.Category> ?? Enumerable.Empty<SWP391_G5.Models.Entities.Category>();
+    string? keyword = ViewBag.Keyword as string;
+    int? currentCatId = ViewBag.CategoryId as int?;
+    decimal? minPrice = ViewBag.MinPrice as decimal?;
+    decimal? maxPrice = ViewBag.MaxPrice as decimal?;
+    string? sort = ViewBag.Sort as string;
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chủ</a></li>
+            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Thực Đơn Bánh</li>
+        </ol>
+    </nav>
+
+    <!-- Header & Filter Bar -->
+    <div class="bg-white p-3 p-md-4 rounded-4 shadow-sm border mb-4">
+        <form method="get" asp-controller="Product" asp-action="Index" class="row g-3 align-items-end">
+            <!-- Keyword -->
+            <div class="col-md-4 col-sm-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-search me-1"></i> Từ khóa</label>
+                <input type="text" name="keyword" value="@keyword" class="form-control form-control-sm rounded-pill" placeholder="Tên bánh, hương vị..." />
+            </div>
+
+            <!-- Category -->
+            <div class="col-md-3 col-sm-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-tag-fill me-1"></i> Danh mục</label>
+                <select name="categoryId" class="form-select form-select-sm rounded-pill">
+                    <option value="">-- Tất cả danh mục --</option>
+                    @foreach (var c in categories)
+                    {
+                        <option value="@c.CategoryId" selected="@(currentCatId == c.CategoryId)">@c.Name</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Sort -->
+            <div class="col-md-3 col-sm-6">
+                <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-sort-down me-1"></i> Sắp xếp</label>
+                <select name="sort" class="form-select form-select-sm rounded-pill">
+                    <option value="" selected="@(string.IsNullOrEmpty(sort))">Mới nhất</option>
+                    <option value="price_asc" selected="@(sort == "price_asc")">Giá tăng dần</option>
+                    <option value="price_desc" selected="@(sort == "price_desc")">Giá giảm dần</option>
+                    <option value="name_asc" selected="@(sort == "name_asc")">Tên A-Z</option>
+                </select>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="col-md-2 col-sm-6 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-dark rounded-pill flex-grow-1 fw-bold">
+                    <i class="bi bi-funnel me-1"></i> Lọc
+                </button>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill" title="Xóa bộ lọc">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var p in Model)
+            {
+                string sku = "SP0" + p.ProductId;
+                string img = string.IsNullOrEmpty(p.ImageUrl) 
+                    ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80" 
+                    : p.ImageUrl;
+
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="cake-product-card h-100 shadow-sm">
+                        <!-- Ảnh bánh -->
+                        <div class="cake-img-wrapper position-relative">
+                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@p.ProductId">
+                                <img src="@img" alt="@p.Name" class="img-fluid cake-card-img" loading="lazy" />
+                            </a>
+                            @if (p.StockQty <= 0)
+                            {
+                                <span class="badge bg-danger position-absolute top-0 start-0 m-2 rounded-pill">Hết hàng</span>
+                            }
+                        </div>
+
+                        <div class="scallop-divider"></div>
+
+                        <!-- Thân Card -->
+                        <div class="cake-card-body p-3 text-center">
+                            <div class="card-brand-header d-flex align-items-center justify-content-center gap-2 mb-2">
+                                <div class="mini-logo-stamp">BMS</div>
+                                <span class="card-hotline-txt">Hotline: 0961 452 578</span>
+                            </div>
+
+                            <h6 class="cake-product-name mb-1">
+                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@p.ProductId" class="text-decoration-none text-dark">
+                                    @p.Name.ToUpper()
+                                </a>
+                            </h6>
+
+                            <div class="cake-sku-code mb-3">@sku</div>
+
+                            <!-- Giá + Giỏ hàng -->
+                            <div class="cake-price-cart-bar d-flex align-items-stretch">
+                                <div class="cake-price-lime-badge flex-grow-1 d-flex align-items-center justify-content-center">
+                                    <span>@p.Price.ToString("N0")đ</span>
+                                </div>
+                                <button type="button" class="btn cake-cart-brown-btn" onclick="addToCart(@p.ProductId, 1)" title="Thêm vào giỏ">
+                                    <i class="bi bi-cart-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-search display-3 text-muted opacity-50 mb-3 d-block"></i>
+                <h5 class="fw-bold text-dark">Không tìm thấy sản phẩm nào</h5>
+                <p class="text-muted small">Hãy thử tìm với từ khóa khác hoặc xóa bớt tiêu chí lọc.</p>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-dark rounded-pill px-4">
+                    Xem tất cả bánh
+                </a>
+            </div>
+        }
+    </div>
+</div>
