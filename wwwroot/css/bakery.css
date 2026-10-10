@@ -254,3 +254,648 @@ body {
     margin-bottom: 2.5rem;
     border: 1px solid var(--bakery-border);
 }
+
+/* =========================================================================
+   BAKERY MANAGEMENT SYSTEM THEME ENHANCEMENTS (Header, Nav, Cards, Hero, Footer)
+   ========================================================================= */
+
+/* Top Header */
+.main-bakery-header {
+    background-color: #FFFFFF;
+    box-shadow: 0 4px 15px rgba(74, 46, 24, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.top-header-bar {
+    background-color: #FFFFFF;
+    border-bottom: 1px solid var(--bakery-border);
+    position: relative;
+    z-index: 2;
+}
+
+.logo-badge-box {
+    background: var(--bakery-primary);
+    border: 2px solid var(--bakery-primary-hover);
+    border-radius: 8px;
+    padding: 3px 8px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(198, 105, 0, 0.25);
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1;
+}
+
+.logo-badge-main {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: -0.5px;
+}
+
+.logo-badge-sub {
+    font-size: 0.6rem;
+    color: #FFE082;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.brand-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--bakery-dark);
+    letter-spacing: 0.2px;
+    line-height: 1.1;
+}
+
+.brand-slogan {
+    font-size: 0.72rem;
+    color: var(--bakery-secondary);
+    font-weight: 500;
+}
+
+/* Header Search */
+.header-search-container {
+    max-width: 460px;
+}
+
+.header-search-input {
+    border-radius: 50px;
+    padding-left: 1.2rem;
+    padding-right: 3.5rem;
+    border: 1.5px solid var(--bakery-border);
+    height: 42px;
+    font-size: 0.9rem;
+    background-color: var(--bakery-light);
+    color: var(--bakery-dark-text);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.header-search-input:focus {
+    border-color: var(--bakery-primary);
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(198, 105, 0, 0.15);
+}
+
+.header-search-btn {
+    border-radius: 50px;
+    background-color: var(--bakery-primary);
+    color: #FFFFFF;
+    width: 48px;
+    height: 36px;
+    margin: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: none;
+}
+
+.header-search-btn:hover {
+    background-color: var(--bakery-primary-hover);
+    color: #FFFFFF;
+}
+
+/* Header Utilities */
+.util-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--bakery-dark-text);
+    cursor: pointer;
+}
+
+.util-icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--bakery-cream);
+    color: var(--bakery-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    box-shadow: 0 2px 6px rgba(198, 105, 0, 0.08);
+    flex-shrink: 0;
+    position: relative;
+    border: 1px solid var(--bakery-border);
+    transition: transform 0.2s;
+}
+
+.util-item:hover .util-icon-circle {
+    transform: scale(1.08);
+    background-color: var(--bakery-primary);
+    color: #FFFFFF;
+}
+
+.cart-icon-box {
+    background-color: var(--bakery-cream);
+    color: var(--bakery-primary);
+}
+
+.cart-badge-number {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background-color: var(--bakery-primary);
+    color: #FFFFFF;
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #FFFFFF;
+}
+
+.util-text {
+    line-height: 1.15;
+}
+
+.util-label {
+    display: block;
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.util-value {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--bakery-dark);
+}
+
+.no-caret::after {
+    display: none !important;
+}
+
+.user-dropdown-menu {
+    border-radius: 12px;
+    min-width: 210px;
+}
+
+/* Main Navbar */
+.main-navbar-bar {
+    background-color: #FFFFFF;
+    padding: 0;
+    border-bottom: 2px solid var(--bakery-border);
+    border-top: 1px solid var(--bakery-border);
+    overflow: visible;
+    position: relative;
+    z-index: 1;
+}
+
+.main-nav-menu {
+    gap: 2px;
+    overflow: visible;
+    white-space: normal;
+}
+
+.main-nav-link {
+    color: var(--bakery-dark-text) !important;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.7rem 0.75rem !important;
+    letter-spacing: 0.2px;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    position: relative;
+    white-space: nowrap;
+}
+
+.main-nav-link:hover, .main-nav-link.active {
+    background-color: var(--bakery-cream);
+    color: var(--bakery-primary) !important;
+}
+
+.nav-arrow {
+    font-size: 0.65rem;
+    margin-left: 2px;
+}
+
+/* Dropdown menu chuẩn phong cách BMS */
+.main-dropdown-sub {
+    background-color: #FFFFFF;
+    border: 1px solid var(--bakery-border);
+    box-shadow: var(--bakery-shadow);
+    border-radius: 0 0 10px 10px;
+    padding: 0.5rem 0;
+    min-width: 220px;
+}
+
+.main-dropdown-sub .dropdown-item {
+    color: var(--bakery-dark-text) !important;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.55rem 1.2rem;
+    transition: all 0.15s ease;
+}
+
+.main-dropdown-sub .dropdown-item:hover {
+    background-color: var(--bakery-cream);
+    color: var(--bakery-primary) !important;
+    padding-left: 1.45rem;
+}
+
+/* Hero Banner */
+.hero-banner-section {
+    background: linear-gradient(135deg, #FFF6EC 0%, #FAF0E6 100%);
+    border-bottom: 1px solid var(--bakery-border);
+}
+
+.hero-slide-content {
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+}
+
+.hero-cake-frame {
+    position: relative;
+    padding: 10px;
+}
+
+.hero-cake-img {
+    max-height: 320px;
+    object-fit: cover;
+    border: 4px solid #FFFFFF;
+    transition: transform 0.4s ease;
+}
+
+.hero-cake-frame:hover .hero-cake-img {
+    transform: scale(1.04);
+}
+
+.emblem-circle {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background-color: var(--bakery-primary);
+    border: 3px double #FFE082;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(198, 105, 0, 0.25);
+}
+
+.emblem-txt {
+    color: #FFF;
+    font-weight: 900;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.emblem-sub {
+    color: #FFE082;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+}
+
+.hero-french-slogan {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.3rem;
+    font-weight: 700;
+    color: var(--bakery-dark);
+    line-height: 1.25;
+}
+
+.slogan-sub {
+    font-style: italic;
+    font-size: 1.9rem;
+    color: var(--bakery-primary);
+}
+
+.order-hotline {
+    background: #FFFFFF;
+    padding: 6px 14px;
+    border-radius: 50px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    font-size: 0.88rem;
+    border: 1px solid var(--bakery-border);
+}
+
+.btn-hero-order {
+    background: linear-gradient(135deg, var(--bakery-primary), var(--bakery-secondary));
+    color: #FFFFFF !important;
+    font-weight: 700;
+    font-size: 0.92rem;
+    letter-spacing: 0.5px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(198, 105, 0, 0.25);
+    transition: all 0.25s ease;
+}
+
+.btn-hero-order:hover {
+    background: linear-gradient(135deg, var(--bakery-primary-hover), var(--bakery-primary));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(198, 105, 0, 0.35);
+}
+
+.custom-carousel-dots [data-bs-target] {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--bakery-primary);
+    margin: 0 4px;
+    border: none;
+    opacity: 0.5;
+}
+
+.custom-carousel-dots .active {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* Quick Categories */
+.quick-cat-card {
+    background: #FFFFFF;
+    transition: transform 0.25s, box-shadow 0.25s;
+    border: 1px solid var(--bakery-border);
+}
+
+.quick-cat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(198, 105, 0, 0.1) !important;
+    border-color: var(--bakery-primary);
+}
+
+.cat-icon-circle {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s;
+}
+
+.quick-cat-card:hover .cat-icon-circle {
+    transform: scale(1.1);
+}
+
+/* NEW CAKE COLLECTION */
+.new-collection-section {
+    background-color: var(--bakery-light);
+}
+
+.collection-title, .collection-title-lime {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--bakery-primary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.collection-title-ornament {
+    font-size: 1.4rem;
+    color: var(--bakery-secondary);
+    display: inline-block;
+    position: relative;
+    padding: 0 16px;
+}
+
+.collection-title-ornament::before,
+.collection-title-ornament::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40px;
+    height: 1px;
+    background-color: var(--bakery-border);
+}
+
+.collection-title-ornament::before {
+    left: -40px;
+}
+
+.collection-title-ornament::after {
+    right: -40px;
+}
+
+/* Product Card */
+.cake-product-card {
+    background: #FFFFFF;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--bakery-border);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cake-product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(74, 46, 24, 0.12) !important;
+    border-color: var(--bakery-secondary);
+}
+
+.cake-img-wrapper {
+    overflow: hidden;
+    height: 220px;
+    background-color: #F7F5F0;
+}
+
+.cake-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.cake-product-card:hover .cake-card-img {
+    transform: scale(1.08);
+}
+
+.scallop-divider {
+    height: 8px;
+    background: radial-gradient(circle, transparent 6px, #FFFFFF 7px) -8px 0/16px 8px repeat-x;
+    margin-top: -8px;
+    position: relative;
+    z-index: 2;
+}
+
+.cake-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-brand-header {
+    border-bottom: 1px dashed var(--bakery-border);
+    padding-bottom: 6px;
+}
+
+.mini-logo-stamp {
+    background: var(--bakery-cream);
+    color: var(--bakery-primary);
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--bakery-border);
+    letter-spacing: -0.3px;
+}
+
+.card-hotline-txt {
+    font-size: 0.72rem;
+    color: #666;
+    font-weight: 600;
+}
+
+.cake-product-name {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--bakery-dark);
+    min-height: 40px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
+}
+
+.cake-product-name a:hover {
+    color: var(--bakery-primary) !important;
+}
+
+.cake-sku-code {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 600;
+}
+
+/* Thanh Giá + Giỏ hàng */
+.cake-price-cart-bar {
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: auto;
+}
+
+.cake-price-lime-badge {
+    background: linear-gradient(135deg, var(--bakery-primary), var(--bakery-secondary));
+    color: #FFFFFF;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 0.45rem 0.6rem;
+    letter-spacing: -0.3px;
+}
+
+.cake-cart-brown-btn {
+    background-color: var(--bakery-dark);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 0;
+    padding: 0.45rem 0.9rem;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.cake-cart-brown-btn:hover {
+    background-color: var(--bakery-primary);
+    color: #FFFFFF;
+}
+
+/* Features Promise */
+.feature-promise-box {
+    border: 1px solid var(--bakery-border);
+    transition: transform 0.25s;
+}
+
+.feature-promise-box:hover {
+    transform: translateY(-4px);
+    border-color: var(--bakery-primary);
+}
+
+/* Main Footer */
+.main-bakery-footer {
+    background-color: var(--bakery-dark);
+    color: #FFFFFF;
+}
+
+.footer-col-title {
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--bakery-primary);
+    padding-bottom: 8px;
+}
+
+.footer-links li {
+    margin-bottom: 8px;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.2s, padding-left 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--bakery-secondary);
+    padding-left: 4px;
+}
+
+.store-badge-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Floating Buttons */
+.floating-hotline-btn {
+    position: fixed;
+    bottom: 25px;
+    left: 25px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background-color: var(--bakery-primary);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    box-shadow: 0 4px 15px rgba(198, 105, 0, 0.45);
+    z-index: 1040;
+    text-decoration: none;
+    animation: pulseCall 2s infinite;
+}
+
+.floating-hotline-btn:hover {
+    color: #FFFFFF;
+    background-color: var(--bakery-primary-hover);
+}
+
+@keyframes pulseCall {
+    0% { box-shadow: 0 0 0 0 rgba(198, 105, 0, 0.6); }
+    70% { box-shadow: 0 0 0 14px rgba(198, 105, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(198, 105, 0, 0); }
+}
+
+.floating-backtotop-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background-color: var(--bakery-dark);
+    color: #FFFFFF;
+    border: 1px solid var(--bakery-border);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1040;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.floating-backtotop-btn:hover {
+    background-color: var(--bakery-primary);
+    transform: translateY(-3px);
+}
+

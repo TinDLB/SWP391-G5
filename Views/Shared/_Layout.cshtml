@@ -6,7 +6,7 @@
     <title>@ViewData["Title"] - Bakery Management System</title>
     <meta name="view-transition" content="same-origin" />
     <style>
-        html, body { background-color: #FFFBF5; }
+        html, body { background-color: #FFFBF5; margin: 0; padding: 0; }
         @@view-transition { navigation: auto; }
     </style>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -15,30 +15,201 @@
     <link rel="stylesheet" href="~/css/bakery.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg bakery-navbar">
-            <div class="container">
-                <a class="navbar-brand bakery-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-cake2-fill" style="color: var(--bakery-primary);"></i>
-                    <span>Bakery</span> BMS
+    <!-- ── 1. TOP HEADER (Bakery Management System) ── -->
+    <header class="main-bakery-header">
+        <div class="top-header-bar py-3">
+            <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <!-- Logo -->
+                <a class="bakery-logo-brand d-flex align-items-center text-decoration-none" asp-controller="Home" asp-action="Index">
+                    <div class="logo-badge-box me-2">
+                        <span class="logo-badge-main">BMS</span>
+                        <span class="logo-badge-sub">Bakery</span>
+                    </div>
+                    <div class="logo-text-group d-none d-sm-block">
+                        <div class="brand-title">Bakery Management System</div>
+                        
+                    </div>
                 </a>
-                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarBakery" aria-controls="navbarBakery"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarBakery">
-                    <div class="me-auto"></div>
-                    <partial name="_LoginPartial" />
+
+                <!-- Thanh tìm kiếm (Search Bar) -->
+                <div class="header-search-container flex-grow-1 mx-lg-4">
+                    <form asp-controller="Product" asp-action="Index" method="get" class="d-flex position-relative w-100">
+                        <input type="text" name="keyword" class="form-control header-search-input" placeholder="Tìm kiếm bánh, cookies, bánh sinh nhật..." autocomplete="off" />
+                        <button type="submit" class="btn header-search-btn" title="Tìm kiếm">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
                 </div>
+
+                <!-- Tiện ích bên phải (Hotline, Cửa hàng, Tài khoản, Giỏ hàng) -->
+                <div class="header-utilities d-flex align-items-center gap-3 gap-md-4">
+                    <!-- Hotline -->
+                    <a href="tel:0987654321" class="util-item d-none d-md-flex text-decoration-none">
+                        <div class="util-icon-circle">
+                            <i class="bi bi-telephone-fill"></i>
+                        </div>
+                        <div class="util-text">
+                            <span class="util-label">Hotline đặt bánh</span>
+                            <span class="util-value">0987 654 321</span>
+                        </div>
+                    </a>
+
+                    <!-- Tài khoản người dùng -->
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="dropdown">
+                            <a href="#" class="util-item text-decoration-none dropdown-toggle no-caret" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="util-icon-circle">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div class="util-text d-none d-sm-block">
+                                    <span class="util-label">Tài khoản</span>
+                                    <span class="util-value">@User.Identity.Name</span>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu shadow-lg border-0 mt-2" aria-labelledby="userMenuDropdown">
+                                <li class="px-3 py-2 border-bottom">
+                                    <div class="fw-bold text-dark">@User.Identity.Name</div>
+                                    <small class="text-muted">@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</small>
+                                </li>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item py-2 text-primary fw-semibold" asp-controller="Admin" asp-action="Dashboard">
+                                            <i class="bi bi-speedometer2 me-2"></i> Trang Admin Dashboard
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                }
+                                @if (User.IsInRole("Cashier"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item py-2 text-primary fw-semibold" asp-controller="Cashier" asp-action="Dashboard">
+                                            <i class="bi bi-receipt me-2"></i> Trang Cashier Dashboard
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                }
+                                @if (User.IsInRole("Baker"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item py-2 text-primary fw-semibold" asp-controller="Baker" asp-action="Index">
+                                            <i class="bi bi-cake2-fill me-2"></i> Trang Baker Dashboard
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                }
+                                <li>
+                                    <a class="dropdown-item py-2" asp-controller="Account" asp-action="Login">
+                                        <i class="bi bi-person-lines-fill me-2"></i> Thông tin tài khoản
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item text-danger py-2 rounded">
+                                            <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="util-item text-decoration-none">
+                            <div class="util-icon-circle">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div class="util-text d-none d-sm-block">
+                                <span class="util-label">Tài khoản</span>
+                                <span class="util-value">Đăng nhập</span>
+                            </div>
+                        </a>
+                    }
+
+                    <!-- Giỏ hàng (Shopping Bag) -->
+                    <a asp-controller="Cart" asp-action="Index" class="util-item text-decoration-none position-relative" title="Xem giỏ hàng">
+                        <div class="util-icon-circle cart-icon-box">
+                            <i class="bi bi-bag-fill"></i>
+                            <span id="headerCartCount" class="cart-badge-number">0</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── 2. MAIN NAVIGATION MENU (Thanh điều hướng danh mục bánh) ── -->
+        <nav class="main-navbar-bar">
+            <div class="container">
+                <ul class="nav main-nav-menu flex-wrap justify-content-center">
+
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link main-nav-link dropdown-toggle" asp-controller="Product" asp-action="Index" asp-route-categoryId="1" data-bs-toggle="dropdown">
+                            BÁNH SINH NHẬT <i class="bi bi-chevron-down nav-arrow"></i>
+                        </a>
+                        <ul class="dropdown-menu main-dropdown-sub shadow">
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="1">Tất cả bánh sinh nhật</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="1" asp-route-keyword="Green Tea">Bánh kem Trà Xanh (Matcha)</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="1" asp-route-keyword="Dâu tây">Bánh kem Dâu Tây tươi</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="1" asp-route-keyword="Socola">Bánh sinh nhật Socola Truffle</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="1" asp-route-keyword="Mousse">Bánh Mousse hoa quả</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link main-nav-link dropdown-toggle" asp-controller="Product" asp-action="Index" asp-route-categoryId="2" data-bs-toggle="dropdown">
+                            BÁNH MỲ & BÁNH MẶN <i class="bi bi-chevron-down nav-arrow"></i>
+                        </a>
+                        <ul class="dropdown-menu main-dropdown-sub shadow">
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="2">Tất cả bánh mỳ</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="2">Bánh mì bơ sữa</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="2">Bánh mì hoa cúc</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="2">Bánh mì Baguette truyền thống</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link main-nav-link dropdown-toggle" asp-controller="Product" asp-action="Index" asp-route-categoryId="4" data-bs-toggle="dropdown">
+                            COOKIES & MINICAKE <i class="bi bi-chevron-down nav-arrow"></i>
+                        </a>
+                        <ul class="dropdown-menu main-dropdown-sub shadow">
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="4">Cookies (Bánh quy bơ)</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="3">Mini Cake</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="3">Petit Four</a></li>
+                            <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="1">Ice - Cream Cake</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link main-nav-link" asp-controller="Product" asp-action="Index" asp-route-categoryId="3">
+                            CARAMEN - SỮA CHUA
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link main-nav-link" asp-controller="Product" asp-action="Index">
+                            TẤT CẢ SẢN PHẨM
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link main-nav-link" asp-controller="Home" asp-action="Privacy">
+                            TIN TỨC
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link main-nav-link fw-bold" style="color: var(--bakery-primary) !important;" asp-controller="Product" asp-action="Index" asp-route-maxPrice="50000">
+                            KHUYẾN MẠI
+                        </a>
+                    </li>
+                </ul>
             </div>
         </nav>
     </header>
 
-    <!-- Thông báo TempData -->
+    <!-- ── THÔNG BÁO FLASH MESSAGE ── -->
     <div class="container mt-3">
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center rounded-3 shadow-sm" role="alert">
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center rounded-4 shadow-sm" role="alert">
                 <i class="bi bi-check-circle-fill me-2 fs-5"></i>
                 <div>@TempData["SuccessMessage"]</div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -46,7 +217,7 @@
         }
         @if (TempData["InfoMessage"] != null)
         {
-            <div class="alert alert-info alert-dismissible fade show d-flex align-items-center rounded-3 shadow-sm" role="alert">
+            <div class="alert alert-info alert-dismissible fade show d-flex align-items-center rounded-4 shadow-sm" role="alert">
                 <i class="bi bi-info-circle-fill me-2 fs-5"></i>
                 <div>@TempData["InfoMessage"]</div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -54,22 +225,118 @@
         }
     </div>
 
-    <main role="main" class="pb-3">
+    <!-- ── NỘI DUNG CHÍNH ── -->
+    <main role="main">
         @RenderBody()
     </main>
 
-    <footer class="bakery-footer">
-        <div class="container text-center">
-            <div>
-                <i class="bi bi-cake2 me-1" style="color: var(--bakery-primary);"></i>
-                <strong>Bakery Management System (BMS)</strong>
+    <!-- ── 3. FOOTER TIỆM BÁNH (Bakery Management System) ── -->
+    <footer class="main-bakery-footer">
+        <div class="container py-5">
+            <div class="row g-4 justify-content-between">
+                <div class="col-lg-7 col-md-7">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="logo-badge-box me-2" style="transform: scale(0.9);">
+                            <span class="logo-badge-main">BMS</span>
+                            <span class="logo-badge-sub">Bakery</span>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-white">Bakery Management System</h5>
+                            <small class="text-white-50">Tươi mới &amp; Chuẩn vị mỗi ngày</small>
+                        </div>
+                    </div>
+                    <p class="footer-desc text-white-50 small mb-3">
+                        Hệ thống quản lý và cung cấp bánh tươi cao cấp hàng đầu với quy trình làm bánh tươi chuẩn vị mỗi ngày.
+                    </p>
+                    <div class="footer-contact-list small text-white-50">
+                        <div class="mb-2"><i class="bi bi-telephone-fill text-warning me-2"></i> Hotline: <strong class="text-white">0987 654 321</strong></div>
+                        <div class="mb-2"><i class="bi bi-envelope-fill text-warning me-2"></i> Email: contact@bakerymanagementsystem.vn</div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-5">
+                    <h6 class="footer-col-title text-white fw-bold mb-3">DANH MỤC BÁNH</h6>
+                    <ul class="list-unstyled footer-links small">
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="1">Bánh sinh nhật</a></li>
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="2">Bánh mì tươi</a></li>
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="3">Bánh ngọt Pastry</a></li>
+                        <li><a asp-controller="Product" asp-action="Index" asp-route-categoryId="4">Cookies & Tiramisu</a></li>
+                        <li><a asp-controller="Product" asp-action="Index">Caramen & Sữa chua</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-top border-secondary border-opacity-25 mt-4 pt-4 text-center text-white-50 small">
+                © 2026 Bakery Management System (BMS) - SWP391 Group G5.
             </div>
         </div>
     </footer>
 
+    <!-- ── NÚT NỔI LIÊN HỆ & BACK TO TOP ── -->
+    <a href="tel:0987654321" class="floating-hotline-btn" title="Gọi hotline ngay: 0987 654 321">
+        <i class="bi bi-telephone-fill"></i>
+    </a>
+
+    <button type="button" class="floating-backtotop-btn" id="btnBackToTop" title="Lên đầu trang">
+        <i class="bi bi-chevron-up"></i>
+    </button>
+
+    <!-- Toast thông báo thêm giỏ hàng -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+        <div id="cartToast" class="toast align-items-center text-white bg-success border-0 rounded-4 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                    <span id="cartToastMsg">Đã thêm bánh vào giỏ hàng!</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Cập nhật số lượng giỏ hàng khi nạp trang
+        $(document).ready(function () {
+            $.get('/Cart/GetCount', function (res) {
+                if (res && res.count !== undefined) {
+                    $('#headerCartCount').text(res.count);
+                }
+            });
+
+            // Back to top logic
+            $(window).scroll(function () {
+                if ($(this).scrollTop() > 300) {
+                    $('#btnBackToTop').fadeIn();
+                } else {
+                    $('#btnBackToTop').fadeOut();
+                }
+            });
+
+            $('#btnBackToTop').click(function () {
+                $('html, body').animate({ scrollTop: 0 }, 300);
+                return false;
+            });
+        });
+
+        // Hàm thêm giỏ hàng toàn cục dùng chung
+        function addToCart(productId, quantity = 1) {
+            $.post('/Cart/AddToCart', { productId: productId, quantity: quantity }, function (res) {
+                if (res.success) {
+                    $('#headerCartCount').text(res.cartCount);
+                    $('#cartToastMsg').text(res.message);
+                    const toast = new bootstrap.Toast(document.getElementById('cartToast'));
+                    toast.show();
+                } else {
+                    alert(res.message);
+                }
+            }).fail(function () {
+                alert('Có lỗi xảy ra khi thêm giỏ hàng. Vui lòng thử lại!');
+            });
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

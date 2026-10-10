@@ -32,14 +32,23 @@
                 <li><hr class="dropdown-divider"></li>
             }
             @if (role.Equals("Cashier", StringComparison.OrdinalIgnoreCase))
-{
-    <li>
-        <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Cashier" asp-action="Dashboard">
-            <i class="bi bi-speedometer2"></i> Trang Cashier Dashboard
-        </a>
-    </li>
-    <li><hr class="dropdown-divider"></li>
-}
+            {
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Cashier" asp-action="Dashboard">
+                        <i class="bi bi-receipt"></i> Trang Cashier Dashboard
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            }
+            @if (role.Equals("Baker", StringComparison.OrdinalIgnoreCase))
+            {
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Baker" asp-action="Index">
+                        <i class="bi bi-cake2-fill"></i> Trang Baker Dashboard
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            }
             <li>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
                     @Html.AntiForgeryToken()
