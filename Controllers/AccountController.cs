@@ -28,7 +28,7 @@ namespace SWP391_G5.Controllers
 
         // GET: /Account/Login
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public IActionResult Login(string? email = null, string? returnUrl = null)
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
@@ -36,7 +36,11 @@ namespace SWP391_G5.Controllers
             }
 
             ViewData["ReturnUrl"] = returnUrl;
-            return View(new LoginViewModel { ReturnUrl = returnUrl });
+            return View(new LoginViewModel
+            {
+                Email = email ?? string.Empty,
+                ReturnUrl = returnUrl
+            });
         }
 
         // POST: /Account/Login
@@ -141,7 +145,7 @@ namespace SWP391_G5.Controllers
                 Email = normalizedEmail,
                 Phone = model.PhoneNumber.Trim(),
                 PasswordHash = _passwordService.HashPassword(model.Password),
-                Role = "Customer",
+                Role = Role.Customer,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -149,27 +153,26 @@ namespace SWP391_G5.Controllers
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Đã tạo mới tài khoản Customer: {Email}", newUser.Email);
-
-            // Tự động đăng nhập sau khi đăng ký thành công
-            var claims = new List<Claim>
+            // Nếu người dùng có nhập địa chỉ nhận hàng, lưu vào bảng Addresses
+            if (!string.IsNullOrWhiteSpace(model.Address))
             {
-                new Claim(ClaimTypes.NameIdentifier, newUser.UserId.ToString()),
-                new Claim(ClaimTypes.Name, newUser.FullName),
-                new Claim(ClaimTypes.Email, newUser.Email),
-                new Claim(ClaimTypes.Role, newUser.Role),
-                new Claim("PhoneNumber", newUser.Phone ?? string.Empty)
-            };
+                var newAddress = new Address
+                {
+                    UserId = newUser.UserId,
+                    ReceiverName = newUser.FullName,
+                    Phone = newUser.Phone ?? string.Empty,
+                    AddressLine = model.Address.Trim(),
+                    IsDefault = true
+                };
+                _context.Addresses.Add(newAddress);
+                await _context.SaveChangesAsync();
+            }
 
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            _logger.LogInformation("Đã tạo mới tài khoản Customer thành công: {Email}", newUser.Email);
 
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity));
+            TempData["SuccessMessage"] = $"Đăng ký tài khoản thành công! Bạn có thể sử dụng email {newUser.Email} và mật khẩu vừa tạo để đăng nhập.";
 
-            TempData["SuccessMessage"] = $"Đăng ký thành công! Chào mừng {newUser.FullName} đến với Bakery Management System.";
-
-            return RedirectToLocal(returnUrl);
+            return RedirectToAction(nameof(Login), new { email = newUser.Email, returnUrl });
         }
 
         // POST: /Account/Logout
