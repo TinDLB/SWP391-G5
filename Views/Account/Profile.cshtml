@@ -1,0 +1,144 @@
+@model SWP391_G5.Models.ViewModels.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Quản Lý Tài Khoản - Tiệm Bánh BMS";
+}
+
+<div class="container py-5" style="max-width: 900px;">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--bakery-dark);">
+                <i class="bi bi-person-circle me-2" style="color: var(--bakery-primary);"></i>Quản Lý Tài Khoản
+            </h2>
+            <p class="text-muted small mb-0">Quản lý và cập nhật thông tin cá nhân của bạn tại BMS Bakery</p>
+        </div>
+        <div>
+            <span class="badge px-3 py-2 fs-6 rounded-pill" style="background-color: var(--bakery-cream); color: var(--bakery-primary); border: 1px solid var(--bakery-secondary);">
+                <i class="bi bi-shield-check me-1"></i> Vai trò: @Model.Role
+            </span>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-check-circle-fill flex-shrink-0 me-2 fs-5"></i>
+            <div>@TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+    {
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5"></i>
+            <div>
+                @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+                {
+                    <div>@error.ErrorMessage</div>
+                }
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Cột trái: Menu điều hướng tài khoản -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, var(--bakery-dark), var(--bakery-primary));">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-white text-dark rounded-circle shadow mb-3" style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; color: var(--bakery-primary) !important;">
+                        @(string.IsNullOrEmpty(Model.FullName) ? "U" : Model.FullName.Substring(0, 1).ToUpper())
+                    </div>
+                    <h5 class="fw-bold mb-1">@Model.FullName</h5>
+                    <div class="small opacity-75">@Model.Email</div>
+                </div>
+                <div class="list-group list-group-flush p-2">
+                    <a asp-action="Profile" asp-controller="Account" class="list-group-item list-group-item-action active rounded-3 mb-1 border-0 fw-semibold" style="background-color: var(--bakery-primary); color: white;">
+                        <i class="bi bi-person-lines-fill me-2"></i> Thông tin cá nhân
+                    </a>
+                    <a asp-action="ChangePassword" asp-controller="Account" class="list-group-item list-group-item-action rounded-3 mb-1 border-0 text-dark">
+                        <i class="bi bi-key-fill me-2 text-warning"></i> Đổi mật khẩu
+                    </a>
+                    <a asp-action="Index" asp-controller="Cart" class="list-group-item list-group-item-action rounded-3 mb-1 border-0 text-dark">
+                        <i class="bi bi-cart3 me-2 text-success"></i> Giỏ hàng của tôi
+                    </a>
+                    <form asp-action="Logout" asp-controller="Account" method="post" class="mt-2 pt-2 border-top">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="list-group-item list-group-item-action text-danger rounded-3 border-0">
+                            <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Form cập nhật thông tin -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+                <h4 class="fw-bold mb-4 pb-2 border-bottom" style="color: var(--bakery-dark);">
+                    Cập Nhật Thông Tin Cá Nhân
+                </h4>
+
+                <form asp-action="Profile" asp-controller="Account" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="UserId" />
+                    <input type="hidden" asp-for="Role" />
+
+                    <!-- Email (Không cho sửa để đảm bảo an toàn định danh) -->
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-bold text-muted small">Địa chỉ Email (Tài khoản đăng nhập)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Email" class="form-control bg-light" readonly tabindex="-1" />
+                        </div>
+                        <div class="form-text text-muted small">Email được dùng làm tên đăng nhập cố định và nhận thông báo.</div>
+                    </div>
+
+                    <!-- Họ và tên -->
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label fw-bold small">Họ và tên <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên" />
+                        </div>
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Số điện thoại -->
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber" class="form-label fw-bold small">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="Ví dụ: 0912345678" />
+                        </div>
+                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Địa chỉ mặc định -->
+                    <div class="mb-4">
+                        <label asp-for="Address" class="form-label fw-bold small">Địa chỉ giao hàng mặc định</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            <textarea asp-for="Address" class="form-control" rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."></textarea>
+                        </div>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index" asp-controller="Home" class="btn btn-outline-secondary px-4 py-2">
+                            Quay lại Trang Chủ
+                        </a>
+                        <button type="submit" class="btn btn-bakery px-4 py-2">
+                            <i class="bi bi-check-lg me-1"></i> Lưu Thay Đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

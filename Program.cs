@@ -24,7 +24,9 @@ else
 }
 
 // 2. Đăng ký các dịch vụ (Dependency Injection)
+builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IBakerService, BakerService>();
 
 // 3. Cấu hình Cookie Authentication & Phân quyền Role

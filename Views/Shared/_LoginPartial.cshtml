@@ -50,6 +50,17 @@
                 <li><hr class="dropdown-divider"></li>
             }
             <li>
+                <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="Profile">
+                    <i class="bi bi-person-lines-fill text-primary"></i> Thông tin tài khoản
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="ChangePassword">
+                    <i class="bi bi-key-fill text-warning"></i> Đổi mật khẩu
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 rounded-2">
