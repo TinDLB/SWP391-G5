@@ -1,3 +1,4 @@
+
 @model List<SWP391_G5.Models.ViewModels.BakerProductionTaskViewModel>
 
 @{
@@ -7,13 +8,25 @@
 <div class="container py-4">
     <h2>Baker Dashboard</h2>
 
-    <p>
-        Welcome, @User.Identity?.Name
-    </p>
+    <p>Welcome, @User.Identity?.Name</p>
 
     <hr />
 
     <h4>Assigned Production Tasks</h4>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @TempData["ErrorMessage"]
+        </div>
+    }
 
     @if (Model == null || !Model.Any())
     {
@@ -24,14 +37,15 @@
     else
     {
         <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead>
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
                     <tr>
                         <th>Task ID</th>
                         <th>Product</th>
                         <th>Target Quantity</th>
                         <th>Status</th>
                         <th>Deadline</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
 
@@ -42,9 +56,64 @@
                             <td>@task.TaskId</td>
                             <td>@task.ProductName</td>
                             <td>@task.TargetQty</td>
-                            <td>@task.Status</td>
+
                             <td>
-                                @(task.Deadline?.ToString("dd/MM/yyyy HH:mm") ?? "No deadline")
+                                @if (task.Status == "Assigned")
+                                {
+                                    <span class="badge bg-primary">
+                                        Assigned
+                                    </span>
+                                }
+                                else if (task.Status == "InProgress")
+                                {
+                                    <span class="badge bg-success">
+                                        In Progress
+                                    </span>
+                                }
+                                else if (task.Status == "Completed")
+                                {
+                                    <span class="badge bg-secondary">
+                                        Completed
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark">
+                                        @task.Status
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @(task.Deadline?.ToString("dd/MM/yyyy HH:mm")
+                                    ?? "No deadline")
+                            </td>
+
+                            <td>
+                                @if (task.Status == "Assigned")
+                                {
+                                    <form asp-controller="Baker"
+                                          asp-action="StartProduction"
+                                          asp-route-id="@task.TaskId"
+                                          method="post">
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-primary btn-sm">
+                                            Start Production
+                                        </button>
+                                    </form>
+                                }
+                                else if (task.Status == "InProgress")
+                                {
+                                    <span class="text-success">
+                                        Production started
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
                             </td>
                         </tr>
                     }
