@@ -1,0 +1,120 @@
+@model SWP391_G5.Models.ViewModels.VerifyOtpViewModel
+
+@{
+    ViewData["Title"] = "Nhập Mã OTP Khôi Phục Mật Khẩu - Tiệm Bánh BMS";
+}
+
+<div class="auth-wrapper">
+    <div class="auth-card" style="max-width: 520px; margin: 0 auto;">
+        <div class="auth-form-side p-4 p-md-5">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 70px; height: 70px; background-color: var(--bakery-cream); color: var(--bakery-primary); border: 2px solid var(--bakery-secondary);">
+                    <i class="bi bi-shield-lock-fill fs-1"></i>
+                </div>
+                <h2 class="fw-bold" style="color: var(--bakery-dark);">Xác Thực Mã OTP</h2>
+                <p class="text-muted small">
+                    Mã OTP khôi phục mật khẩu đã được gửi tới email:<br />
+                    <strong class="text-dark">@Model.Email</strong>
+                </p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-check-circle-fill flex-shrink-0 me-2 fs-5"></i>
+                    <div>@TempData["SuccessMessage"]</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-info-circle-fill flex-shrink-0 me-2 fs-5"></i>
+                    <div>@TempData["InfoMessage"]</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5"></i>
+                    <div>@TempData["ErrorMessage"]</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+            {
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5"></i>
+                    <div>
+                        @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+                        {
+                            <div>@error.ErrorMessage</div>
+                        }
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="VerifyForgotOtp" asp-controller="Account" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Email" />
+                <input type="hidden" asp-for="Purpose" />
+
+                <div class="mb-4">
+                    <label asp-for="OtpCode" class="form-label fw-bold text-center w-100 mb-2">Nhập mã OTP (6 số)</label>
+                    <input asp-for="OtpCode" class="form-control form-control-lg text-center fw-bold fs-3" 
+                           maxlength="6" placeholder="000000" autofocus autocomplete="one-time-code"
+                           style="letter-spacing: 8px; font-family: monospace; border-color: var(--bakery-secondary);" />
+                    <span asp-validation-for="OtpCode" class="text-danger small d-block text-center mt-1"></span>
+                </div>
+
+                <div class="text-center text-muted small mb-4">
+                    <span>Mã hết hạn sau: </span>
+                    <span id="countdown" class="fw-bold text-danger">05:00</span>
+                </div>
+
+                <button type="submit" class="btn btn-bakery w-100 py-3 mb-3">
+                    <i class="bi bi-arrow-right-circle-fill me-1"></i> Xác Nhận Mã OTP
+                </button>
+            </form>
+
+            <form asp-action="ResendForgotOtp" asp-controller="Account" method="post" class="text-center">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="email" value="@Model.Email" />
+                <span class="text-muted small">Chưa nhận được mã? </span>
+                <button type="submit" class="btn btn-link p-0 small fw-bold text-decoration-none" style="color: var(--bakery-primary);">
+                    Gửi lại mã OTP
+                </button>
+            </form>
+
+            <div class="text-center mt-4 pt-3 border-top">
+                <a asp-action="Login" asp-controller="Account" class="text-muted small text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> Quay lại Đăng Nhập
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let timeLeft = 300;
+        const countdownEl = document.getElementById('countdown');
+        const timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                countdownEl.innerText = "Đã hết hạn!";
+            } else {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                countdownEl.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+    </script>
+}

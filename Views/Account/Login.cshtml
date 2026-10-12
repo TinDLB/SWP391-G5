@@ -38,6 +38,24 @@
                     <p>Chào mừng bạn quay trở lại! Vui lòng điền thông tin tài khoản.</p>
                 </div>
 
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                        <i class="bi bi-check-circle-fill flex-shrink-0 me-2 fs-5"></i>
+                        <div>@TempData["SuccessMessage"]</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                        <i class="bi bi-info-circle-fill flex-shrink-0 me-2 fs-5"></i>
+                        <div>@TempData["InfoMessage"]</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
                 @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
                 {
                     <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
@@ -78,7 +96,7 @@
                                 Ghi nhớ đăng nhập
                             </label>
                         </div>
-                        <a href="javascript:void(0);" onclick="alert('Vui lòng liên hệ nhân viên tiệm bánh để được cấp lại mật khẩu.')" class="small text-decoration-none" style="color: var(--bakery-primary);">Quên mật khẩu?</a>
+                        <a asp-action="ForgotPassword" asp-controller="Account" class="small text-decoration-none" style="color: var(--bakery-primary);">Quên mật khẩu?</a>
                     </div>
 
                     <button type="submit" class="btn btn-bakery w-100 py-3 mb-3">
