@@ -1,3 +1,5 @@
+@model SWP391_G5.Models.ViewModels.HomeViewModel
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
     ViewData["Title"] = "Trang chủ";
 }
@@ -48,77 +50,39 @@
     <!-- SEARCH + FILTER -->
     <section class="search-section">
 
-        <div class="search-box">
-
-            <span class="search-icon">
-                🔍
-            </span>
-
-            <input type="text"
-                   placeholder="Tìm bánh, đồ uống..." />
-
-            <select>
-                <option value="">
-                    Mặc định
-                </option>
-
-                <option value="price-asc">
-                    Giá thấp → cao
-                </option>
-
-                <option value="price-desc">
-                    Giá cao → thấp
-                </option>
-
-                <option value="newest">
-                    Mới nhất
-                </option>
+        <form id="product-search-form" asp-controller="Home" asp-action="Index" asp-fragment="products" method="get" class="search-box">
+            @if (Model.SelectedCategoryId.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
+            }
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input id="product-search" type="search" name="search" value="@Model.Search"
+                   placeholder="Tìm tên bánh..." aria-label="Tìm tên sản phẩm"
+                   aria-describedby="search-error" required />
+            <select id="product-sort" name="sort" aria-label="Sắp xếp sản phẩm">
+                <option value="" selected="@(Model.Sort == "")">Mặc định</option>
+                <option value="price-asc" selected="@(Model.Sort == "price-asc")">Giá thấp → cao</option>
+                <option value="price-desc" selected="@(Model.Sort == "price-desc")">Giá cao → thấp</option>
+                <option value="newest" selected="@(Model.Sort == "newest")">Mới nhất</option>
             </select>
-
-        </div>
-
-
+            <button type="submit" class="btn-main">Tìm kiếm</button>
+            <a asp-controller="Home" asp-action="Index" asp-route-categoryId="@Model.SelectedCategoryId"
+               asp-route-sort="@Model.Sort" asp-fragment="products" class="view-all">Xóa tìm kiếm</a>
+        </form>
+        <p id="search-error" class="text-danger" role="alert">@Model.SearchError</p>
         <!-- CATEGORY -->
-        <div class="category-list">
-
-            <button class="category active">
-                Tất cả
-            </button>
-
-            <button class="category">
-                Bánh sinh nhật
-            </button>
-
-            <button class="category">
-                Bánh ngọt
-            </button>
-
-            <button class="category">
-                Bánh mì
-            </button>
-
-            <button class="category">
-                Bánh mousse
-            </button>
-
-            <button class="category">
-                Sweetbox
-            </button>
-
-            <button class="category">
-                Dessert
-            </button>
-
-            <button class="category">
-                Cookie & Bánh nướng
-            </button>
-
-            <button class="category">
-                Combo
-            </button>
-
+        <div class="category-list" aria-label="Danh mục bánh">
+            <a asp-controller="Home" asp-action="Index" asp-fragment="products" asp-route-search="@Model.Search" asp-route-sort="@Model.Sort"
+               class="category @(Model.SelectedCategoryId == null ? "active" : "")"
+               aria-current="@(Model.SelectedCategoryId == null ? "true" : "false")">Tất cả</a>
+            @foreach (var category in Model.Categories)
+            {
+                <a asp-controller="Home" asp-action="Index" asp-route-categoryId="@category.CategoryId"
+                   asp-fragment="products" asp-route-search="@Model.Search" asp-route-sort="@Model.Sort"
+                   class="category @(Model.SelectedCategoryId == category.CategoryId ? "active" : "")"
+                   aria-current="@(Model.SelectedCategoryId == category.CategoryId ? "true" : "false")">@category.Name</a>
+            }
         </div>
-
 
         @if (User.Identity?.IsAuthenticated != true)
         {
@@ -145,374 +109,95 @@
 
 
 
-    <!-- FEATURED PRODUCTS -->
-    <section id="products"
-             class="product-section">
-
+    <!-- PRODUCTS FROM DATABASE -->
+    <section id="products" class="product-section">
         <div class="section-header">
-
             <div>
-                <span class="section-label">
-                    SẢN PHẨM NỔI BẬT
-                </span>
-
-                <h2>
-                    Bánh được yêu thích
-                </h2>
+                <span class="section-label">MENU BÁNH</span>
+                <h2>@(Model.Categories.FirstOrDefault(c => c.CategoryId == Model.SelectedCategoryId)?.Name ?? "Khám phá các loại bánh")</h2>
             </div>
-
-            <a href="#"
-               class="view-all">
-                Xem tất cả →
-            </a>
-
+            <a asp-controller="Home" asp-action="Index" asp-fragment="products" class="view-all">Xem tất cả →</a>
         </div>
 
-
-        <div class="product-grid">
-
-            <!-- PRODUCT 1 -->
-            <div class="product-card">
-
-                <div class="product-image">
-
-                    <span class="badge-featured">
-                        Nổi bật
-                    </span>
-
-                    <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587"
-                         alt="Chocolate Cake" />
-
-                    <button class="cart-button">
-                        🛒
-                    </button>
-
-                </div>
-
-                <div class="product-info">
-
-                    <span class="product-category">
-                        BÁNH KEM
-                    </span>
-
-                    <h3>
-                        Chocolate Dream Cake
-                    </h3>
-
-                    <p>
-                        Bánh chocolate đậm vị,
-                        phủ kem mềm mịn và thơm béo.
-                    </p>
-
-                    <div class="price">
-                        520.000 đ
+        @if (Model.Products.Count == 0)
+        {
+            <p role="status">Không tìm thấy sản phẩm phù hợp.</p>
+        }
+        else
+        {
+            <div class="product-grid">
+                @foreach (var product in Model.Products)
+                {
+                    // Only serve existing project images, including older products without ImageUrl.
+                    var imageUrl = $"/uploads/products/{product.ProductId}.jpg";
+                    var uploadedUrl = product.ImageUrl;
+                    if (!string.IsNullOrWhiteSpace(uploadedUrl)
+                        && uploadedUrl.StartsWith("/uploads/products/", StringComparison.Ordinal)
+                        && !uploadedUrl.Contains("..")
+                        && System.IO.File.Exists(System.IO.Path.Combine(HostEnvironment.WebRootPath, uploadedUrl.TrimStart('/'))))
+                    {
+                        imageUrl = uploadedUrl;
+                    }
+                    if (!System.IO.File.Exists(System.IO.Path.Combine(HostEnvironment.WebRootPath, imageUrl.TrimStart('/'))))
+                    {
+                        imageUrl = "/uploads/products/1.jpg";
+                    }
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" />
+                            <button class="cart-button" type="button" aria-label="Thêm @product.Name vào giỏ">🛒</button>
+                        </div>
+                        <div class="product-info">
+                            <span class="product-category">@product.Category.Name</span>
+                            <h3>@product.Name</h3>
+                            <p>@product.Description</p>
+                            <div class="price">@product.Price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) đ</div>
+                        </div>
                     </div>
-
-                </div>
-
+                }
             </div>
-
-
-            <!-- PRODUCT 2 -->
-            <div class="product-card">
-
-                <div class="product-image">
-
-                    <span class="badge-featured">
-                        Nổi bật
-                    </span>
-
-                    <img src="https://images.unsplash.com/photo-1571115177098-24ec42ed204d"
-                         alt="Mousse Cake" />
-
-                    <button class="cart-button">
-                        🛒
-                    </button>
-
-                </div>
-
-                <div class="product-info">
-
-                    <span class="product-category">
-                        BÁNH MOUSSE
-                    </span>
-
-                    <h3>
-                        Mango Mousse
-                    </h3>
-
-                    <p>
-                        Mousse xoài thanh mát,
-                        mềm nhẹ và vị trái cây tự nhiên.
-                    </p>
-
-                    <div class="price">
-                        320.000 đ
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- PRODUCT 3 -->
-            <div class="product-card">
-
-                <div class="product-image">
-
-                    <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d"
-                         alt="Sweet Box" />
-
-                    <button class="cart-button">
-                        🛒
-                    </button>
-
-                </div>
-
-                <div class="product-info">
-
-                    <span class="product-category">
-                        SWEETBOX
-                    </span>
-
-                    <h3>
-                        Sweet Mini Box
-                    </h3>
-
-                    <p>
-                        Set bánh mini nhiều hương vị,
-                        phù hợp làm quà hoặc dùng trong tiệc.
-                    </p>
-
-                    <div class="price">
-                        280.000 đ
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- PRODUCT 4 -->
-            <div class="product-card">
-
-                <div class="product-image">
-
-                    <img src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3"
-                         alt="Birthday Cake" />
-
-                    <button class="cart-button">
-                        🛒
-                    </button>
-
-                </div>
-
-                <div class="product-info">
-
-                    <span class="product-category">
-                        BÁNH SINH NHẬT
-                    </span>
-
-                    <h3>
-                        Strawberry Birthday Cake
-                    </h3>
-
-                    <p>
-                        Bánh kem dâu tươi,
-                        phù hợp sinh nhật và các dịp đặc biệt.
-                    </p>
-
-                    <div class="price">
-                        450.000 đ
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
+        }
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Phân trang sản phẩm" class="mt-4">
+                <ul class="pagination justify-content-center flex-wrap">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        @if (Model.CurrentPage > 1)
+                        {
+                            <a class="page-link" asp-controller="Home" asp-action="Index"
+                               asp-route-page="@(Model.CurrentPage - 1)" asp-route-categoryId="@Model.SelectedCategoryId"
+                               asp-route-search="@Model.Search" asp-route-sort="@Model.Sort" asp-fragment="products">Trước</a>
+                        }
+                        else
+                        {
+                            <span class="page-link" aria-disabled="true">Trước</span>
+                        }
+                    </li>
+                    @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+                    {
+                        <li class="page-item @(pageNumber == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-controller="Home" asp-action="Index"
+                               asp-route-page="@pageNumber" asp-route-categoryId="@Model.SelectedCategoryId"
+                               asp-route-search="@Model.Search" asp-route-sort="@Model.Sort" asp-fragment="products"
+                               aria-current="@(pageNumber == Model.CurrentPage ? "page" : null)">@pageNumber</a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        @if (Model.CurrentPage < Model.TotalPages)
+                        {
+                            <a class="page-link" asp-controller="Home" asp-action="Index"
+                               asp-route-page="@(Model.CurrentPage + 1)" asp-route-categoryId="@Model.SelectedCategoryId"
+                               asp-route-search="@Model.Search" asp-route-sort="@Model.Sort" asp-fragment="products">Sau</a>
+                        }
+                        else
+                        {
+                            <span class="page-link" aria-disabled="true">Sau</span>
+                        }
+                    </li>
+                </ul>
+            </nav>
+        }
     </section>
-
-
-
-    <!-- NEW PRODUCTS -->
-    <section class="product-section second-section">
-
-        <div class="section-header">
-
-            <div>
-                <span class="section-label">
-                    MENU BÁNH
-                </span>
-
-                <h2>
-                    Khám phá thêm
-                </h2>
-            </div>
-
-            <a href="#"
-               class="view-all">
-                Xem tất cả →
-            </a>
-
-        </div>
-
-
-        <div class="product-grid">
-
-            <div class="product-card">
-
-                <div class="product-image">
-
-                    <img src="https://images.unsplash.com/photo-1559620192-032c4bc4674e"
-                         alt="Cake" />
-
-                    <button class="cart-button">
-                        🛒
-                    </button>
-
-                </div>
-
-                <div class="product-info">
-
-                    <span class="product-category">
-                        DESSERT
-                    </span>
-
-                    <h3>
-                        Vanilla Cream Cake
-                    </h3>
-
-                    <p>
-                        Bánh vanilla nhẹ nhàng,
-                        phù hợp cho mọi dịp.
-                    </p>
-
-                    <div class="price">
-                        390.000 đ
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="product-card">
-
-                <div class="product-image">
-
-                    <img src="https://images.unsplash.com/photo-1542826438-bd32f43d626f"
-                         alt="Cake" />
-
-                    <button class="cart-button">
-                        🛒
-                    </button>
-
-                </div>
-
-                <div class="product-info">
-
-                    <span class="product-category">
-                        BÁNH NGỌT
-                    </span>
-
-                    <h3>
-                        Cream Berry Cake
-                    </h3>
-
-                    <p>
-                        Bánh kem kết hợp trái cây tươi,
-                        vị ngọt vừa phải.
-                    </p>
-
-                    <div class="price">
-                        410.000 đ
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="product-card">
-
-                <div class="product-image">
-
-                    <img src="https://images.unsplash.com/photo-1519915028121-7d3463d20b13"
-                         alt="Cake" />
-
-                    <button class="cart-button">
-                        🛒
-                    </button>
-
-                </div>
-
-                <div class="product-info">
-
-                    <span class="product-category">
-                        COOKIE & BÁNH NƯỚNG
-                    </span>
-
-                    <h3>
-                        Butter Cookie Box
-                    </h3>
-
-                    <p>
-                        Cookie bơ thơm giòn,
-                        đóng hộp tiện lợi.
-                    </p>
-
-                    <div class="price">
-                        180.000 đ
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="product-card">
-
-                <div class="product-image">
-
-                    <img src="https://images.unsplash.com/photo-1535141192574-5d4897c12636"
-                         alt="Cake" />
-
-                    <button class="cart-button">
-                        🛒
-                    </button>
-
-                </div>
-
-                <div class="product-info">
-
-                    <span class="product-category">
-                        COMBO
-                    </span>
-
-                    <h3>
-                        Celebration Combo
-                    </h3>
-
-                    <p>
-                        Combo bánh dành cho
-                        tiệc sinh nhật và sự kiện nhỏ.
-                    </p>
-
-                    <div class="price">
-                        699.000 đ
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
 
  <!-- BENEFITS -->
 <section class="benefit-section">
@@ -657,3 +342,41 @@
     </div>
 
 </section>
+@section Scripts {
+    <script>
+        (() => {
+            const form = document.getElementById('product-search-form');
+            const input = document.getElementById('product-search');
+            const error = document.getElementById('search-error');
+            const validate = () => {
+                input.setCustomValidity(input.value.trim() ? '' : 'Vui lòng nhập tên sản phẩm, không chỉ nhập khoảng trắng.');
+            };
+            input.addEventListener('input', () => {
+                error.textContent = '';
+                validate();
+            });
+            form.addEventListener('submit', (event) => {
+                input.value = input.value.trim();
+                validate();
+                if (!input.checkValidity()) {
+                    event.preventDefault();
+                    input.reportValidity();
+                }
+            });
+            document.getElementById('product-sort').addEventListener('change', () => {
+                if (input.value.length && !input.value.trim()) {
+                    validate();
+                    input.reportValidity();
+                    return;
+                }
+                if (!input.value.trim()) {
+                    input.disabled = true;
+                    form.requestSubmit();
+                    input.disabled = false;
+                } else {
+                    form.requestSubmit();
+                }
+            });
+        })();
+    </script>
+}
