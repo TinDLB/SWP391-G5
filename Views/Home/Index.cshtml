@@ -1,7 +1,382 @@
+@model SWP391_G5.Models.ViewModels.HomeViewModel
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
-    ViewData["Title"] = "Trang Chủ";
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="container py-5 text-center">
-    <!-- Nội dung trang chủ để trống cho thành viên phụ trách UI/UX thiết kế sau -->
-</div>
+<div class="home-page">
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+        <div class="hero-overlay">
+            <div class="hero-content">
+
+                <span class="hero-badge">
+                    BAKERY MANAGEMENT SYSTEM
+                </span>
+
+                <h1>
+                    Bánh tươi mỗi ngày,<br />
+                    dành cho những khoảnh khắc đặc biệt
+                </h1>
+
+                <p>
+                    Khám phá các loại bánh ngọt, bánh sinh nhật,
+                    mousse và combo được làm mới mỗi ngày.
+                </p>
+
+                <div class="hero-actions">
+
+                    <a href="#products" class="btn-main">
+                        Xem menu
+                    </a>
+
+                    @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="btn-outline">
+                            Đăng nhập
+                        </a>
+                    }
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- SEARCH + FILTER -->
+    <section class="search-section">
+
+        <form id="product-search-form" asp-controller="Home" asp-action="Index" asp-fragment="products" method="get" class="search-box">
+            @if (Model.SelectedCategoryId.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
+            }
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input id="product-search" type="search" name="search" value="@Model.Search"
+                   placeholder="Tìm tên bánh..." aria-label="Tìm tên sản phẩm"
+                   aria-describedby="search-error" required />
+            <select id="product-sort" name="sort" aria-label="Sắp xếp sản phẩm">
+                <option value="" selected="@(Model.Sort == "")">Mặc định</option>
+                <option value="price-asc" selected="@(Model.Sort == "price-asc")">Giá thấp → cao</option>
+                <option value="price-desc" selected="@(Model.Sort == "price-desc")">Giá cao → thấp</option>
+                <option value="newest" selected="@(Model.Sort == "newest")">Mới nhất</option>
+            </select>
+            <button type="submit" class="btn-main">Tìm kiếm</button>
+            <a asp-controller="Home" asp-action="Index" asp-route-categoryId="@Model.SelectedCategoryId"
+               asp-route-sort="@Model.Sort" asp-fragment="products" class="view-all">Xóa tìm kiếm</a>
+        </form>
+        <p id="search-error" class="text-danger" role="alert">@Model.SearchError</p>
+        <!-- CATEGORY -->
+        <div class="category-list" aria-label="Danh mục bánh">
+            <a asp-controller="Home" asp-action="Index" asp-fragment="products" asp-route-search="@Model.Search" asp-route-sort="@Model.Sort"
+               class="category @(Model.SelectedCategoryId == null ? "active" : "")"
+               aria-current="@(Model.SelectedCategoryId == null ? "true" : "false")">Tất cả</a>
+            @foreach (var category in Model.Categories)
+            {
+                <a asp-controller="Home" asp-action="Index" asp-route-categoryId="@category.CategoryId"
+                   asp-fragment="products" asp-route-search="@Model.Search" asp-route-sort="@Model.Sort"
+                   class="category @(Model.SelectedCategoryId == category.CategoryId ? "active" : "")"
+                   aria-current="@(Model.SelectedCategoryId == category.CategoryId ? "true" : "false")">@category.Name</a>
+            }
+        </div>
+
+        @if (User.Identity?.IsAuthenticated != true)
+        {
+            <div class="member-banner">
+                ⚡
+                <strong>
+                    Đăng nhập thành viên
+                </strong>
+                để nhận ưu đãi và tích điểm mỗi đơn hàng
+            </div>
+        }
+        else
+        {
+            <div class="member-banner">
+                🎁
+                <strong>
+                    Thành viên BMS
+                </strong>
+                – mua bánh và tích điểm để nhận ưu đãi
+            </div>
+        }
+
+    </section>
+
+
+
+    <!-- PRODUCTS FROM DATABASE -->
+    <section id="products" class="product-section">
+        <div class="section-header">
+            <div>
+                <span class="section-label">MENU BÁNH</span>
+                <h2>@(Model.Categories.FirstOrDefault(c => c.CategoryId == Model.SelectedCategoryId)?.Name ?? "Khám phá các loại bánh")</h2>
+            </div>
+            <a asp-controller="Home" asp-action="Index" asp-fragment="products" class="view-all">Xem tất cả →</a>
+        </div>
+
+        @if (Model.Products.Count == 0)
+        {
+            <p role="status">Không tìm thấy sản phẩm phù hợp.</p>
+        }
+        else
+        {
+            <div class="product-grid">
+                @foreach (var product in Model.Products)
+                {
+                    // Only serve existing project images, including older products without ImageUrl.
+                    var imageUrl = $"/uploads/products/{product.ProductId}.jpg";
+                    var uploadedUrl = product.ImageUrl;
+                    if (!string.IsNullOrWhiteSpace(uploadedUrl)
+                        && uploadedUrl.StartsWith("/uploads/products/", StringComparison.Ordinal)
+                        && !uploadedUrl.Contains("..")
+                        && System.IO.File.Exists(System.IO.Path.Combine(HostEnvironment.WebRootPath, uploadedUrl.TrimStart('/'))))
+                    {
+                        imageUrl = uploadedUrl;
+                    }
+                    if (!System.IO.File.Exists(System.IO.Path.Combine(HostEnvironment.WebRootPath, imageUrl.TrimStart('/'))))
+                    {
+                        imageUrl = "/uploads/products/1.jpg";
+                    }
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" />
+                            <button class="cart-button" type="button" aria-label="Thêm @product.Name vào giỏ">🛒</button>
+                        </div>
+                        <div class="product-info">
+                            <span class="product-category">@product.Category.Name</span>
+                            <h3>@product.Name</h3>
+                            <p>@product.Description</p>
+                            <div class="price">@product.Price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) đ</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Phân trang sản phẩm" class="mt-4">
+                <ul class="pagination justify-content-center flex-wrap">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        @if (Model.CurrentPage > 1)
+                        {
+                            <a class="page-link" asp-controller="Home" asp-action="Index"
+                               asp-route-page="@(Model.CurrentPage - 1)" asp-route-categoryId="@Model.SelectedCategoryId"
+                               asp-route-search="@Model.Search" asp-route-sort="@Model.Sort" asp-fragment="products">Trước</a>
+                        }
+                        else
+                        {
+                            <span class="page-link" aria-disabled="true">Trước</span>
+                        }
+                    </li>
+                    @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
+                    {
+                        <li class="page-item @(pageNumber == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-controller="Home" asp-action="Index"
+                               asp-route-page="@pageNumber" asp-route-categoryId="@Model.SelectedCategoryId"
+                               asp-route-search="@Model.Search" asp-route-sort="@Model.Sort" asp-fragment="products"
+                               aria-current="@(pageNumber == Model.CurrentPage ? "page" : null)">@pageNumber</a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        @if (Model.CurrentPage < Model.TotalPages)
+                        {
+                            <a class="page-link" asp-controller="Home" asp-action="Index"
+                               asp-route-page="@(Model.CurrentPage + 1)" asp-route-categoryId="@Model.SelectedCategoryId"
+                               asp-route-search="@Model.Search" asp-route-sort="@Model.Sort" asp-fragment="products">Sau</a>
+                        }
+                        else
+                        {
+                            <span class="page-link" aria-disabled="true">Sau</span>
+                        }
+                    </li>
+                </ul>
+            </nav>
+        }
+    </section>
+
+ <!-- BENEFITS -->
+<section class="benefit-section">
+
+    <div class="benefit-item">
+        <div class="benefit-icon">🍰</div>
+
+        <h4>Bánh tươi mỗi ngày</h4>
+
+        <p>
+            Sản xuất mới mỗi ngày
+            để đảm bảo chất lượng.
+        </p>
+    </div>
+
+
+    <div class="benefit-item">
+        <div class="benefit-icon">🛵</div>
+
+        <h4>Giao hàng tiện lợi</h4>
+
+        <p>
+            Giao hàng nhanh chóng
+            và thuận tiện.
+        </p>
+    </div>
+
+
+    <div class="benefit-item">
+        <div class="benefit-icon">🎁</div>
+
+        <h4>Tích điểm thành viên</h4>
+
+        <p>
+            Mua hàng và nhận điểm
+            để đổi voucher.
+        </p>
+    </div>
+
+
+    <div class="benefit-item">
+        <div class="benefit-icon">💳</div>
+
+        <h4>Thanh toán linh hoạt</h4>
+
+        <p>
+            Hỗ trợ COD, VNPay
+            và nhiều phương thức khác.
+        </p>
+    </div>
+
+</section>
+
+
+<!-- LOCATION / MAP -->
+<section class="location-section">
+
+    <div class="location-container">
+
+        <!-- LEFT INFO -->
+        <div class="location-info">
+
+            <span class="section-label">
+                CỬA HÀNG
+            </span>
+
+            <h2>
+                Ghé thăm Bakery BMS
+            </h2>
+
+            <p class="location-description">
+                Hãy ghé cửa hàng để thưởng thức những chiếc bánh
+                tươi mới được chuẩn bị mỗi ngày.
+            </p>
+
+
+            <div class="location-detail">
+
+                <div class="location-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+
+                <div>
+                    <strong>Địa chỉ</strong>
+                    <span>
+                        FPT University, Hòa Lạc, Hà Nội
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div class="location-detail">
+
+                <div class="location-icon">
+                    <i class="bi bi-telephone-fill"></i>
+                </div>
+
+                <div>
+                    <strong>Điện thoại</strong>
+                    <span>
+                        0123 456 789
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div class="location-detail">
+
+                <div class="location-icon">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+
+                <div>
+                    <strong>Giờ mở cửa</strong>
+                    <span>
+                        08:00 - 22:00 mỗi ngày
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT MAP -->
+        <div class="map-box">
+
+            <iframe
+                src="https://www.google.com/maps?q=21.0124167,105.5252892&z=16&output=embed"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+
+        </div>
+
+    </div>
+
+</section>
+@section Scripts {
+    <script>
+        (() => {
+            const form = document.getElementById('product-search-form');
+            const input = document.getElementById('product-search');
+            const error = document.getElementById('search-error');
+            const validate = () => {
+                input.setCustomValidity(input.value.trim() ? '' : 'Vui lòng nhập tên sản phẩm, không chỉ nhập khoảng trắng.');
+            };
+            input.addEventListener('input', () => {
+                error.textContent = '';
+                validate();
+            });
+            form.addEventListener('submit', (event) => {
+                input.value = input.value.trim();
+                validate();
+                if (!input.checkValidity()) {
+                    event.preventDefault();
+                    input.reportValidity();
+                }
+            });
+            document.getElementById('product-sort').addEventListener('change', () => {
+                if (input.value.length && !input.value.trim()) {
+                    validate();
+                    input.reportValidity();
+                    return;
+                }
+                if (!input.value.trim()) {
+                    input.disabled = true;
+                    form.requestSubmit();
+                    input.disabled = false;
+                } else {
+                    form.requestSubmit();
+                }
+            });
+        })();
+    </script>
+}
