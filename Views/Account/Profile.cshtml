@@ -2,35 +2,39 @@
 
 @{
     ViewData["Title"] = "Quản Lý Tài Khoản - Tiệm Bánh BMS";
+    var isPasswordTab = (Model.ActiveTab == "password");
 }
 
-<div class="container py-5" style="max-width: 900px;">
-    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
-        <div>
-            <h2 class="fw-bold mb-1" style="color: var(--bakery-dark);">
-                <i class="bi bi-person-circle me-2" style="color: var(--bakery-primary);"></i>Quản Lý Tài Khoản
-            </h2>
-            <p class="text-muted small mb-0">Quản lý và cập nhật thông tin cá nhân của bạn tại BMS Bakery</p>
-        </div>
-        <div>
-            <span class="badge px-3 py-2 fs-6 rounded-pill" style="background-color: var(--bakery-cream); color: var(--bakery-primary); border: 1px solid var(--bakery-secondary);">
-                <i class="bi bi-shield-check me-1"></i> Vai trò: @Model.Role
-            </span>
-        </div>
+<div class="container py-5" style="max-width: 980px;">
+    <!-- Tiêu đề trang -->
+    <div class="mb-4 pb-3 border-bottom">
+        <h2 class="fw-bold mb-0" style="color: var(--bakery-dark);">
+            <i class="bi bi-person-circle me-2" style="color: var(--bakery-primary);"></i>Quản Lý Tài Khoản
+        </h2>
     </div>
 
+    <!-- Thông báo kết quả thực hiện -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
-            <i class="bi bi-check-circle-fill flex-shrink-0 me-2 fs-5"></i>
-            <div>@TempData["SuccessMessage"]</div>
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm border-0" role="alert" style="border-left: 5px solid #198754 !important;">
+            <i class="bi bi-check-circle-fill flex-shrink-0 me-2 fs-5 text-success"></i>
+            <div class="fw-semibold">@TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm border-0" role="alert" style="border-left: 5px solid #dc3545 !important;">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5 text-danger"></i>
+            <div class="fw-semibold">@TempData["ErrorMessage"]</div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
     @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
     {
-        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
             <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5"></i>
             <div>
                 @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
@@ -43,29 +47,44 @@
     }
 
     <div class="row g-4">
-        <!-- Cột trái: Menu điều hướng tài khoản -->
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <!-- Cột trái: Thông tin tổng quan & Menu -->
+        <div class="col-lg-4 col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
                 <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, var(--bakery-dark), var(--bakery-primary));">
-                    <div class="d-inline-flex align-items-center justify-content-center bg-white text-dark rounded-circle shadow mb-3" style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; color: var(--bakery-primary) !important;">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow mb-3" style="width: 80px; height: 80px; font-size: 32px; font-weight: bold; color: var(--bakery-primary) !important;">
                         @(string.IsNullOrEmpty(Model.FullName) ? "U" : Model.FullName.Substring(0, 1).ToUpper())
                     </div>
-                    <h5 class="fw-bold mb-1">@Model.FullName</h5>
+                    <h5 class="fw-bold mb-1 text-white">@Model.FullName</h5>
                     <div class="small opacity-75">@Model.Email</div>
+                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                    {
+                        <div class="small opacity-75 mt-1"><i class="bi bi-telephone me-1"></i>@Model.PhoneNumber</div>
+                    }
+                    <div class="small opacity-90 mt-2 bg-white bg-opacity-25 rounded-pill px-3 py-1 d-inline-block">
+                        <i class="bi bi-stars text-warning me-1"></i> Điểm tích lũy: <strong>@Model.LoyaltyPoints</strong> điểm
+                    </div>
                 </div>
-                <div class="list-group list-group-flush p-2">
-                    <a asp-action="Profile" asp-controller="Account" class="list-group-item list-group-item-action active rounded-3 mb-1 border-0 fw-semibold" style="background-color: var(--bakery-primary); color: white;">
-                        <i class="bi bi-person-lines-fill me-2"></i> Thông tin cá nhân
+
+                <div class="list-group list-group-flush p-2" id="sidebarMenu">
+                    <button type="button" class="list-group-item list-group-item-action @(!isPasswordTab ? "active" : "") rounded-3 mb-1 border-0 fw-semibold text-start d-flex align-items-center justify-content-between" id="sidebar-info-btn" onclick="activateTab('info')">
+                        <span><i class="bi bi-person-lines-fill me-2"></i> Thông tin cá nhân</span>
+                        <i class="bi bi-chevron-right small opacity-50"></i>
+                    </button>
+                    <button type="button" class="list-group-item list-group-item-action @(isPasswordTab ? "active" : "") rounded-3 mb-1 border-0 fw-semibold text-start d-flex align-items-center justify-content-between" id="sidebar-password-btn" onclick="activateTab('password')">
+                        <span><i class="bi bi-key-fill me-2 text-warning"></i> Quản lý mật khẩu</span>
+                        <i class="bi bi-chevron-right small opacity-50"></i>
+                    </button>
+                    <a asp-action="Index" asp-controller="Order" class="list-group-item list-group-item-action rounded-3 mb-1 border-0 text-dark d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-clock-history me-2 text-primary"></i> Đơn hàng của tôi</span>
+                        <i class="bi bi-chevron-right small opacity-50"></i>
                     </a>
-                    <a asp-action="ChangePassword" asp-controller="Account" class="list-group-item list-group-item-action rounded-3 mb-1 border-0 text-dark">
-                        <i class="bi bi-key-fill me-2 text-warning"></i> Đổi mật khẩu
-                    </a>
-                    <a asp-action="Index" asp-controller="Cart" class="list-group-item list-group-item-action rounded-3 mb-1 border-0 text-dark">
-                        <i class="bi bi-cart3 me-2 text-success"></i> Giỏ hàng của tôi
+                    <a asp-action="Index" asp-controller="Notification" class="list-group-item list-group-item-action rounded-3 mb-1 border-0 text-dark d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-bell me-2 text-warning"></i> Thông báo</span>
+                        <i class="bi bi-chevron-right small opacity-50"></i>
                     </a>
                     <form asp-action="Logout" asp-controller="Account" method="post" class="mt-2 pt-2 border-top">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="list-group-item list-group-item-action text-danger rounded-3 border-0">
+                        <button type="submit" class="list-group-item list-group-item-action text-danger rounded-3 border-0 w-100 text-start">
                             <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
                         </button>
                     </form>
@@ -73,72 +92,225 @@
             </div>
         </div>
 
-        <!-- Cột phải: Form cập nhật thông tin -->
-        <div class="col-md-8">
+        <!-- Cột phải: Nội dung chi tiết -->
+        <div class="col-lg-8 col-md-7">
             <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
-                <h4 class="fw-bold mb-4 pb-2 border-bottom" style="color: var(--bakery-dark);">
-                    Cập Nhật Thông Tin Cá Nhân
-                </h4>
+                <!-- ================= PHẦN 1: THÔNG TIN CÁ NHÂN ================= -->
+                <div id="tab-info" class="@(isPasswordTab ? "d-none" : "")">
+                    <div class="mb-4 pb-2 border-bottom">
+                        <h4 class="fw-bold mb-1" style="color: var(--bakery-dark);">Cập Nhật Thông Tin Cá Nhân</h4>
+                        <p class="text-muted small mb-0">Bạn có thể thay đổi số điện thoại và địa chỉ giao hàng bên dưới sau đó bấm "Lưu Thay Đổi".</p>
+                    </div>
 
-                <form asp-action="Profile" asp-controller="Account" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" asp-for="UserId" />
-                    <input type="hidden" asp-for="Role" />
+                    <form asp-action="Profile" asp-controller="Account" method="post" id="formProfile">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="UserId" />
+                        <input type="hidden" asp-for="Role" />
 
-                    <!-- Email (Không cho sửa để đảm bảo an toàn định danh) -->
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label fw-bold text-muted small">Địa chỉ Email (Tài khoản đăng nhập)</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
-                            <input asp-for="Email" class="form-control bg-light" readonly tabindex="-1" />
+                        <!-- Email (Tài khoản cố định) -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-bold text-muted small">Địa chỉ Email (Tài khoản đăng nhập)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                                <input asp-for="Email" class="form-control bg-light border-start-0" readonly tabindex="-1" />
+                            </div>
+                            <div class="form-text text-muted small">Email được dùng làm định danh đăng nhập và nhận thông báo đơn hàng.</div>
                         </div>
-                        <div class="form-text text-muted small">Email được dùng làm tên đăng nhập cố định và nhận thông báo.</div>
-                    </div>
 
-                    <!-- Họ và tên -->
-                    <div class="mb-3">
-                        <label asp-for="FullName" class="form-label fw-bold small">Họ và tên <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên" />
+                        <!-- Họ và tên -->
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label fw-bold small">Họ và tên <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên đầy đủ" />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
                         </div>
-                        <span asp-validation-for="FullName" class="text-danger small"></span>
-                    </div>
 
-                    <!-- Số điện thoại -->
-                    <div class="mb-3">
-                        <label asp-for="PhoneNumber" class="form-label fw-bold small">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                            <input asp-for="PhoneNumber" class="form-control" placeholder="Ví dụ: 0912345678" />
+                        <!-- Số điện thoại -->
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label fw-bold small">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="Ví dụ: 0912345678" />
+                            </div>
+                            <div class="form-text text-muted small">Gồm 10 số (bắt đầu bằng 03, 05, 07, 08, 09) dùng để nhận cuộc gọi giao hàng.</div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
                         </div>
-                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
-                    </div>
 
-                    <!-- Địa chỉ mặc định -->
-                    <div class="mb-4">
-                        <label asp-for="Address" class="form-label fw-bold small">Địa chỉ giao hàng mặc định</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                            <textarea asp-for="Address" class="form-control" rows="3" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."></textarea>
+                        <!-- Địa chỉ nhận hàng -->
+                        <div class="mb-4">
+                            <label asp-for="Address" class="form-label fw-bold small">Địa chỉ nhận hàng mặc định</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <textarea asp-for="Address" class="form-control" rows="3" placeholder="Nhập số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."></textarea>
+                            </div>
+                            <div class="form-text text-muted small">Địa chỉ này sẽ được ưu tiên tự động điền khi bạn tiến hành thanh toán giỏ hàng.</div>
+                            <span asp-validation-for="Address" class="text-danger small"></span>
                         </div>
-                        <span asp-validation-for="Address" class="text-danger small"></span>
+
+                        <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                            <a asp-action="Index" asp-controller="Home" class="btn btn-outline-secondary px-4 py-2">
+                                Quay lại Trang Chủ
+                            </a>
+                            <button type="submit" class="btn btn-bakery px-4 py-2 shadow-sm">
+                                <i class="bi bi-check-lg me-1"></i> Lưu Thay Đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ================= PHẦN 2: QUẢN LÝ MẬT KHẨU ================= -->
+                <div id="tab-password" class="@(!isPasswordTab ? "d-none" : "")">
+                    <div class="mb-4 pb-2 border-bottom">
+                        <h4 class="fw-bold mb-1" style="color: var(--bakery-dark);">Quản Lý Mật Khẩu</h4>
+                        <p class="text-muted small mb-0">Bạn chỉ cần nhập đúng mật khẩu hiện tại cùng mật khẩu mới để cập nhật bảo mật tài khoản.</p>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <a asp-action="Index" asp-controller="Home" class="btn btn-outline-secondary px-4 py-2">
-                            Quay lại Trang Chủ
-                        </a>
-                        <button type="submit" class="btn btn-bakery px-4 py-2">
-                            <i class="bi bi-check-lg me-1"></i> Lưu Thay Đổi
-                        </button>
-                    </div>
-                </form>
+                    <form asp-action="ChangePassword" asp-controller="Account" method="post" id="formChangePassword">
+                        @Html.AntiForgeryToken()
+
+                        <div class="alert alert-light border small text-muted mb-4 d-flex align-items-center">
+                            <i class="bi bi-shield-lock-fill me-2 fs-5 text-warning"></i>
+                            <div>Mật khẩu mới yêu cầu tối thiểu 6 ký tự để bảo đảm an toàn cho tài khoản của bạn.</div>
+                        </div>
+
+                        <!-- Mật khẩu hiện tại -->
+                        <div class="form-floating mb-3 position-relative">
+                            <input name="CurrentPassword" type="password" class="form-control" placeholder=" " id="currentPass" required autocomplete="current-password" />
+                            <label for="currentPass"><i class="bi bi-lock me-1"></i> Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-sm btn-link position-absolute end-0 top-50 translate-middle-y me-2 text-muted text-decoration-none" id="toggleCurrentPass" tabindex="-1">
+                                <i class="bi bi-eye" id="toggleCurrentIcon"></i>
+                            </button>
+                        </div>
+
+                        <!-- Mật khẩu mới -->
+                        <div class="form-floating mb-3 position-relative">
+                            <input name="NewPassword" type="password" class="form-control" placeholder=" " id="newPass" required minlength="6" autocomplete="new-password" />
+                            <label for="newPass"><i class="bi bi-shield-lock me-1"></i> Mật khẩu mới (ít nhất 6 ký tự) <span class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-sm btn-link position-absolute end-0 top-50 translate-middle-y me-2 text-muted text-decoration-none" id="toggleNewPass" tabindex="-1">
+                                <i class="bi bi-eye" id="toggleNewIcon"></i>
+                            </button>
+                        </div>
+
+                        <!-- Xác nhận mật khẩu mới -->
+                        <div class="form-floating mb-4 position-relative">
+                            <input name="ConfirmNewPassword" type="password" class="form-control" placeholder=" " id="confirmPass" required autocomplete="new-password" />
+                            <label for="confirmPass"><i class="bi bi-shield-check me-1"></i> Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-sm btn-link position-absolute end-0 top-50 translate-middle-y me-2 text-muted text-decoration-none" id="toggleConfirmPass" tabindex="-1">
+                                <i class="bi bi-eye" id="toggleConfirmIcon"></i>
+                            </button>
+                            <div id="passwordMismatchError" class="text-danger small mt-1 d-none">
+                                <i class="bi bi-exclamation-circle me-1"></i> Mật khẩu xác nhận không khớp với mật khẩu mới.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                            <button type="button" class="btn btn-outline-secondary px-4 py-2" onclick="activateTab('info')">
+                                Hủy bỏ
+                            </button>
+                            <button type="submit" class="btn btn-bakery px-4 py-2 shadow-sm" id="btnSubmitPassword">
+                                <i class="bi bi-key-fill me-1"></i> Cập Nhật Mật Khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    /* Styling cho Sidebar Items */
+    #sidebarMenu .list-group-item.active {
+        background: linear-gradient(135deg, var(--bakery-primary), var(--bakery-secondary)) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 8px rgba(198, 105, 0, 0.2);
+    }
+    #sidebarMenu .list-group-item.active i {
+        color: #ffffff !important;
+    }
+    #sidebarMenu .list-group-item:not(.active):hover {
+        background-color: var(--bakery-cream);
+        color: var(--bakery-primary);
+    }
+</style>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Chuyển đổi giữa Thông tin cá nhân và Quản lý mật khẩu qua menu bên trái
+        function activateTab(tab) {
+            const tabInfo = document.getElementById('tab-info');
+            const tabPassword = document.getElementById('tab-password');
+            const sidebarInfo = document.getElementById('sidebar-info-btn');
+            const sidebarPass = document.getElementById('sidebar-password-btn');
+
+            if (tab === 'password') {
+                if (tabInfo) tabInfo.classList.add('d-none');
+                if (tabPassword) tabPassword.classList.remove('d-none');
+                if (sidebarInfo) sidebarInfo.classList.remove('active');
+                if (sidebarPass) sidebarPass.classList.add('active');
+            } else {
+                if (tabPassword) tabPassword.classList.add('d-none');
+                if (tabInfo) tabInfo.classList.remove('d-none');
+                if (sidebarPass) sidebarPass.classList.remove('active');
+                if (sidebarInfo) sidebarInfo.classList.add('active');
+            }
+        }
+
+        // Cấu hình nút xem / ẩn mật khẩu (Eye Toggle)
+        function setupToggle(btnId, inputId, iconId) {
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (btn && input && icon) {
+                btn.addEventListener('click', function () {
+                    const isPassword = input.type === 'password';
+                    input.type = isPassword ? 'text' : 'password';
+                    icon.classList.toggle('bi-eye', !isPassword);
+                    icon.classList.toggle('bi-eye-slash', isPassword);
+                });
+            }
+        }
+
+        setupToggle('toggleCurrentPass', 'currentPass', 'toggleCurrentIcon');
+        setupToggle('toggleNewPass', 'newPass', 'toggleNewIcon');
+        setupToggle('toggleConfirmPass', 'confirmPass', 'toggleConfirmIcon');
+
+        // Kiểm tra khớp mật khẩu phía Client trước khi gửi form
+        const formChangePassword = document.getElementById('formChangePassword');
+        const newPassInput = document.getElementById('newPass');
+        const confirmPassInput = document.getElementById('confirmPass');
+        const mismatchError = document.getElementById('passwordMismatchError');
+
+        function checkPasswordMatch() {
+            if (confirmPassInput.value && newPassInput.value !== confirmPassInput.value) {
+                mismatchError.classList.remove('d-none');
+                return false;
+            } else {
+                mismatchError.classList.add('d-none');
+                return true;
+            }
+        }
+
+        if (confirmPassInput && newPassInput) {
+            confirmPassInput.addEventListener('input', checkPasswordMatch);
+            newPassInput.addEventListener('input', function() {
+                if (confirmPassInput.value) {
+                    checkPasswordMatch();
+                }
+            });
+        }
+
+        if (formChangePassword) {
+            formChangePassword.addEventListener('submit', function (e) {
+                if (!checkPasswordMatch()) {
+                    e.preventDefault();
+                    confirmPassInput.focus();
+                }
+            });
+        }
+    </script>
 }

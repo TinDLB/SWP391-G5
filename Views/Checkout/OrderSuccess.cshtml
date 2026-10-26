@@ -1,0 +1,64 @@
+@model SWP391_G5.Models.Entities.Order
+@{
+    ViewData["Title"] = "Đặt Hàng Thành Công - BMS Bakery";
+}
+
+<div class="container py-5" style="max-width: 800px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white text-center">
+        <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle shadow mb-3 mx-auto" style="width: 80px; height: 80px;">
+            <i class="bi bi-check-lg display-4"></i>
+        </div>
+
+        <h3 class="fw-bold text-dark mb-1">CẢM ƠN BẠN ĐÃ ĐẶT HÀNG!</h3>
+        <p class="text-muted mb-4">Đơn hàng của bạn đã được tiếp nhận và đang được thợ bánh BMS xử lý.</p>
+
+        <!-- Khung chi tiết tóm tắt -->
+        <div class="bg-light p-4 rounded-4 border text-start mb-4">
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Mã đơn hàng:</span>
+                    <strong class="text-dark fs-5">#@Model.OrderCode</strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Thời gian đặt:</span>
+                    <strong>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Phương thức thanh toán:</span>
+                    <strong>@(Model.PaymentMethod == "Online" ? "Thanh toán Online" : "Thanh toán khi nhận hàng (COD)")</strong>
+                    <span class="badge @(Model.PaymentStatus == "Paid" ? "bg-success" : "bg-secondary") ms-1 small">@Model.PaymentStatus</span>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Tổng thanh toán:</span>
+                    <strong class="text-danger fs-5">@Model.TotalAmount.ToString("N0")đ</strong>
+                </div>
+                <div class="col-12 border-top pt-2 mt-2">
+                    <span class="text-muted small d-block">Địa chỉ nhận hàng:</span>
+                    <strong>@Model.Address?.ReceiverName</strong> - @Model.Address?.Phone
+                    <div class="small text-muted">@Model.Address?.AddressLine</div>
+                </div>
+                @if (Model.PointsEarned > 0)
+                {
+                    <div class="col-12 border-top pt-2 mt-2">
+                        <span class="badge bg-warning text-dark p-2">
+                            <i class="bi bi-stars me-1"></i> Bạn được tích lũy: +@Model.PointsEarned điểm thưởng thành viên BMS
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Các nút hành động -->
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+            <a asp-controller="Order" asp-action="Detail" asp-route-id="@Model.OrderId" class="btn btn-bakery px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                <i class="bi bi-truck me-1"></i> Theo Dõi Đơn Hàng
+            </a>
+            <a asp-controller="Order" asp-action="Index" class="btn btn-outline-dark px-4 py-2 rounded-pill fw-semibold">
+                <i class="bi bi-clock-history me-1"></i> Lịch Sử Đơn Hàng
+            </a>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-link text-decoration-none px-3 py-2 text-muted">
+                Tiếp tục mua bánh <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

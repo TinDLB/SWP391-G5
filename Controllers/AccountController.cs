@@ -192,7 +192,7 @@ namespace SWP391_G5.Controllers
             // Gửi email OTP
             await _emailService.SendOtpEmailAsync(normalizedEmail, otpCode, "Register");
 
-            TempData["InfoMessage"] = $"Mã OTP xác thực đã được gửi đến email {normalizedEmail}. Vui lòng nhập mã để hoàn tất đăng ký.";
+            TempData["InfoMessage"] = $"Mã OTP xác thực đã được gửi đến email {normalizedEmail}. Vui lòng kiểm tra hộp thư (kể cả mục Spam).";
 
             return RedirectToAction(nameof(VerifyRegisterOtp), new { email = normalizedEmail, returnUrl });
         }
@@ -366,7 +366,7 @@ namespace SWP391_G5.Controllers
 
             await _emailService.SendOtpEmailAsync(normalizedEmail, otpCode, "ForgotPassword");
 
-            TempData["InfoMessage"] = $"Mã OTP khôi phục mật khẩu đã được gửi đến {normalizedEmail}. Vui lòng kiểm tra email.";
+            TempData["InfoMessage"] = $"Mã OTP khôi phục mật khẩu đã được gửi đến {normalizedEmail}. Vui lòng kiểm tra email (kể cả mục Spam).";
 
             return RedirectToAction(nameof(VerifyForgotOtp), new { email = normalizedEmail });
         }
@@ -514,8 +514,17 @@ namespace SWP391_G5.Controllers
         // GET: /Account/Profile
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> Profile()
+        public async Task<IActionResult> Profile(string? tab = null)
         {
+            // Chỉ dành cho Customer. Các vai trò Admin, Cashier, Baker chuyển hướng về Dashboard tương ứng
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Dashboard", "Admin");
+            if (string.Equals(role, "Cashier", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Dashboard", "Cashier");
+            if (string.Equals(role, "Baker", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Index", "Baker");
+
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out var userId))
             {
@@ -534,6 +543,10 @@ namespace SWP391_G5.Controllers
             var defaultAddress = user.Addresses.FirstOrDefault(a => a.IsDefault)?.AddressLine
                 ?? user.Addresses.FirstOrDefault()?.AddressLine;
 
+            var activeTab = !string.IsNullOrEmpty(tab)
+                ? tab
+                : (TempData["ActiveTab"]?.ToString() ?? "info");
+
             var model = new ProfileViewModel
             {
                 UserId = user.UserId,
@@ -541,7 +554,9 @@ namespace SWP391_G5.Controllers
                 Email = user.Email,
                 PhoneNumber = user.Phone ?? string.Empty,
                 Address = defaultAddress,
-                Role = user.Role
+                Role = user.Role,
+                LoyaltyPoints = user.LoyaltyPoints,
+                ActiveTab = activeTab
             };
 
             return View(model);
@@ -553,14 +568,29 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile(ProfileViewModel model)
         {
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "Cashier", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "Baker", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out var userId) || userId != model.UserId)
             {
                 return RedirectToAction(nameof(Login));
             }
 
+            // Bỏ qua validate của form Đổi mật khẩu
+            ModelState.Remove("ChangePassword");
+            ModelState.Remove("ChangePassword.CurrentPassword");
+            ModelState.Remove("ChangePassword.NewPassword");
+            ModelState.Remove("ChangePassword.ConfirmNewPassword");
+
             if (!ModelState.IsValid)
             {
+                model.ActiveTab = "info";
                 return View(model);
             }
 
@@ -617,7 +647,8 @@ namespace SWP391_G5.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
             TempData["SuccessMessage"] = "Cập nhật thông tin tài khoản thành công!";
-            return RedirectToAction(nameof(Profile));
+            TempData["ActiveTab"] = "info";
+            return RedirectToAction(nameof(Profile), new { tab = "info" });
         }
 
         // GET: /Account/ChangePassword
@@ -625,7 +656,17 @@ namespace SWP391_G5.Controllers
         [Authorize]
         public IActionResult ChangePassword()
         {
-            return View(new ChangePasswordViewModel());
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Dashboard", "Admin");
+            if (string.Equals(role, "Cashier", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Dashboard", "Cashier");
+            if (string.Equals(role, "Baker", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Index", "Baker");
+
+            // Chuyển hướng về tab Quản lý mật khẩu trên trang Profile
+            TempData["ActiveTab"] = "password";
+            return RedirectToAction(nameof(Profile), new { tab = "password" });
         }
 
         // POST: /Account/ChangePassword
@@ -634,9 +675,12 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
-            if (!ModelState.IsValid)
+            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "Cashier", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "Baker", StringComparison.OrdinalIgnoreCase))
             {
-                return View(model);
+                return RedirectToAction("Index", "Home");
             }
 
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -645,17 +689,30 @@ namespace SWP391_G5.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
+            if (!ModelState.IsValid)
+            {
+                var firstError = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .FirstOrDefault() ?? "Dữ liệu đổi mật khẩu không hợp lệ.";
+
+                TempData["ErrorMessage"] = firstError;
+                TempData["ActiveTab"] = "password";
+                return RedirectToAction(nameof(Profile), new { tab = "password" });
+            }
+
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
             if (user == null)
             {
                 return RedirectToAction(nameof(Login));
             }
 
-            // Kiểm tra mật khẩu hiện tại
+            // Kiểm tra mật khẩu hiện tại: chỉ cần nhập đúng mật khẩu hiện tại là được
             if (!_passwordService.VerifyPassword(model.CurrentPassword, user.PasswordHash))
             {
-                ModelState.AddModelError("CurrentPassword", "Mật khẩu hiện tại không chính xác.");
-                return View(model);
+                TempData["ErrorMessage"] = "Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.";
+                TempData["ActiveTab"] = "password";
+                return RedirectToAction(nameof(Profile), new { tab = "password" });
             }
 
             // Cập nhật mật khẩu mới
@@ -665,7 +722,8 @@ namespace SWP391_G5.Controllers
             _logger.LogInformation("Người dùng {Email} đã đổi mật khẩu thành công trong trang cá nhân.", user.Email);
 
             TempData["SuccessMessage"] = "Đổi mật khẩu thành công!";
-            return RedirectToAction(nameof(Profile));
+            TempData["ActiveTab"] = "password";
+            return RedirectToAction(nameof(Profile), new { tab = "password" });
         }
 
         #endregion

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace SWP391_G5.Models.Entities;
@@ -18,6 +18,8 @@ public partial class User
     public string Role { get; set; } = null!;
 
     public bool IsActive { get; set; }
+
+    public int LoyaltyPoints { get; set; } = 0;
 
     public DateTime CreatedAt { get; set; }
 

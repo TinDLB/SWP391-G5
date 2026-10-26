@@ -19,10 +19,16 @@ namespace SWP391_G5.Models.ViewModels
         [Display(Name = "Số điện thoại")]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [Display(Name = "Địa chỉ nhận hàng mặc định")]
+        [Display(Name = "Địa chỉ nhận hàng")]
         [StringLength(255, ErrorMessage = "Địa chỉ không vượt quá 255 ký tự.")]
         public string? Address { get; set; }
 
         public string Role { get; set; } = "Customer";
+
+        public int LoyaltyPoints { get; set; } = 0;
+
+        public ChangePasswordViewModel? ChangePassword { get; set; } = new ChangePasswordViewModel();
+
+        public string ActiveTab { get; set; } = "info";
     }
 }

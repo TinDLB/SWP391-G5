@@ -1,0 +1,344 @@
+@model SWP391_G5.Models.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Thanh Toán Đơn Hàng - Tiệm Bánh BMS";
+}
+
+<div class="container py-4" style="max-width: 1100px;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Cart" asp-action="Index" class="text-decoration-none text-muted">Giỏ Hàng</a></li>
+            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Thanh Toán (Checkout)</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--bakery-dark);">
+                <i class="bi bi-credit-card me-2" style="color: var(--bakery-primary);"></i>Xác Nhận & Đặt Hàng
+            </h2>
+            <p class="text-muted small mb-0">Vui lòng kiểm tra địa chỉ giao hàng và phương thức thanh toán trước khi hoàn tất</p>
+        </div>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm border-0" role="alert" style="border-left: 5px solid #dc3545 !important;">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5 text-danger"></i>
+            <div class="fw-semibold">@TempData["ErrorMessage"]</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="PlaceOrder" asp-controller="Checkout" method="post" id="checkoutForm">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-4">
+            <!-- Cột trái: Thông tin nhận hàng & Thanh toán -->
+            <div class="col-lg-7">
+                <!-- 1. Địa chỉ giao hàng -->
+                <div class="bg-white rounded-4 shadow-sm border p-4 mb-4">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--bakery-dark);">
+                        <i class="bi bi-geo-alt-fill me-2 text-danger"></i> 1. ĐỊA CHỈ NHẬN HÀNG
+                    </h5>
+
+                    @if (Model.SavedAddresses != null && Model.SavedAddresses.Any())
+                    {
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Chọn địa chỉ đã lưu trong sổ địa chỉ:</label>
+                            @foreach (var addr in Model.SavedAddresses)
+                            {
+                                <div class="form-check p-3 border rounded-3 mb-2 address-card @(Model.SelectedAddressId == addr.AddressId ? "border-warning bg-light" : "")" style="cursor: pointer;">
+                                    <input class="form-check-input address-radio" type="radio" name="SelectedAddressId" id="addr_@addr.AddressId" value="@addr.AddressId" @(Model.SelectedAddressId == addr.AddressId ? "checked" : "") onchange="toggleAddressMode(false)" />
+                                    <label class="form-check-label w-100 ms-2" for="addr_@addr.AddressId">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong>@addr.ReceiverName</strong>
+                                            @if (addr.IsDefault)
+                                            {
+                                                <span class="badge bg-warning text-dark small">Mặc định</span>
+                                            }
+                                        </div>
+                                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i>@addr.Phone</div>
+                                        <div class="small text-dark mt-1"><i class="bi bi-house-door me-1"></i>@addr.AddressLine</div>
+                                    </label>
+                                </div>
+                            }
+
+                            <!-- Lựa chọn nhập địa chỉ khác -->
+                            <div class="form-check p-3 border rounded-3 mb-2">
+                                <input class="form-check-input" type="radio" name="SelectedAddressId" id="addr_new" value="0" onchange="toggleAddressMode(true)" />
+                                <label class="form-check-label ms-2 fw-semibold text-primary" for="addr_new">
+                                    <i class="bi bi-plus-circle me-1"></i> Giao đến địa chỉ mới khác
+                                </label>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Form nhập địa chỉ mới -->
+                    <div id="newAddressContainer" class="@(Model.SavedAddresses != null && Model.SavedAddresses.Any() ? "d-none" : "") bg-light p-3 rounded-3 border mt-3">
+                        <input type="hidden" name="IsNewAddress" id="isNewAddressInput" value="@(Model.SavedAddresses != null && Model.SavedAddresses.Any() ? "false" : "true")" />
+                        <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-pencil-square me-1"></i> Nhập thông tin địa chỉ mới</h6>
+                        <div class="row g-2">
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">Tên người nhận <span class="text-danger">*</span></label>
+                                <input asp-for="NewReceiverName" class="form-control form-control-sm" placeholder="Họ và tên người nhận" />
+                                <span asp-validation-for="NewReceiverName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="form-label small fw-bold">Số điện thoại <span class="text-danger">*</span></label>
+                                <input asp-for="NewPhone" class="form-control form-control-sm" placeholder="Ví dụ: 0912345678" />
+                                <span asp-validation-for="NewPhone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12 mb-2">
+                                <label class="form-label small fw-bold">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                                <textarea asp-for="NewAddressLine" rows="2" class="form-control form-control-sm" placeholder="Số nhà, ngõ, đường, phường/xã, quận/huyện..."></textarea>
+                                <span asp-validation-for="NewAddressLine" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Phương thức thanh toán -->
+                <div class="bg-white rounded-4 shadow-sm border p-4 mb-4">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--bakery-dark);">
+                        <i class="bi bi-wallet2 me-2" style="color: var(--bakery-primary);"></i> 2. PHƯƠNG THỨC THANH TOÁN
+                    </h5>
+
+                    <div class="form-check p-3 border rounded-3 mb-3 payment-card border-warning bg-light" style="cursor: pointer;">
+                        <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="COD" id="pay_cod" checked />
+                        <label class="form-check-label ms-2 d-flex align-items-center justify-content-between w-100" for="pay_cod">
+                            <div>
+                                <div class="fw-bold"><i class="bi bi-cash-stack text-success me-2 fs-5"></i>Thanh toán khi nhận hàng (COD)</div>
+                                <small class="text-muted">Bạn thanh toán trực tiếp bằng tiền mặt cho shipper khi nhận được bánh.</small>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check p-3 border rounded-3 payment-card" style="cursor: pointer;">
+                        <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="Online" id="pay_online" />
+                        <label class="form-check-label ms-2 d-flex align-items-center justify-content-between w-100" for="pay_online">
+                            <div>
+                                <div class="fw-bold"><i class="bi bi-qr-code-scan text-primary me-2 fs-5"></i>Thanh toán trực tuyến (Chuyển khoản QR / VNPAY)</div>
+                                <small class="text-muted">Quét mã VietQR hoặc thanh toán qua cổng VNPAY/thẻ ATM/Visa an toàn.</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 3. Ghi chú đơn hàng -->
+                <div class="bg-white rounded-4 shadow-sm border p-4 mb-4">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--bakery-dark);">
+                        <i class="bi bi-chat-left-text me-2 text-secondary"></i> 3. GHI CHÚ ĐƠN HÀNG (TÙY CHỌN)
+                    </h5>
+                    <textarea asp-for="Note" class="form-control" rows="2" placeholder="Ví dụ: Ghi chữ lên bánh sinh nhật, giao bánh trong khoảng 15h - 17h, gọi trước khi đến..."></textarea>
+                </div>
+            </div>
+
+            <!-- Cột phải: Tóm tắt đơn hàng, Voucher, Loyalty Points -->
+            <div class="col-lg-5">
+                <div class="bg-white rounded-4 shadow-sm border p-4 sticky-top" style="top: 85px;">
+                    <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">ĐƠN HÀNG CỦA BẠN (@Model.Items.Count món)</h5>
+
+                    <!-- Danh sách món bánh tóm tắt -->
+                    <div class="order-items-scroll mb-3" style="max-height: 240px; overflow-y: auto;">
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=100&auto=format&fit=crop&q=80" : item.ImageUrl)" alt="@item.ProductName" class="rounded-3 object-fit-cover shadow-sm" style="width: 50px; height: 50px;" />
+                                <div class="flex-grow-1 lh-sm">
+                                    <div class="fw-semibold small text-dark">@item.ProductName</div>
+                                    <div class="text-muted small">@item.Quantity x @item.UnitPrice.ToString("N0")đ</div>
+                                </div>
+                                <div class="fw-bold text-dark small">@item.LineTotal.ToString("N0")đ</div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Voucher Khuyến Mãi (UC-13 Integration) -->
+                    <div class="mb-3 p-3 bg-light rounded-3 border">
+                        <label class="form-label small fw-bold text-dark mb-1"><i class="bi bi-ticket-perforated-fill text-danger me-1"></i> Mã giảm giá (Voucher)</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="voucherCodeInput" asp-for="VoucherCode" class="form-control text-uppercase" placeholder="Nhập mã voucher..." />
+                            <button type="button" class="btn btn-dark fw-semibold" id="btnApplyVoucher" onclick="applyVoucher()">Áp dụng</button>
+                        </div>
+                        <div id="voucherMessage" class="small mt-1 d-none"></div>
+                    </div>
+
+                    <!-- Điểm thưởng thành viên (UC-29 Loyalty Points) -->
+                    <div class="mb-3 p-3 rounded-3 border" style="background-color: var(--bakery-cream);">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold text-dark"><i class="bi bi-stars text-warning me-1"></i> Điểm tích lũy BMS</span>
+                            <span class="badge bg-warning text-dark">@Model.AvailablePoints điểm</span>
+                        </div>
+                        <div class="small text-muted mb-2">Tỷ lệ quy đổi: 1 điểm = 1,000đ giảm giá.</div>
+
+                        @if (Model.AvailablePoints > 0)
+                        {
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="chkUsePoints" asp-for="UsePoints" onchange="togglePointsUsage()" />
+                                <label class="form-check-label small fw-semibold" for="chkUsePoints">Dùng điểm để giảm tiền</label>
+                            </div>
+                            <div id="pointsInputGroup" class="d-none">
+                                <div class="input-group input-group-sm">
+                                    <input type="number" id="pointsToUseInput" asp-for="PointsToUse" class="form-control" min="1" max="@Model.AvailablePoints" value="@Model.AvailablePoints" oninput="calculateTotal()" />
+                                    <span class="input-group-text">điểm</span>
+                                </div>
+                                <small class="text-success mt-1 d-block" id="pointsDiscountText"></small>
+                            </div>
+                        }
+                        else
+                        {
+                            <small class="text-muted fst-italic">Bạn chưa có điểm thưởng. Đặt đơn này để được tích thêm điểm nhé!</small>
+                        }
+                    </div>
+
+                    <!-- Chi tiết tính tiền -->
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Tạm tính:</span>
+                        <strong class="text-dark" id="displaySubtotal">@Model.Subtotal.ToString("N0")đ</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small text-success" id="rowVoucherDiscount" style="display: none !important;">
+                        <span>Giảm giá Voucher:</span>
+                        <span id="displayVoucherDiscount">-0đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small text-success" id="rowPointsDiscount" style="display: none !important;">
+                        <span>Giảm từ điểm thưởng:</span>
+                        <span id="displayPointsDiscount">-0đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Phí vận chuyển:</span>
+                        <span class="text-success fw-semibold">Miễn phí</span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold fs-5 text-dark">Tổng thanh toán:</span>
+                        <span class="fw-bold fs-4 text-danger" id="displayFinalTotal">@Model.TotalAmount.ToString("N0")đ</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1 small text-muted mb-4 justify-content-end">
+                        <i class="bi bi-gift text-warning"></i>
+                        <span>Đơn hàng này tích lũy: <strong class="text-primary" id="displayPointsEarned">+@Model.PointsToEarn điểm</strong></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-bakery w-100 py-3 rounded-pill fw-bold shadow">
+                        <i class="bi bi-shield-check me-1"></i> XÁC NHẬN ĐẶT HÀNG
+                    </button>
+                    <small class="text-muted text-center d-block mt-2">Bấm xác nhận đồng nghĩa bạn đồng ý với các điều khoản của BMS Bakery</small>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const initialSubtotal = @Model.Subtotal;
+        let voucherDiscount = 0;
+        let pointsDiscount = 0;
+        const availablePoints = @Model.AvailablePoints;
+
+        function toggleAddressMode(isNew) {
+            const container = document.getElementById('newAddressContainer');
+            const flag = document.getElementById('isNewAddressInput');
+            if (isNew) {
+                container.classList.remove('d-none');
+                flag.value = 'true';
+            } else {
+                container.classList.add('d-none');
+                flag.value = 'false';
+            }
+        }
+
+        function togglePointsUsage() {
+            const chk = document.getElementById('chkUsePoints');
+            const group = document.getElementById('pointsInputGroup');
+            if (chk.checked) {
+                group.classList.remove('d-none');
+            } else {
+                group.classList.add('d-none');
+            }
+            calculateTotal();
+        }
+
+        function applyVoucher() {
+            const code = document.getElementById('voucherCodeInput').value.trim();
+            const msgBox = document.getElementById('voucherMessage');
+
+            if (!code) {
+                msgBox.className = 'small mt-1 text-danger';
+                msgBox.innerText = 'Vui lòng nhập mã giảm giá.';
+                msgBox.classList.remove('d-none');
+                return;
+            }
+
+            $.post('/Checkout/CheckVoucher', { code: code, subtotal: initialSubtotal }, function (res) {
+                msgBox.classList.remove('d-none');
+                if (res.success) {
+                    msgBox.className = 'small mt-1 text-success fw-semibold';
+                    msgBox.innerText = res.message;
+                    voucherDiscount = res.discountAmount;
+                } else {
+                    msgBox.className = 'small mt-1 text-danger';
+                    msgBox.innerText = res.message;
+                    voucherDiscount = 0;
+                }
+                calculateTotal();
+            });
+        }
+
+        function calculateTotal() {
+            const chk = document.getElementById('chkUsePoints');
+            const pointsInput = document.getElementById('pointsToUseInput');
+            const pointsText = document.getElementById('pointsDiscountText');
+
+            pointsDiscount = 0;
+            if (chk && chk.checked) {
+                let pts = parseInt(pointsInput.value) || 0;
+                if (pts > availablePoints) pts = availablePoints;
+                if (pts < 0) pts = 0;
+                pointsInput.value = pts;
+
+                // Tối đa điểm được dùng không vượt quá số tiền còn lại sau khi trừ voucher
+                const remaining = Math.max(0, initialSubtotal - voucherDiscount);
+                const maxPointsAllowed = Math.ceil(remaining / 1000);
+                if (pts > maxPointsAllowed) {
+                    pts = maxPointsAllowed;
+                    pointsInput.value = pts;
+                }
+
+                pointsDiscount = pts * 1000;
+                pointsText.innerText = `Giảm ${pointsDiscount.toLocaleString('vi-VN')}đ (${pts} điểm)`;
+            }
+
+            // Hiển thị dòng voucher
+            const rowVoucher = document.getElementById('rowVoucherDiscount');
+            if (voucherDiscount > 0) {
+                rowVoucher.style.removeProperty('display');
+                document.getElementById('displayVoucherDiscount').innerText = `-${voucherDiscount.toLocaleString('vi-VN')}đ`;
+            } else {
+                rowVoucher.style.setProperty('display', 'none', 'important');
+            }
+
+            // Hiển thị dòng points
+            const rowPoints = document.getElementById('rowPointsDiscount');
+            if (pointsDiscount > 0) {
+                rowPoints.style.removeProperty('display');
+                document.getElementById('displayPointsDiscount').innerText = `-${pointsDiscount.toLocaleString('vi-VN')}đ`;
+            } else {
+                rowPoints.style.setProperty('display', 'none', 'important');
+            }
+
+            const totalDiscount = voucherDiscount + pointsDiscount;
+            const finalTotal = Math.max(0, initialSubtotal - totalDiscount);
+            document.getElementById('displayFinalTotal').innerText = `${finalTotal.toLocaleString('vi-VN')}đ`;
+
+            // Cập nhật điểm tích lũy dự kiến (100k = 1 điểm)
+            const earned = Math.floor(finalTotal * 0.01 / 1000);
+            document.getElementById('displayPointsEarned').innerText = `+${earned} điểm`;
+        }
+    </script>
+}

@@ -1,0 +1,83 @@
+@model SWP391_G5.Models.ViewModels.NotificationListViewModel
+@{
+    ViewData["Title"] = "Thông Báo Của Tôi - BMS Bakery";
+}
+
+<div class="container py-4" style="max-width: 800px;">
+    <!-- Tiêu đề -->
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--bakery-dark);">
+                <i class="bi bi-bell-fill me-2" style="color: var(--bakery-primary);"></i>Thông Báo Của Bạn
+            </h2>
+            <p class="text-muted small mb-0">Cập nhật nhanh tình trạng đơn hàng và các thông tin từ tiệm bánh</p>
+        </div>
+        @if (Model.UnreadCount > 0)
+        {
+            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="markAllAsRead()">
+                <i class="bi bi-check2-all me-1"></i> Đánh dấu đã đọc tất cả
+            </button>
+        }
+    </div>
+
+    @if (Model.Notifications != null && Model.Notifications.Any())
+    {
+        <div class="list-group shadow-sm rounded-4 border-0 overflow-hidden bg-white">
+            @foreach (var n in Model.Notifications)
+            {
+                <div class="list-group-item p-3 p-md-4 border-bottom d-flex align-items-start gap-3 @(!n.IsRead ? "bg-light border-start border-4 border-warning" : "")" id="notif-row-@n.NotificationId">
+                    <div class="rounded-circle p-2 bg-white shadow-sm flex-shrink-0 text-center" style="width: 44px; height: 44px;">
+                        <i class="bi @n.IconClass fs-5"></i>
+                    </div>
+
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="fw-bold mb-0 text-dark @(!n.IsRead ? "text-primary" : "")">@n.Title</h6>
+                            <small class="text-muted">@n.TimeAgo</small>
+                        </div>
+                        <p class="text-secondary small mb-2">@n.Message</p>
+
+                        @if (!n.IsRead)
+                        {
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted small" onclick="markSingleRead(@n.NotificationId)">
+                                <i class="bi bi-check2 me-1"></i>Đánh dấu đã đọc
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-5">
+            <i class="bi bi-bell-slash display-3 text-muted opacity-50 mb-3 d-block"></i>
+            <h5 class="fw-bold text-dark">Bạn chưa có thông báo nào</h5>
+            <p class="text-muted small mb-0">Khi bạn đặt đơn hàng mới, các thông báo cập nhật tiến độ sẽ xuất hiện tại đây.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function markSingleRead(id) {
+            $.post('/Notification/MarkAsRead/' + id, function (res) {
+                if (res.success) {
+                    const row = document.getElementById('notif-row-' + id);
+                    if (row) {
+                        row.classList.remove('bg-light', 'border-start', 'border-4', 'border-warning');
+                    }
+                    location.reload();
+                }
+            });
+        }
+
+        function markAllAsRead() {
+            $.post('/Notification/MarkAllAsRead', function (res) {
+                if (res.success) {
+                    location.reload();
+                }
+            });
+        }
+    </script>
+}

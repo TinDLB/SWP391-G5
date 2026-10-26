@@ -1,0 +1,126 @@
+@model SWP391_G5.Models.ViewModels.OrderListViewModel
+@{
+    ViewData["Title"] = "Đơn Hàng Của Tôi - BMS Bakery";
+}
+
+<div class="container py-4" style="max-width: 980px;">
+    <!-- Tiêu đề -->
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--bakery-dark);">
+                <i class="bi bi-clock-history me-2" style="color: var(--bakery-primary);"></i>Lịch Sử Đơn Hàng
+            </h2>
+            <p class="text-muted small mb-0">Theo dõi trạng thái và lịch sử tất cả đơn bánh bạn đã đặt tại BMS</p>
+        </div>
+        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+            <i class="bi bi-cart-plus me-1"></i> Đặt thêm bánh
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill flex-shrink-0 me-2 fs-5"></i>
+            <div>@TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Thanh lọc trạng thái (Status Filter Tabs) -->
+    <div class="d-flex gap-2 overflow-auto pb-2 mb-4">
+        <a asp-action="Index" asp-route-status="All" class="btn btn-sm rounded-pill px-3 @(Model.CurrentStatusFilter == "All" ? "btn-dark fw-bold" : "btn-light border text-muted")">
+            Tất cả (@Model.TotalOrderCount)
+        </a>
+        <a asp-action="Index" asp-route-status="Pending" class="btn btn-sm rounded-pill px-3 @(Model.CurrentStatusFilter == "Pending" ? "btn-warning text-dark fw-bold" : "btn-light border text-muted")">
+            Chờ xử lý (@Model.PendingCount)
+        </a>
+        <a asp-action="Index" asp-route-status="Preparing" class="btn btn-sm rounded-pill px-3 @(Model.CurrentStatusFilter == "Preparing" ? "btn-info text-white fw-bold" : "btn-light border text-muted")">
+            Đang làm bánh (@Model.PreparingCount)
+        </a>
+        <a asp-action="Index" asp-route-status="Delivering" class="btn btn-sm rounded-pill px-3 @(Model.CurrentStatusFilter == "Delivering" ? "btn-primary fw-bold" : "btn-light border text-muted")">
+            Đang giao (@Model.DeliveringCount)
+        </a>
+        <a asp-action="Index" asp-route-status="Completed" class="btn btn-sm rounded-pill px-3 @(Model.CurrentStatusFilter == "Completed" ? "btn-success fw-bold" : "btn-light border text-muted")">
+            Đã hoàn thành (@Model.CompletedCount)
+        </a>
+        <a asp-action="Index" asp-route-status="Cancelled" class="btn btn-sm rounded-pill px-3 @(Model.CurrentStatusFilter == "Cancelled" ? "btn-danger fw-bold" : "btn-light border text-muted")">
+            Đã hủy (@Model.CancelledCount)
+        </a>
+    </div>
+
+    <!-- Danh sách đơn hàng -->
+    @if (Model.Orders != null && Model.Orders.Any())
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var order in Model.Orders)
+            {
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-3 px-4 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-receipt text-muted"></i>
+                            <span class="fw-bold text-dark fs-6">#@order.OrderCode</span>
+                            <span class="text-muted small">| @order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div>
+                            @switch (order.Status)
+                            {
+                                case "Pending":
+                                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="bi bi-hourglass-split me-1"></i>Chờ tiếp nhận</span>
+                                    break;
+                                case "Preparing":
+                                    <span class="badge bg-info text-white px-3 py-2 rounded-pill"><i class="bi bi-cake2 me-1"></i>Đang làm bánh</span>
+                                    break;
+                                case "Delivering":
+                                    <span class="badge bg-primary px-3 py-2 rounded-pill"><i class="bi bi-truck me-1"></i>Đang giao hàng</span>
+                                    break;
+                                case "Completed":
+                                    <span class="badge bg-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i>Giao thành công</span>
+                                    break;
+                                case "Cancelled":
+                                    <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i>Đã hủy</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary px-3 py-2 rounded-pill">@order.Status</span>
+                                    break;
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="@(string.IsNullOrEmpty(order.FirstItemImage) ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=120&auto=format&fit=crop&q=80" : order.FirstItemImage)" class="rounded-3 object-fit-cover shadow-sm" style="width: 65px; height: 65px;" alt="Bánh" />
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">@order.FirstItemName</h6>
+                                <div class="small text-muted">
+                                    Tổng cộng: <strong>@order.TotalItems</strong> món bánh
+                                    <span class="mx-1">•</span>
+                                    Thanh toán: <strong>@(order.PaymentMethod == "Online" ? "Online" : "COD")</strong>
+                                    <span class="badge @(order.PaymentStatus == "Paid" ? "bg-success-subtle text-success" : "bg-warning-subtle text-dark") border ms-1 small">@order.PaymentStatus</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-md-end border-top pt-2 border-md-top-0 pt-md-0">
+                            <div class="small text-muted">Tổng thanh toán:</div>
+                            <div class="fw-bold fs-4 text-danger mb-2">@order.TotalAmount.ToString("N0")đ</div>
+                            <a asp-action="Detail" asp-route-id="@order.OrderId" class="btn btn-sm btn-outline-dark rounded-pill px-4 fw-semibold">
+                                Xem chi tiết & Theo dõi <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-5">
+            <i class="bi bi-inbox display-3 text-muted opacity-50 mb-3 d-block"></i>
+            <h5 class="fw-bold text-dark">Không có đơn hàng nào trong mục này</h5>
+            <p class="text-muted small mb-4">Các đơn hàng bạn đặt sẽ được lưu trữ và hiển thị chi tiết tại đây.</p>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-bakery rounded-pill px-4 py-2">
+                <i class="bi bi-basket me-1"></i> Khám phá thực đơn bánh ngay
+            </a>
+        </div>
+    }
+</div>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace SWP391_G5.Models.Entities;
@@ -32,6 +32,10 @@ public partial class Order
     public decimal DiscountAmount { get; set; }
 
     public decimal TotalAmount { get; set; }
+
+    public int PointsEarned { get; set; } = 0;
+
+    public int PointsUsed { get; set; } = 0;
 
     public string? DeliveryStaffName { get; set; }
 

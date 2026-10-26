@@ -1,0 +1,86 @@
+@model SWP391_G5.Models.Entities.Order
+@{
+    ViewData["Title"] = "Cổng Thanh Toán Trực Tuyến - BMS Bakery";
+    string transferContent = $"{Model.OrderCode}";
+    string qrUrl = $"https://api.vietqr.io/image/970422-0987654321-compact2.png?amount={Convert.ToInt64(Model.TotalAmount)}&addInfo={transferContent}&accountName=TIEM%20BANH%20BMS";
+}
+
+<div class="container py-5" style="max-width: 750px;">
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+        <!-- Header -->
+        <div class="p-4 text-white text-center" style="background: linear-gradient(135deg, #1b3a4b, #006494);">
+            <div class="d-inline-flex align-items-center justify-content-center bg-white text-primary rounded-circle mb-2" style="width: 60px; height: 60px;">
+                <i class="bi bi-qr-code-scan fs-2 text-primary"></i>
+            </div>
+            <h4 class="fw-bold mb-1">CỔNG THANH TOÁN TRỰC TUYẾN</h4>
+            <div class="small opacity-75">Quét mã QR để hoàn tất thanh toán đơn hàng BMS Bakery</div>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-5 text-danger"></i>
+                    <div>@TempData["ErrorMessage"]</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="row align-items-center g-4 mb-4">
+                <!-- Cột hiển thị mã QR -->
+                <div class="col-md-6 text-center">
+                    <div class="p-2 border rounded-4 shadow-sm bg-white d-inline-block">
+                        <img src="@qrUrl" alt="Mã thanh toán VietQR" class="img-fluid rounded-3" style="max-width: 250px;" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=BMS_PAYMENT_@Model.OrderCode'" />
+                    </div>
+                    <div class="small text-muted mt-2"><i class="bi bi-camera me-1"></i> Mở App Ngân hàng hoặc Ví MoMo để quét</div>
+                </div>
+
+                <!-- Cột thông tin chuyển khoản -->
+                <div class="col-md-6">
+                    <div class="bg-light p-3 rounded-4 border">
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">Mã đơn hàng:</span>
+                            <span class="fw-bold text-dark fs-5">#@Model.OrderCode</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">Số tiền cần thanh toán:</span>
+                            <span class="fw-bold text-danger fs-4">@Model.TotalAmount.ToString("N0")đ</span>
+                        </div>
+                        <hr class="my-2" />
+                        <div class="mb-1 small">
+                            <span class="text-muted">Ngân hàng:</span> <strong>MB Bank (Quân Đội)</strong>
+                        </div>
+                        <div class="mb-1 small">
+                            <span class="text-muted">Chủ tài khoản:</span> <strong>TIỆM BÁNH BMS BAKERY</strong>
+                        </div>
+                        <div class="mb-1 small">
+                            <span class="text-muted">Số tài khoản:</span> <strong class="text-primary fs-6">0987 654 321</strong>
+                        </div>
+                        <div class="small">
+                            <span class="text-muted">Nội dung chuyển khoản:</span> <strong class="badge bg-warning text-dark fs-6 font-monospace">@transferContent</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khu vực giả lập Gateway phản hồi -->
+            <div class="border-top pt-4">
+                <div class="alert alert-secondary small text-center mb-3">
+                    <i class="bi bi-shield-lock me-1"></i> Môi trường mô phỏng Cổng thanh toán (Sandbox Demo): Bạn có thể nhấn nút bên dưới để kiểm thử phản hồi tức thì.
+                </div>
+
+                <form asp-action="ConfirmPayment" asp-controller="Checkout" method="post" class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@Model.OrderId" />
+
+                    <button type="submit" name="isSuccess" value="true" class="btn btn-success py-2 px-4 rounded-pill fw-semibold shadow-sm">
+                        <i class="bi bi-check-circle-fill me-1"></i> Xác nhận thanh toán thành công
+                    </button>
+                    <button type="submit" name="isSuccess" value="false" class="btn btn-outline-danger py-2 px-3 rounded-pill fw-semibold">
+                        <i class="bi bi-x-circle me-1"></i> Hủy / Báo lỗi thanh toán
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

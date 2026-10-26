@@ -99,12 +99,25 @@
                                     </li>
                                     <li><hr class="dropdown-divider my-1"></li>
                                 }
-                                <li>
-                                    <a class="dropdown-item py-2" asp-controller="Account" asp-action="Login">
-                                        <i class="bi bi-person-lines-fill me-2"></i> Thông tin tài khoản
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider my-1"></li>
+                                @if (!User.IsInRole("Admin") && !User.IsInRole("Cashier") && !User.IsInRole("Baker"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item py-2 fw-semibold" asp-controller="Account" asp-action="Profile" style="color: var(--bakery-primary);">
+                                            <i class="bi bi-person-lines-fill me-2"></i> Thông tin tài khoản
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 text-dark" asp-controller="Order" asp-action="Index">
+                                            <i class="bi bi-clock-history me-2 text-primary"></i> Đơn hàng của tôi
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item py-2 text-dark" asp-controller="Notification" asp-action="Index">
+                                            <i class="bi bi-bell me-2 text-warning"></i> Thông báo của tôi
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                }
                                 <li>
                                     <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
                                         @Html.AntiForgeryToken()
@@ -320,6 +333,32 @@
                 return false;
             });
         });
+
+        function loadHeaderNotifications() {
+            $.get('/Notification/GetPopup', function(res) {
+                if (res && res.unreadCount > 0) {
+                    #notifBadge.text(res.unreadCount).removeClass('d-none');
+                } else {
+                    #notifBadge.addClass('d-none');
+                }
+
+                if (res && res.notifications && res.notifications.length > 0) {
+                    let html = '';
+                    res.notifications.forEach(n => {
+                        html += '<a href=""/Notification/Index"" class=""d-flex align-items-start gap-2 p-2 dropdown-item text-wrap border-bottom small ' + (!n.isRead ? 'bg-light fw-semibold' : '') + '"">' +
+                                '<i class=""bi ' + n.iconClass + ' fs-6 mt-1""></i>' +
+                                '<div>' +
+                                    '<div class=""text-dark"">' + n.title + '</div>' +
+                                    '<small class=""text-muted"">' + n.timeAgo + '</small>' +
+                                '</div>' +
+                                '</a>';
+                    });
+                    #notifItemsContainer.html(html);
+                } else {
+                    #notifItemsContainer.html('<div class=""text-center py-3 text-muted small"">Không có thông báo mới</div>');
+                }
+            });
+        }
 
         // Hàm thêm giỏ hàng toàn cục dùng chung
         function addToCart(productId, quantity = 1) {
