@@ -19,6 +19,8 @@ public partial class User
 
     public bool IsActive { get; set; }
 
+    public int LoyaltyPoints { get; set; } = 0;
+
     public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<Address> Addresses { get; set; } = new List<Address>();

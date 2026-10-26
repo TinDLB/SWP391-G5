@@ -1,7 +1,7 @@
-@model List<SWP391_G5.Models.Entities.CartItem>
+﻿@model List<SWP391_G5.Models.Entities.CartItem>
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
-    ViewData["Title"] = "Giỏ Hàng Của Bạn - Bakery Management System";
+    ViewData["Title"] = "Giá» HÃ ng Cá»§a Báº¡n - Bakery Management System";
     decimal subtotal = Model?.Sum(i => i.Quantity * i.Product.Price) ?? 0;
     decimal shippingFee = subtotal >= 200000 || subtotal == 0 ? 0 : 25000;
     decimal grandTotal = subtotal + shippingFee;
@@ -11,22 +11,22 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb small">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chủ</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-decoration-none text-muted">Thực Đơn Bánh</a></li>
-            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Giỏ Hàng</li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chá»§</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-decoration-none text-muted">Thá»±c ÄÆ¡n BÃ¡nh</a></li>
+            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Giá» HÃ ng</li>
         </ol>
     </nav>
 
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h3 class="fw-bold text-dark mb-0">
-            <i class="bi bi-bag-check-fill text-warning me-2"></i>GIỎ HÀNG CỦA BẠN
+            <i class="bi bi-bag-check-fill text-warning me-2"></i>GIá»Ž HÃ€NG Cá»¦A Báº N
         </h3>
         @if (Model != null && Model.Any())
         {
-            <form asp-controller="Cart" asp-action="ClearCart" method="post" onsubmit="return confirm('Bạn có chắc muốn làm trống giỏ hàng?');">
+            <form asp-controller="Cart" asp-action="ClearCart" method="post" onsubmit="return confirm('Báº¡n cÃ³ cháº¯c muá»‘n lÃ m trá»‘ng giá» hÃ ng?');">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                    <i class="bi bi-trash3 me-1"></i> Xóa tất cả
+                    <i class="bi bi-trash3 me-1"></i> XÃ³a táº¥t cáº£
                 </button>
             </form>
         }
@@ -36,17 +36,17 @@
         @if (Model != null && Model.Any())
         {
             <div class="row g-4">
-                <!-- Bảng danh sách sản phẩm trong giỏ -->
+                <!-- Báº£ng danh sÃ¡ch sáº£n pháº©m trong giá» -->
                 <div class="col-lg-8">
                     <div class="bg-white rounded-4 shadow-sm border p-3 p-md-4" style="border: 1px solid #f0e6d8 !important;">
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
                                 <thead class="table-light small text-uppercase">
                                     <tr>
-                                        <th>Sản phẩm</th>
-                                        <th>Đơn giá</th>
-                                        <th class="text-center" style="width: 140px;">Số lượng</th>
-                                        <th class="text-end">Thành tiền</th>
+                                        <th>Sáº£n pháº©m</th>
+                                        <th>ÄÆ¡n giÃ¡</th>
+                                        <th class="text-center" style="width: 140px;">Sá»‘ lÆ°á»£ng</th>
+                                        <th class="text-end">ThÃ nh tiá»n</th>
                                         <th class="text-center" style="width: 50px;"></th>
                                     </tr>
                                 </thead>
@@ -70,12 +70,12 @@
                                                         <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.ProductId" class="fw-bold text-dark text-decoration-none d-block hover-primary">
                                                             @item.Product.Name
                                                         </a>
-                                                        <span class="badge bg-light text-muted border">@(item.Product.Category?.Name ?? "Bánh")</span>
+                                                        <span class="badge bg-light text-muted border">@(item.Product.Category?.Name ?? "BÃ¡nh")</span>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="fw-semibold">
-                                                @item.Product.Price.ToString("N0") <small>đ</small>
+                                                @item.Product.Price.ToString("N0") <small>Ä‘</small>
                                             </td>
                                             <td>
                                                 <div class="input-group input-group-sm rounded-pill overflow-hidden border">
@@ -85,10 +85,10 @@
                                                 </div>
                                             </td>
                                             <td class="text-end fw-bold fs-6" style="color: var(--bakery-primary);" id="lineTotal_@item.ProductId">
-                                                @lineTotal.ToString("N0") đ
+                                                @lineTotal.ToString("N0") Ä‘
                                             </td>
                                             <td class="text-center">
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeCartItem(@item.ProductId)" title="Xóa món">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeCartItem(@item.ProductId)" title="XÃ³a mÃ³n">
                                                     <i class="bi bi-trash-fill fs-5"></i>
                                                 </button>
                                             </td>
@@ -101,39 +101,39 @@
 
                     <div class="mt-3">
                         <a asp-controller="Product" asp-action="Index" class="btn btn-outline-dark rounded-pill px-4">
-                            <i class="bi bi-arrow-left me-1"></i> Tiếp tục chọn thêm bánh
+                            <i class="bi bi-arrow-left me-1"></i> Tiáº¿p tá»¥c chá»n thÃªm bÃ¡nh
                         </a>
                     </div>
                 </div>
 
-                <!-- Cột tóm tắt đơn hàng & Checkout -->
+                <!-- Cá»™t tÃ³m táº¯t Ä‘Æ¡n hÃ ng & Checkout -->
                 <div class="col-lg-4">
                     <div class="bg-white rounded-4 shadow-sm border p-4 sticky-top" style="top: 90px; border: 1px solid #f0e6d8 !important;">
-                        <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">TÓM TẮT ĐƠN HÀNG</h5>
+                        <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">TÃ“M Táº®T ÄÆ N HÃ€NG</h5>
 
                         <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-muted">Tạm tính giỏ hàng:</span>
-                            <span class="fw-bold" id="cartSubtotal">@subtotal.ToString("N0") đ</span>
+                            <span class="text-muted">Táº¡m tÃ­nh giá» hÃ ng:</span>
+                            <span class="fw-bold" id="cartSubtotal">@subtotal.ToString("N0") Ä‘</span>
                         </div>
 
                         <div class="d-flex justify-content-between mb-3 small">
-                            <span class="text-muted">Phí giao hàng:</span>
+                            <span class="text-muted">PhÃ­ giao hÃ ng:</span>
                             <span class="fw-bold text-success" id="cartShippingFee">
-                                @(shippingFee == 0 ? "Miễn phí" : shippingFee.ToString("N0") + " đ")
+                                @(shippingFee == 0 ? "Miá»…n phÃ­" : shippingFee.ToString("N0") + " Ä‘")
                             </span>
                         </div>
 
                         <div class="alert alert-warning py-2 px-3 small rounded-3 mb-3">
-                            <i class="bi bi-info-circle me-1"></i> Miễn phí vận chuyển cho đơn hàng từ <strong>200.000đ</strong>
+                            <i class="bi bi-info-circle me-1"></i> Miá»…n phÃ­ váº­n chuyá»ƒn cho Ä‘Æ¡n hÃ ng tá»« <strong>200.000Ä‘</strong>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center border-top pt-3 mb-4">
-                            <span class="fw-bold text-dark fs-5">Tổng thanh toán:</span>
-                            <span class="fw-bold fs-4 text-danger" id="cartGrandTotal">@grandTotal.ToString("N0") đ</span>
+                            <span class="fw-bold text-dark fs-5">Tá»•ng thanh toÃ¡n:</span>
+                            <span class="fw-bold fs-4 text-danger" id="cartGrandTotal">@grandTotal.ToString("N0") Ä‘</span>
                         </div>
 
                         <a asp-controller="Checkout" asp-action="Index" class="btn btn-bakery w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
-                            <span>TIẾN HÀNH ĐẶT HÀNG</span>
+                            <span>TIáº¾N HÃ€NH Äáº¶T HÃ€NG</span>
                             <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
@@ -146,10 +146,10 @@
                 <div class="mb-3">
                     <i class="bi bi-bag-x display-1 text-muted opacity-50"></i>
                 </div>
-                <h4 class="fw-bold text-dark">Giỏ hàng của bạn đang trống</h4>
-                <p class="text-muted mb-4">Hãy khám phá menu các loại bánh tươi thơm ngon mỗi ngày của chúng tôi nhé!</p>
+                <h4 class="fw-bold text-dark">Giá» hÃ ng cá»§a báº¡n Ä‘ang trá»‘ng</h4>
+                <p class="text-muted mb-4">HÃ£y khÃ¡m phÃ¡ menu cÃ¡c loáº¡i bÃ¡nh tÆ°Æ¡i thÆ¡m ngon má»—i ngÃ y cá»§a chÃºng tÃ´i nhÃ©!</p>
                 <a asp-controller="Product" asp-action="Index" class="btn btn-bakery rounded-pill px-5 py-3 fw-bold">
-                    <i class="bi bi-grid-fill me-2"></i> KHÁM PHÁ MENU BÁNH NGAY
+                    <i class="bi bi-grid-fill me-2"></i> KHÃM PHÃ MENU BÃNH NGAY
                 </a>
             </div>
         }
@@ -163,7 +163,7 @@
             var current = parseInt(input.val()) || 1;
             var newQty = current + delta;
             if (newQty < 1) {
-                if (confirm('Bạn có muốn xóa sản phẩm này khỏi giỏ hàng không?')) {
+                if (confirm('Báº¡n cÃ³ muá»‘n xÃ³a sáº£n pháº©m nÃ y khá»i giá» hÃ ng khÃ´ng?')) {
                     removeCartItem(productId);
                 }
                 return;
@@ -179,7 +179,7 @@
                     alert(res.message);
                 }
             }).fail(function() {
-                alert('Có lỗi xảy ra, vui lòng thử lại!');
+                alert('CÃ³ lá»—i xáº£y ra, vui lÃ²ng thá»­ láº¡i!');
             });
         }
 
@@ -197,16 +197,16 @@
                     });
                 }
             }).fail(function() {
-                alert('Có lỗi xảy ra, vui lòng thử lại!');
+                alert('CÃ³ lá»—i xáº£y ra, vui lÃ²ng thá»­ láº¡i!');
             });
         }
 
         function recalculateSummary(subtotal) {
             var ship = (subtotal >= 200000 || subtotal === 0) ? 0 : 25000;
             var grand = subtotal + ship;
-            $('#cartSubtotal').text(subtotal.toLocaleString('vi-VN') + ' đ');
-            $('#cartShippingFee').text(ship === 0 ? 'Miễn phí' : ship.toLocaleString('vi-VN') + ' đ');
-            $('#cartGrandTotal').text(grand.toLocaleString('vi-VN') + ' đ');
+            $('#cartSubtotal').text(subtotal.toLocaleString('vi-VN') + ' Ä‘');
+            $('#cartShippingFee').text(ship === 0 ? 'Miá»…n phÃ­' : ship.toLocaleString('vi-VN') + ' Ä‘');
+            $('#cartGrandTotal').text(grand.toLocaleString('vi-VN') + ' Ä‘');
         }
     </script>
 }

@@ -59,8 +59,16 @@ namespace SWP391_G5.Controllers
                         minPrice = 100000;
                         maxPrice = 200000;
                         break;
-                    case "over200":
+                    case "200to300":
                         minPrice = 200000;
+                        maxPrice = 300000;
+                        break;
+                    case "300to400":
+                        minPrice = 300000;
+                        maxPrice = 400000;
+                        break;
+                    case "over400":
+                        minPrice = 400000;
                         maxPrice = null;
                         break;
                 }
