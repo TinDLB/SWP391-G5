@@ -70,7 +70,6 @@
                asp-route-sort="@Model.Sort" asp-fragment="products" class="view-all">Xóa tìm kiếm</a>
         </form>
         <p id="search-error" class="text-danger" role="alert">@Model.SearchError</p>
-
         <!-- CATEGORY -->
         <div class="category-list" aria-label="Danh mục bánh">
             <a asp-controller="Home" asp-action="Index" asp-fragment="products" asp-route-search="@Model.Search" asp-route-sort="@Model.Sort"
@@ -145,20 +144,12 @@
                     }
                     <div class="product-card">
                         <div class="product-image">
-                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@product.ProductId" title="Xem chi tiết @product.Name" class="d-block w-100 h-100">
-                                <img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" />
-                            </a>
-                            <button class="cart-button" type="button" aria-label="Thêm @product.Name vào giỏ" onclick="addToCart(@product.ProductId); event.stopPropagation();" title="Thêm vào giỏ hàng">
-                                <i class="bi bi-cart-plus"></i>
-                            </button>
+                            <img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" />
+                            <button class="cart-button" type="button" aria-label="Thêm @product.Name vào giỏ">🛒</button>
                         </div>
                         <div class="product-info">
                             <span class="product-category">@product.Category.Name</span>
-                            <h3>
-                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@product.ProductId" class="text-white text-decoration-none">
-                                    @product.Name
-                                </a>
-                            </h3>
+                            <h3>@product.Name</h3>
                             <p>@product.Description</p>
                             <div class="price">@product.Price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) đ</div>
                         </div>
@@ -208,152 +199,149 @@
         }
     </section>
 
-    <!-- BENEFITS -->
-    <section class="benefit-section">
+ <!-- BENEFITS -->
+<section class="benefit-section">
 
-        <div class="benefit-item">
-            <div class="benefit-icon">🍰</div>
+    <div class="benefit-item">
+        <div class="benefit-icon">🍰</div>
 
-            <h4>Bánh tươi mỗi ngày</h4>
+        <h4>Bánh tươi mỗi ngày</h4>
 
-            <p>
-                Sản xuất mới mỗi ngày
-                để đảm bảo chất lượng.
+        <p>
+            Sản xuất mới mỗi ngày
+            để đảm bảo chất lượng.
+        </p>
+    </div>
+
+
+    <div class="benefit-item">
+        <div class="benefit-icon">🛵</div>
+
+        <h4>Giao hàng tiện lợi</h4>
+
+        <p>
+            Giao hàng nhanh chóng
+            và thuận tiện.
+        </p>
+    </div>
+
+
+    <div class="benefit-item">
+        <div class="benefit-icon">🎁</div>
+
+        <h4>Tích điểm thành viên</h4>
+
+        <p>
+            Mua hàng và nhận điểm
+            để đổi voucher.
+        </p>
+    </div>
+
+
+    <div class="benefit-item">
+        <div class="benefit-icon">💳</div>
+
+        <h4>Thanh toán linh hoạt</h4>
+
+        <p>
+            Hỗ trợ COD, VNPay
+            và nhiều phương thức khác.
+        </p>
+    </div>
+
+</section>
+
+
+<!-- LOCATION / MAP -->
+<section class="location-section">
+
+    <div class="location-container">
+
+        <!-- LEFT INFO -->
+        <div class="location-info">
+
+            <span class="section-label">
+                CỬA HÀNG
+            </span>
+
+            <h2>
+                Ghé thăm Bakery BMS
+            </h2>
+
+            <p class="location-description">
+                Hãy ghé cửa hàng để thưởng thức những chiếc bánh
+                tươi mới được chuẩn bị mỗi ngày.
             </p>
-        </div>
 
 
-        <div class="benefit-item">
-            <div class="benefit-icon">🛵</div>
+            <div class="location-detail">
 
-            <h4>Giao hàng tiện lợi</h4>
-
-            <p>
-                Giao hàng nhanh chóng
-                và thuận tiện.
-            </p>
-        </div>
-
-
-        <div class="benefit-item">
-            <div class="benefit-icon">🎁</div>
-
-            <h4>Tích điểm thành viên</h4>
-
-            <p>
-                Mua hàng và nhận điểm
-                để đổi voucher.
-            </p>
-        </div>
-
-
-        <div class="benefit-item">
-            <div class="benefit-icon">💳</div>
-
-            <h4>Thanh toán linh hoạt</h4>
-
-            <p>
-                Hỗ trợ COD, VNPay
-                và nhiều phương thức khác.
-            </p>
-        </div>
-
-    </section>
-
-
-    <!-- LOCATION / MAP -->
-    <section class="location-section">
-
-        <div class="location-container">
-
-            <!-- LEFT INFO -->
-            <div class="location-info">
-
-                <span class="section-label">
-                    CỬA HÀNG
-                </span>
-
-                <h2>
-                    Ghé thăm Bakery BMS
-                </h2>
-
-                <p class="location-description">
-                    Hãy ghé cửa hàng để thưởng thức những chiếc bánh
-                    tươi mới được chuẩn bị mỗi ngày.
-                </p>
-
-
-                <div class="location-detail">
-
-                    <div class="location-icon">
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
-
-                    <div>
-                        <strong>Địa chỉ</strong>
-                        <span>
-                            FPT University, Hòa Lạc, Hà Nội
-                        </span>
-                    </div>
-
+                <div class="location-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
                 </div>
 
-
-                <div class="location-detail">
-
-                    <div class="location-icon">
-                        <i class="bi bi-telephone-fill"></i>
-                    </div>
-
-                    <div>
-                        <strong>Điện thoại</strong>
-                        <span>
-                            0123 456 789
-                        </span>
-                    </div>
-
-                </div>
-
-
-                <div class="location-detail">
-
-                    <div class="location-icon">
-                        <i class="bi bi-clock-fill"></i>
-                    </div>
-
-                    <div>
-                        <strong>Giờ mở cửa</strong>
-                        <span>
-                            08:00 - 22:00 mỗi ngày
-                        </span>
-                    </div>
-
+                <div>
+                    <strong>Địa chỉ</strong>
+                    <span>
+                        FPT University, Hòa Lạc, Hà Nội
+                    </span>
                 </div>
 
             </div>
 
 
-            <!-- RIGHT MAP -->
-            <div class="map-box">
+            <div class="location-detail">
 
-                <iframe
-                    src="https://www.google.com/maps?q=21.0124167,105.5252892&z=16&output=embed"
-                    width="100%"
-                    height="100%"
-                    style="border:0;"
-                    allowfullscreen=""
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
+                <div class="location-icon">
+                    <i class="bi bi-telephone-fill"></i>
+                </div>
+
+                <div>
+                    <strong>Điện thoại</strong>
+                    <span>
+                        0123 456 789
+                    </span>
+                </div>
+
+            </div>
+
+
+            <div class="location-detail">
+
+                <div class="location-icon">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+
+                <div>
+                    <strong>Giờ mở cửa</strong>
+                    <span>
+                        08:00 - 22:00 mỗi ngày
+                    </span>
+                </div>
 
             </div>
 
         </div>
 
-    </section>
 
-</div>
+        <!-- RIGHT MAP -->
+        <div class="map-box">
 
+            <iframe
+                src="https://www.google.com/maps?q=21.0124167,105.5252892&z=16&output=embed"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+
+        </div>
+
+    </div>
+
+</section>
 @section Scripts {
     <script>
         (() => {
