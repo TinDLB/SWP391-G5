@@ -107,6 +107,9 @@ namespace SWP391_G5.Controllers
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
+            // Đồng bộ giỏ hàng từ Guest Session vào tài khoản của khách (UC-04)
+            await MergeSessionCartAsync(user.UserId);
+
             _logger.LogInformation("Người dùng {Email} (Role: {Role}) đã đăng nhập thành công.", user.Email, user.Role);
 
             TempData["SuccessMessage"] = $"Đăng nhập thành công! Chào mừng {user.FullName} trở lại tiệm bánh.";
@@ -145,15 +148,15 @@ namespace SWP391_G5.Controllers
             }
 
             ViewData["ReturnUrl"] = returnUrl;
-            return View(new RegisterViewModel());
+            return View(new RegisterViewModel { ReturnUrl = returnUrl });
         }
 
         // POST: /Account/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model, string? returnUrl = null)
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["ReturnUrl"] = model.ReturnUrl;
 
             if (!ModelState.IsValid)
             {
@@ -168,7 +171,7 @@ namespace SWP391_G5.Controllers
 
             if (emailExists)
             {
-                ModelState.AddModelError("Email", "Địa chỉ email này đã được sử dụng. Vui lòng đăng nhập hoặc sử dụng email khác.");
+                ModelState.AddModelError("Email", "Email này đã được sử dụng. Vui lòng chọn email khác hoặc Đăng nhập.");
                 return View(model);
             }
 
@@ -192,9 +195,9 @@ namespace SWP391_G5.Controllers
             // Gửi email OTP
             await _emailService.SendOtpEmailAsync(normalizedEmail, otpCode, "Register");
 
-            TempData["InfoMessage"] = $"Mã OTP xác thực đã được gửi đến email {normalizedEmail}. Vui lòng kiểm tra hộp thư (kể cả mục Spam).";
+            TempData["InfoMessage"] = $"Mã OTP xác thực đã được gửi đến email {normalizedEmail}. Vui lòng nhập mã để hoàn tất đăng ký.";
 
-            return RedirectToAction(nameof(VerifyRegisterOtp), new { email = normalizedEmail, returnUrl });
+            return RedirectToAction(nameof(VerifyRegisterOtp), new { email = normalizedEmail, returnUrl = model.ReturnUrl });
         }
 
         // GET: /Account/VerifyRegisterOtp
@@ -206,18 +209,9 @@ namespace SWP391_G5.Controllers
                 return RedirectToAction(nameof(Register));
             }
 
-            var normalizedEmail = email.Trim().ToLower();
-            if (!_cache.TryGetValue($"PendingRegister_{normalizedEmail}", out PendingRegistration? pending))
-            {
-                TempData["ErrorMessage"] = "Phiên đăng ký hoặc mã OTP đã hết hạn (quá 5 phút). Vui lòng thực hiện đăng ký lại.";
-                return RedirectToAction(nameof(Register));
-            }
-
-            ViewData["ReturnUrl"] = returnUrl;
             return View(new VerifyOtpViewModel
             {
-                Email = normalizedEmail,
-                Purpose = "Register",
+                Email = email,
                 ReturnUrl = returnUrl
             });
         }
@@ -227,70 +221,70 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerifyRegisterOtp(VerifyOtpViewModel model)
         {
-            ViewData["ReturnUrl"] = model.ReturnUrl;
-
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
             var normalizedEmail = model.Email.Trim().ToLower();
-            if (!_cache.TryGetValue($"PendingRegister_{normalizedEmail}", out PendingRegistration? pending) || pending == null)
+
+            if (!_cache.TryGetValue<PendingRegistration>($"PendingRegister_{normalizedEmail}", out var pending) || pending == null)
             {
-                ModelState.AddModelError(string.Empty, "Phiên đăng ký của bạn đã hết hạn (quá 5 phút). Vui lòng thực hiện đăng ký lại.");
+                ModelState.AddModelError(string.Empty, "Mã OTP đã hết hạn hoặc không tồn tại. Vui lòng yêu cầu gửi lại mã mới.");
                 return View(model);
             }
 
-            // Kiểm tra mã OTP
-            if (pending.OtpCode != model.OtpCode.Trim())
+            if (!string.Equals(pending.OtpCode, model.OtpCode.Trim(), StringComparison.Ordinal))
             {
-                ModelState.AddModelError("OtpCode", "Mã OTP không chính xác. Vui lòng kiểm tra lại email.");
+                ModelState.AddModelError(nameof(model.OtpCode), "Mã OTP không chính xác. Vui lòng kiểm tra lại.");
                 return View(model);
             }
 
-            // Kiểm tra lại xem email có bị đăng ký trong lúc chờ OTP không
-            if (await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedEmail))
+            // Kiểm tra lại trùng email lần cuối
+            var emailExists = await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedEmail);
+            if (emailExists)
             {
-                ModelState.AddModelError(string.Empty, "Địa chỉ email này vừa được đăng ký bởi tài khoản khác.");
+                _cache.Remove($"PendingRegister_{normalizedEmail}");
+                ModelState.AddModelError(string.Empty, "Email này đã được đăng ký trong hệ thống.");
                 return View(model);
             }
 
-            // Tạo tài khoản chính thức vào SQL Server
+            // Tạo người dùng mới
             var newUser = new User
             {
                 FullName = pending.FullName,
                 Email = pending.Email,
                 Phone = pending.PhoneNumber,
                 PasswordHash = _passwordService.HashPassword(pending.Password),
-                Role = Role.Customer,
+                Role = "Customer",
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                LoyaltyPoints = 0
             };
 
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
-            // Lưu địa chỉ giao hàng nếu có
+            // Nếu có địa chỉ thì lưu vào bảng Addresses
             if (!string.IsNullOrWhiteSpace(pending.Address))
             {
-                var newAddress = new Address
+                _context.Addresses.Add(new Address
                 {
                     UserId = newUser.UserId,
                     ReceiverName = newUser.FullName,
-                    Phone = newUser.Phone ?? string.Empty,
-                    AddressLine = pending.Address,
+                    Phone = newUser.Phone ?? "",
+                    AddressLine = pending.Address.Trim(),
                     IsDefault = true
-                };
-                _context.Addresses.Add(newAddress);
+                });
                 await _context.SaveChangesAsync();
             }
 
-            // Xóa cache đăng ký tạm
+            // Xóa cache đăng ký
             _cache.Remove($"PendingRegister_{normalizedEmail}");
 
-            _logger.LogInformation("Người dùng {Email} đã xác thực OTP đăng ký thành công.", newUser.Email);
+            _logger.LogInformation("Người dùng mới {Email} đã hoàn tất đăng ký tài khoản qua xác thực OTP thành công.", newUser.Email);
 
-            TempData["SuccessMessage"] = $"Xác thực tài khoản thành công! Bạn có thể sử dụng email {newUser.Email} và mật khẩu vừa tạo để đăng nhập.";
+            TempData["SuccessMessage"] = "Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.";
 
             return RedirectToAction(nameof(Login), new { email = newUser.Email, returnUrl = model.ReturnUrl });
         }
@@ -306,33 +300,35 @@ namespace SWP391_G5.Controllers
             }
 
             var normalizedEmail = email.Trim().ToLower();
-            if (_cache.TryGetValue($"PendingRegister_{normalizedEmail}", out PendingRegistration? pending) && pending != null)
-            {
-                var newOtp = Random.Shared.Next(100000, 999999).ToString();
-                pending.OtpCode = newOtp;
-                _cache.Set($"PendingRegister_{normalizedEmail}", pending, TimeSpan.FromMinutes(5));
 
-                await _emailService.SendOtpEmailAsync(normalizedEmail, newOtp, "Register");
-                TempData["SuccessMessage"] = "Mã OTP mới đã được gửi lại vào email của bạn.";
-            }
-            else
+            if (!_cache.TryGetValue<PendingRegistration>($"PendingRegister_{normalizedEmail}", out var pending) || pending == null)
             {
-                TempData["ErrorMessage"] = "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.";
+                TempData["ErrorMessage"] = "Phiên đăng ký đã hết hạn. Vui lòng điền lại thông tin đăng ký.";
                 return RedirectToAction(nameof(Register));
             }
+
+            var newOtp = Random.Shared.Next(100000, 999999).ToString();
+            pending.OtpCode = newOtp;
+            pending.CreatedAt = DateTime.UtcNow;
+
+            _cache.Set($"PendingRegister_{normalizedEmail}", pending, TimeSpan.FromMinutes(5));
+
+            await _emailService.SendOtpEmailAsync(normalizedEmail, newOtp, "Register");
+
+            TempData["SuccessMessage"] = "Mã OTP mới đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.";
 
             return RedirectToAction(nameof(VerifyRegisterOtp), new { email = normalizedEmail, returnUrl });
         }
 
         #endregion
 
-        #region --- 3. QUÊN MẬT KHẨU & ĐẶT LẠI MẬT KHẨU QUA OTP ---
+        #region --- 3. QUÊN MẬT KHẨU VỚI XÁC THỰC OTP ---
 
         // GET: /Account/ForgotPassword
         [HttpGet]
         public IActionResult ForgotPassword()
         {
-            return View(new ForgotPasswordViewModel());
+            return View();
         }
 
         // POST: /Account/ForgotPassword
@@ -350,23 +346,22 @@ namespace SWP391_G5.Controllers
 
             if (user == null)
             {
-                ModelState.AddModelError("Email", "Địa chỉ email này chưa được đăng ký trong hệ thống.");
+                ModelState.AddModelError("Email", "Không tìm thấy tài khoản nào liên kết với email này.");
                 return View(model);
             }
 
             if (!user.IsActive)
             {
-                ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ ban quản trị tiệm bánh.");
+                ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
                 return View(model);
             }
 
-            // Sinh mã OTP 6 chữ số
             var otpCode = Random.Shared.Next(100000, 999999).ToString();
             _cache.Set($"ForgotPassOtp_{normalizedEmail}", otpCode, TimeSpan.FromMinutes(5));
 
             await _emailService.SendOtpEmailAsync(normalizedEmail, otpCode, "ForgotPassword");
 
-            TempData["InfoMessage"] = $"Mã OTP khôi phục mật khẩu đã được gửi đến {normalizedEmail}. Vui lòng kiểm tra email (kể cả mục Spam).";
+            TempData["InfoMessage"] = $"Mã OTP khôi phục mật khẩu đã được gửi đến {normalizedEmail}. Vui lòng nhập mã để tiếp tục.";
 
             return RedirectToAction(nameof(VerifyForgotOtp), new { email = normalizedEmail });
         }
@@ -380,18 +375,7 @@ namespace SWP391_G5.Controllers
                 return RedirectToAction(nameof(ForgotPassword));
             }
 
-            var normalizedEmail = email.Trim().ToLower();
-            if (!_cache.TryGetValue($"ForgotPassOtp_{normalizedEmail}", out string? _))
-            {
-                TempData["ErrorMessage"] = "Mã OTP đã hết hạn. Vui lòng yêu cầu gửi lại mã mới.";
-                return RedirectToAction(nameof(ForgotPassword));
-            }
-
-            return View(new VerifyOtpViewModel
-            {
-                Email = normalizedEmail,
-                Purpose = "ForgotPassword"
-            });
+            return View(new VerifyOtpViewModel { Email = email });
         }
 
         // POST: /Account/VerifyForgotOtp
@@ -405,44 +389,25 @@ namespace SWP391_G5.Controllers
             }
 
             var normalizedEmail = model.Email.Trim().ToLower();
-            if (!_cache.TryGetValue($"ForgotPassOtp_{normalizedEmail}", out string? cachedOtp) || string.IsNullOrEmpty(cachedOtp))
+
+            if (!_cache.TryGetValue<string>($"ForgotPassOtp_{normalizedEmail}", out var cachedOtp) || cachedOtp == null)
             {
-                ModelState.AddModelError(string.Empty, "Mã OTP đã hết hạn (quá 5 phút). Vui lòng yêu cầu gửi lại.");
+                ModelState.AddModelError(string.Empty, "Mã OTP đã hết hạn. Vui lòng yêu cầu gửi lại mã mới.");
                 return View(model);
             }
 
-            if (cachedOtp != model.OtpCode.Trim())
+            if (!string.Equals(cachedOtp, model.OtpCode.Trim(), StringComparison.Ordinal))
             {
-                ModelState.AddModelError("OtpCode", "Mã OTP không chính xác. Vui lòng thử lại.");
+                ModelState.AddModelError(nameof(model.OtpCode), "Mã OTP không chính xác. Vui lòng kiểm tra lại.");
                 return View(model);
             }
 
-            // OTP đúng -> Sinh Reset Token an toàn có hạn trong 10 phút
-            var resetToken = Guid.NewGuid().ToString("N");
-            _cache.Set($"ResetPasswordToken_{normalizedEmail}", resetToken, TimeSpan.FromMinutes(10));
             _cache.Remove($"ForgotPassOtp_{normalizedEmail}");
 
+            var resetToken = Guid.NewGuid().ToString("N");
+            _cache.Set($"ResetPasswordToken_{normalizedEmail}", resetToken, TimeSpan.FromMinutes(15));
+
             return RedirectToAction(nameof(ResetPassword), new { email = normalizedEmail, token = resetToken });
-        }
-
-        // POST: /Account/ResendForgotOtp
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResendForgotOtp(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return RedirectToAction(nameof(ForgotPassword));
-            }
-
-            var normalizedEmail = email.Trim().ToLower();
-            var newOtp = Random.Shared.Next(100000, 999999).ToString();
-            _cache.Set($"ForgotPassOtp_{normalizedEmail}", newOtp, TimeSpan.FromMinutes(5));
-
-            await _emailService.SendOtpEmailAsync(normalizedEmail, newOtp, "ForgotPassword");
-            TempData["SuccessMessage"] = "Mã OTP mới đã được gửi lại vào email của bạn.";
-
-            return RedirectToAction(nameof(VerifyForgotOtp), new { email = normalizedEmail });
         }
 
         // GET: /Account/ResetPassword
@@ -451,20 +416,19 @@ namespace SWP391_G5.Controllers
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
             {
-                TempData["ErrorMessage"] = "Yêu cầu đặt lại mật khẩu không hợp lệ.";
                 return RedirectToAction(nameof(ForgotPassword));
             }
 
             var normalizedEmail = email.Trim().ToLower();
-            if (!_cache.TryGetValue($"ResetPasswordToken_{normalizedEmail}", out string? cachedToken) || cachedToken != token)
+            if (!_cache.TryGetValue<string>($"ResetPasswordToken_{normalizedEmail}", out var cachedToken) || cachedToken != token)
             {
-                TempData["ErrorMessage"] = "Phiên đặt lại mật khẩu đã hết hạn hoặc không hợp lệ. Vui lòng thử lại.";
+                TempData["ErrorMessage"] = "Yêu cầu đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.";
                 return RedirectToAction(nameof(ForgotPassword));
             }
 
             return View(new ResetPasswordViewModel
             {
-                Email = normalizedEmail,
+                Email = email,
                 Token = token
             });
         }
@@ -480,24 +444,21 @@ namespace SWP391_G5.Controllers
             }
 
             var normalizedEmail = model.Email.Trim().ToLower();
-            if (!_cache.TryGetValue($"ResetPasswordToken_{normalizedEmail}", out string? cachedToken) || cachedToken != model.Token)
+            if (!_cache.TryGetValue<string>($"ResetPasswordToken_{normalizedEmail}", out var cachedToken) || cachedToken != model.Token)
             {
-                ModelState.AddModelError(string.Empty, "Phiên đặt lại mật khẩu đã hết hạn hoặc không hợp lệ. Vui lòng thực hiện lại từ đầu.");
-                return View(model);
+                TempData["ErrorMessage"] = "Phiên đặt lại mật khẩu đã hết hạn. Vui lòng thực hiện lại từ đầu.";
+                return RedirectToAction(nameof(ForgotPassword));
             }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Không tìm thấy tài khoản người dùng.");
-                return View(model);
+                return RedirectToAction(nameof(Login));
             }
 
-            // Cập nhật mật khẩu mới đã băm BCrypt
             user.PasswordHash = _passwordService.HashPassword(model.NewPassword);
             await _context.SaveChangesAsync();
 
-            // Xóa token
             _cache.Remove($"ResetPasswordToken_{normalizedEmail}");
 
             _logger.LogInformation("Người dùng {Email} đã đặt lại mật khẩu thành công qua OTP.", user.Email);
@@ -509,14 +470,13 @@ namespace SWP391_G5.Controllers
 
         #endregion
 
-        #region --- 4. QUẢN LÝ TRANG TÀI KHOẢN (PROFILE & CHANGE PASSWORD) ---
+        #region --- 4. QUẢN LÝ TRANG TÀI KHOẢN & SỔ ĐỊA CHỈ (UC-05: PROFILE & ADDRESSES) ---
 
         // GET: /Account/Profile
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> Profile(string? tab = null)
         {
-            // Chỉ dành cho Customer. Các vai trò Admin, Cashier, Baker chuyển hướng về Dashboard tương ứng
             var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
             if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
                 return RedirectToAction("Dashboard", "Admin");
@@ -540,8 +500,13 @@ namespace SWP391_G5.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            var defaultAddress = user.Addresses.FirstOrDefault(a => a.IsDefault)?.AddressLine
-                ?? user.Addresses.FirstOrDefault()?.AddressLine;
+            var savedAddresses = user.Addresses
+                .OrderByDescending(a => a.IsDefault)
+                .ThenByDescending(a => a.AddressId)
+                .ToList();
+
+            var defaultAddress = savedAddresses.FirstOrDefault(a => a.IsDefault)?.AddressLine
+                ?? savedAddresses.FirstOrDefault()?.AddressLine;
 
             var activeTab = !string.IsNullOrEmpty(tab)
                 ? tab
@@ -556,40 +521,38 @@ namespace SWP391_G5.Controllers
                 Address = defaultAddress,
                 Role = user.Role,
                 LoyaltyPoints = user.LoyaltyPoints,
+                Addresses = savedAddresses,
                 ActiveTab = activeTab
             };
 
             return View(model);
         }
 
-        // POST: /Account/Profile
+        // POST: /Account/Profile (Cập nhật thông tin cá nhân)
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile(ProfileViewModel model)
         {
-            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
-            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(role, "Cashier", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(role, "Baker", StringComparison.OrdinalIgnoreCase))
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out var userId) || userId != model.UserId)
             {
                 return RedirectToAction(nameof(Login));
             }
 
-            // Bỏ qua validate của form Đổi mật khẩu
             ModelState.Remove("ChangePassword");
             ModelState.Remove("ChangePassword.CurrentPassword");
             ModelState.Remove("ChangePassword.NewPassword");
             ModelState.Remove("ChangePassword.ConfirmNewPassword");
+            ModelState.Remove("NewAddress");
+            ModelState.Remove("NewAddress.ReceiverName");
+            ModelState.Remove("NewAddress.Phone");
+            ModelState.Remove("NewAddress.AddressLine");
 
             if (!ModelState.IsValid)
             {
+                var userReload = await _context.Users.Include(u => u.Addresses).FirstOrDefaultAsync(u => u.UserId == userId);
+                model.Addresses = userReload?.Addresses.OrderByDescending(a => a.IsDefault).ToList() ?? new List<Address>();
                 model.ActiveTab = "info";
                 return View(model);
             }
@@ -606,18 +569,13 @@ namespace SWP391_G5.Controllers
             user.FullName = model.FullName.Trim();
             user.Phone = model.PhoneNumber.Trim();
 
-            // Cập nhật hoặc thêm mới địa chỉ nhận hàng mặc định
+            // Nếu người dùng nhập địa chỉ và chưa có địa chỉ mặc định, lưu vào Addresses
             if (!string.IsNullOrWhiteSpace(model.Address))
             {
-                var existingAddress = user.Addresses.FirstOrDefault(a => a.IsDefault)
-                    ?? user.Addresses.FirstOrDefault();
-
-                if (existingAddress != null)
+                var defaultAddr = user.Addresses.FirstOrDefault(a => a.IsDefault);
+                if (defaultAddr != null)
                 {
-                    existingAddress.AddressLine = model.Address.Trim();
-                    existingAddress.ReceiverName = user.FullName;
-                    existingAddress.Phone = user.Phone;
-                    existingAddress.IsDefault = true;
+                    defaultAddr.AddressLine = model.Address.Trim();
                 }
                 else
                 {
@@ -634,7 +592,7 @@ namespace SWP391_G5.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Cập nhật lại Claims trong Cookie để tên mới hiển thị ngay lập tức trên Navbar
+            // Cập nhật Claims Cookie
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -651,38 +609,12 @@ namespace SWP391_G5.Controllers
             return RedirectToAction(nameof(Profile), new { tab = "info" });
         }
 
-        // GET: /Account/ChangePassword
-        [HttpGet]
-        [Authorize]
-        public IActionResult ChangePassword()
-        {
-            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
-            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
-                return RedirectToAction("Dashboard", "Admin");
-            if (string.Equals(role, "Cashier", StringComparison.OrdinalIgnoreCase))
-                return RedirectToAction("Dashboard", "Cashier");
-            if (string.Equals(role, "Baker", StringComparison.OrdinalIgnoreCase))
-                return RedirectToAction("Index", "Baker");
-
-            // Chuyển hướng về tab Quản lý mật khẩu trên trang Profile
-            TempData["ActiveTab"] = "password";
-            return RedirectToAction(nameof(Profile), new { tab = "password" });
-        }
-
         // POST: /Account/ChangePassword
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
-            var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
-            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(role, "Cashier", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(role, "Baker", StringComparison.OrdinalIgnoreCase))
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out var userId))
             {
@@ -707,7 +639,6 @@ namespace SWP391_G5.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            // Kiểm tra mật khẩu hiện tại: chỉ cần nhập đúng mật khẩu hiện tại là được
             if (!_passwordService.VerifyPassword(model.CurrentPassword, user.PasswordHash))
             {
                 TempData["ErrorMessage"] = "Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.";
@@ -715,20 +646,218 @@ namespace SWP391_G5.Controllers
                 return RedirectToAction(nameof(Profile), new { tab = "password" });
             }
 
-            // Cập nhật mật khẩu mới
             user.PasswordHash = _passwordService.HashPassword(model.NewPassword);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Người dùng {Email} đã đổi mật khẩu thành công trong trang cá nhân.", user.Email);
+            _logger.LogInformation("Người dùng {Email} đã đổi mật khẩu thành công.", user.Email);
 
             TempData["SuccessMessage"] = "Đổi mật khẩu thành công!";
             TempData["ActiveTab"] = "password";
             return RedirectToAction(nameof(Profile), new { tab = "password" });
         }
 
+        // POST: /Account/AddAddress (Thêm địa chỉ giao hàng mới)
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddAddress(AddressInputModel model)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            if (string.IsNullOrWhiteSpace(model.ReceiverName) || string.IsNullOrWhiteSpace(model.Phone) || string.IsNullOrWhiteSpace(model.AddressLine))
+            {
+                TempData["ErrorMessage"] = "Vui lòng điền đầy đủ họ tên, số điện thoại và địa chỉ nhận hàng.";
+                return RedirectToAction(nameof(Profile), new { tab = "address" });
+            }
+
+            var existingAddresses = await _context.Addresses.Where(a => a.UserId == userId).ToListAsync();
+            bool isFirst = !existingAddresses.Any();
+
+            if (model.IsDefault || isFirst)
+            {
+                foreach (var a in existingAddresses)
+                {
+                    a.IsDefault = false;
+                }
+            }
+
+            var newAddress = new Address
+            {
+                UserId = userId,
+                ReceiverName = model.ReceiverName.Trim(),
+                Phone = model.Phone.Trim(),
+                AddressLine = model.AddressLine.Trim(),
+                IsDefault = model.IsDefault || isFirst
+            };
+
+            _context.Addresses.Add(newAddress);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Đã thêm địa chỉ nhận hàng mới thành công.";
+            return RedirectToAction(nameof(Profile), new { tab = "address" });
+        }
+
+        // POST: /Account/UpdateAddress (Sửa địa chỉ giao hàng)
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAddress(AddressInputModel model)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var address = await _context.Addresses.FirstOrDefaultAsync(a => a.AddressId == model.AddressId && a.UserId == userId);
+            if (address == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy địa chỉ cần cập nhật.";
+                return RedirectToAction(nameof(Profile), new { tab = "address" });
+            }
+
+            if (model.IsDefault && !address.IsDefault)
+            {
+                var userAddresses = await _context.Addresses.Where(a => a.UserId == userId).ToListAsync();
+                foreach (var a in userAddresses)
+                {
+                    a.IsDefault = false;
+                }
+            }
+
+            address.ReceiverName = model.ReceiverName.Trim();
+            address.Phone = model.Phone.Trim();
+            address.AddressLine = model.AddressLine.Trim();
+            if (model.IsDefault) address.IsDefault = true;
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Cập nhật địa chỉ nhận hàng thành công.";
+            return RedirectToAction(nameof(Profile), new { tab = "address" });
+        }
+
+        // POST: /Account/DeleteAddress (Xóa địa chỉ)
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAddress(int addressId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var address = await _context.Addresses.FirstOrDefaultAsync(a => a.AddressId == addressId && a.UserId == userId);
+            if (address == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy địa chỉ cần xóa.";
+                return RedirectToAction(nameof(Profile), new { tab = "address" });
+            }
+
+            // Kiểm tra ràng buộc đơn hàng
+            bool isUsedInOrders = await _context.Orders.AnyAsync(o => o.AddressId == addressId);
+            if (isUsedInOrders)
+            {
+                TempData["ErrorMessage"] = "Địa chỉ này đã được sử dụng trong các đơn hàng đã đặt của bạn, không thể xóa để lưu trữ lịch sử vận chuyển.";
+                return RedirectToAction(nameof(Profile), new { tab = "address" });
+            }
+
+            bool wasDefault = address.IsDefault;
+            _context.Addresses.Remove(address);
+            await _context.SaveChangesAsync();
+
+            // Nếu xóa địa chỉ mặc định, gán địa chỉ đầu tiên còn lại làm mặc định
+            if (wasDefault)
+            {
+                var remaining = await _context.Addresses.FirstOrDefaultAsync(a => a.UserId == userId);
+                if (remaining != null)
+                {
+                    remaining.IsDefault = true;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            TempData["SuccessMessage"] = "Đã xóa địa chỉ thành công.";
+            return RedirectToAction(nameof(Profile), new { tab = "address" });
+        }
+
+        // POST: /Account/SetDefaultAddress (Đặt làm mặc định)
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetDefaultAddress(int addressId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var addresses = await _context.Addresses.Where(a => a.UserId == userId).ToListAsync();
+            var target = addresses.FirstOrDefault(a => a.AddressId == addressId);
+            if (target == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy địa chỉ.";
+                return RedirectToAction(nameof(Profile), new { tab = "address" });
+            }
+
+            foreach (var a in addresses)
+            {
+                a.IsDefault = (a.AddressId == addressId);
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Đã cập nhật địa chỉ mặc định.";
+            return RedirectToAction(nameof(Profile), new { tab = "address" });
+        }
+
         #endregion
 
         #region --- HELPER METHODS ---
+
+        private async Task MergeSessionCartAsync(int userId)
+        {
+            var json = HttpContext.Session.GetString(CartController.CartSessionKey);
+            if (!string.IsNullOrEmpty(json))
+            {
+                try
+                {
+                    var sessionCart = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, int>>(json);
+                    if (sessionCart != null && sessionCart.Any())
+                    {
+                        foreach (var kvp in sessionCart)
+                        {
+                            var existing = await _context.CartItems.FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == kvp.Key);
+                            if (existing != null)
+                            {
+                                existing.Quantity += kvp.Value;
+                            }
+                            else
+                            {
+                                _context.CartItems.Add(new CartItem
+                                {
+                                    UserId = userId,
+                                    ProductId = kvp.Key,
+                                    Quantity = kvp.Value
+                                });
+                            }
+                        }
+                        await _context.SaveChangesAsync();
+                        HttpContext.Session.Remove(CartController.CartSessionKey);
+                    }
+                }
+                catch
+                {
+                    // Ignore session parsing errors
+                }
+            }
+        }
 
         private IActionResult RedirectToLocal(string? returnUrl, string? role = null)
         {

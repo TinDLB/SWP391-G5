@@ -18,17 +18,45 @@
     <header>
         <nav class="navbar navbar-expand-lg bakery-navbar">
             <div class="container">
-                <a class="navbar-brand bakery-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <!-- Logo -->
+                <a class="navbar-brand bakery-brand" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-cake2-fill" style="color: var(--bakery-primary);"></i>
                     <span>Bakery</span> BMS
                 </a>
+
+                <!-- Mobile Toggle -->
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarBakery" aria-controls="navbarBakery"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
+                <!-- Navbar Menu & Actions -->
                 <div class="collapse navbar-collapse" id="navbarBakery">
-                    <div class="me-auto"></div>
-                    <partial name="_LoginPartial" />
+                    <!-- Nav links -->
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 bakery-menu">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door me-1"></i> Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Product" asp-action="Index">
+                                <i class="bi bi-grid me-1"></i> Thực đơn bánh
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Cart & User area -->
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Shopping Cart Button (UC-04) -->
+                        <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-warning text-dark position-relative me-2 border-0" title="Giỏ hàng của bạn">
+                            <i class="bi bi-bag-fill fs-5" style="color: var(--bakery-primary);"></i>
+                            <span id="headerCartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.72rem;">0</span>
+                        </a>
+
+                        <!-- Login Partial -->
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>
@@ -52,24 +80,77 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center rounded-3 shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                <div>@TempData["ErrorMessage"]</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
     </div>
 
+    <!-- Main Content -->
     <main role="main" class="pb-3">
         @RenderBody()
     </main>
 
+    <!-- Footer -->
     <footer class="bakery-footer">
         <div class="container text-center">
             <div>
                 <i class="bi bi-cake2 me-1" style="color: var(--bakery-primary);"></i>
-                <strong>Bakery Management System (BMS)</strong>
+                <strong>Bakery Management System (BMS)</strong> - SWP391 Group G5
             </div>
         </div>
     </footer>
 
+    <!-- Toast thông báo thêm giỏ hàng (UC-04) -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+        <div id="cartToast" class="toast align-items-center text-white bg-success border-0 rounded-4 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                    <span id="cartToastMsg">Đã thêm bánh vào giỏ hàng!</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Cập nhật số lượng giỏ hàng khi nạp trang
+        $(document).ready(function () {
+            updateCartBadge();
+        });
+
+        function updateCartBadge() {
+            $.get('/Cart/GetCount', function (res) {
+                if (res && res.count !== undefined) {
+                    $('#headerCartCount').text(res.count);
+                }
+            });
+        }
+
+        // Hàm thêm giỏ hàng toàn cục dùng chung (UC-04)
+        function addToCart(productId, quantity = 1) {
+            $.post('/Cart/AddToCart', { productId: productId, quantity: quantity }, function (res) {
+                if (res.success) {
+                    $('#headerCartCount').text(res.cartCount);
+                    $('#cartToastMsg').text(res.message);
+                    const toast = new bootstrap.Toast(document.getElementById('cartToast'));
+                    toast.show();
+                } else {
+                    alert(res.message);
+                }
+            }).fail(function () {
+                alert('Có lỗi xảy ra khi thêm giỏ hàng. Vui lòng thử lại!');
+            });
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -34,5 +34,7 @@ namespace SWP391_G5.Models.ViewModels
         [Display(Name = "Xác nhận mật khẩu")]
         [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp.")]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        public string? ReturnUrl { get; set; }
     }
 }

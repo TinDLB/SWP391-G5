@@ -1,10 +1,15 @@
 @model SWP391_G5.Models.Entities.Product
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
     ViewData["Title"] = Model.Name + " - Bakery Management System";
     var related = ViewBag.RelatedProducts as IEnumerable<SWP391_G5.Models.Entities.Product> ?? Enumerable.Empty<SWP391_G5.Models.Entities.Product>();
-    string img = string.IsNullOrEmpty(Model.ImageUrl) 
-        ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80" 
-        : Model.ImageUrl;
+
+    var imgPath = $"/uploads/products/{Model.ProductId}.jpg";
+    var fullLocalPath = System.IO.Path.Combine(HostEnvironment.WebRootPath, "uploads", "products", $"{Model.ProductId}.jpg");
+    if (!System.IO.File.Exists(fullLocalPath))
+    {
+        imgPath = !string.IsNullOrWhiteSpace(Model.ImageUrl) ? Model.ImageUrl : "/uploads/products/1.jpg";
+    }
 }
 
 <div class="container py-4">
@@ -12,18 +17,18 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb small">
             <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chủ</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-decoration-none text-muted">Thực Đơn</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-decoration-none text-muted">Thực Đơn Bánh</a></li>
             <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">@Model.Name</li>
         </ol>
     </nav>
 
     <!-- Product Detail Box -->
-    <div class="bg-white p-4 p-lg-5 rounded-4 shadow-sm border mb-5">
+    <div class="bg-white p-4 p-lg-5 rounded-4 shadow-sm border mb-5" style="border: 1px solid #f0e6d8 !important;">
         <div class="row g-5 align-items-center">
             <!-- Ảnh sản phẩm -->
             <div class="col-md-6 text-center">
-                <div class="product-detail-img-box rounded-4 overflow-hidden border p-2 bg-light">
-                    <img src="@img" alt="@Model.Name" class="img-fluid rounded-4 shadow-sm" style="max-height: 420px; object-fit: cover; width: 100%;" />
+                <div class="rounded-4 overflow-hidden border p-2 bg-light shadow-sm" style="max-height: 440px;">
+                    <img src="@Url.Content("~" + imgPath)" alt="@Model.Name" class="img-fluid rounded-4 object-fit-cover w-100" style="max-height: 420px;" />
                 </div>
             </div>
 
@@ -33,79 +38,119 @@
                     @(Model.Category?.Name ?? "Bánh tươi")
                 </div>
                 <h2 class="fw-bold text-dark mb-2">@Model.Name</h2>
-                <div class="text-muted small mb-3">Mã sản phẩm: <strong>SP0@(Model.ProductId)</strong> | Hotline tư vấn: <strong class="text-dark">0961 452 578</strong></div>
+                <div class="text-muted small mb-3">
+                    Mã sản phẩm: <strong>SP0@(Model.ProductId)</strong> | Hotline tư vấn: <strong class="text-dark">0123 456 789</strong>
+                </div>
 
                 <div class="fs-2 fw-bold mb-3" style="color: var(--bakery-primary);">
-                    @Model.Price.ToString("N0") <span class="fs-5">đ</span>
+                    @Model.Price.ToString("N0") <span class="fs-5 text-muted">đ</span>
                 </div>
 
                 <p class="text-secondary mb-4 lh-base">
-                    @(string.IsNullOrEmpty(Model.Description) ? "Bánh được chế biến từ 100% nguyên liệu bơ sữa tươi hảo hạng, nướng mới mỗi sáng với công thức độc quyền từ nghệ nhân Bakery Management System." : Model.Description)
+                    @(string.IsNullOrEmpty(Model.Description) ? "Bánh được chế biến từ 100% nguyên liệu bơ sữa tươi hảo hạng, nướng mới mỗi sáng với công thức độc quyền từ Bakery Management System." : Model.Description)
                 </p>
 
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <div class="fw-semibold text-muted">Số lượng:</div>
-                    <div class="input-group" style="width: 130px;">
-                        <button type="button" class="btn btn-outline-secondary" onclick="decQty()">-</button>
-                        <input type="number" id="detailQty" class="form-control text-center fw-bold" value="1" min="1" max="@Model.StockQty" />
-                        <button type="button" class="btn btn-outline-secondary" onclick="incQty()">+</button>
+                <!-- Tình trạng kho -->
+                <div class="mb-3">
+                    @if (Model.StockQty > 0)
+                    {
+                        <span class="badge bg-success bg-opacity-75 rounded-pill px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i> Còn hàng (@Model.StockQty sản phẩm có sẵn)
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger rounded-pill px-3 py-2">
+                            <i class="bi bi-x-circle me-1"></i> Tạm hết hàng
+                        </span>
+                    }
+                </div>
+
+                <!-- Chọn số lượng -->
+                @if (Model.StockQty > 0)
+                {
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="fw-semibold text-muted">Số lượng:</div>
+                        <div class="input-group" style="width: 130px;">
+                            <button type="button" class="btn btn-outline-secondary" onclick="decQty()">-</button>
+                            <input type="number" id="detailQty" class="form-control text-center fw-bold" value="1" min="1" max="@Model.StockQty" />
+                            <button type="button" class="btn btn-outline-secondary" onclick="incQty()">+</button>
+                        </div>
                     </div>
-                    <small class="text-muted">(@Model.StockQty sản phẩm có sẵn)</small>
-                </div>
 
-                <div class="d-flex gap-3 flex-wrap">
-                    <button type="button" class="btn btn-dark rounded-pill px-4 py-3 fw-bold flex-grow-1" onclick="addToCart(@Model.ProductId, parseInt($('#detailQty').val()) || 1)">
-                        <i class="bi bi-cart-plus-fill me-2"></i> THÊM VÀO GIỎ HÀNG
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button type="button" class="btn btn-bakery rounded-pill px-4 py-3 fw-bold flex-grow-1" onclick="addToCart(@Model.ProductId, parseInt($('#detailQty').val()) || 1)">
+                            <i class="bi bi-cart-plus-fill me-2"></i> THÊM VÀO GIỎ HÀNG
+                        </button>
+                        <button type="button" class="btn btn-dark rounded-pill px-4 py-3 fw-bold" onclick="buyNow(@Model.ProductId)">
+                            <i class="bi bi-lightning-fill me-1"></i> MUA NGAY
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-secondary rounded-pill px-4 py-3 fw-bold disabled w-100" disabled>
+                        SẢN PHẨM TẠM HẾT HÀNG
                     </button>
-                    <a asp-controller="Cart" asp-action="Index" class="btn btn-warning rounded-pill px-4 py-3 fw-bold">
-                        ĐẾN GIỎ HÀNG
-                    </a>
-                </div>
+                }
 
+                <!-- Cam kết chất lượng -->
                 <div class="border-top mt-4 pt-3 text-muted small">
-                    <div><i class="bi bi-check-circle-fill text-success me-2"></i> Giao hàng tận nơi hỏa tốc trong 2 giờ tại Hà Nội</div>
-                    <div class="mt-1"><i class="bi bi-check-circle-fill text-success me-2"></i> Tặng kèm bộ dao, thìa, nến sinh nhật cao cấp</div>
-                    <div class="mt-1"><i class="bi bi-check-circle-fill text-success me-2"></i> Viết lời chúc và trang trí theo yêu cầu miễn phí</div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-shield-check text-success fs-5"></i>
+                        <span>Nguyên liệu tươi mới 100%, nướng bánh mỗi ngày không chất bảo quản</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-truck text-primary fs-5"></i>
+                        <span>Giao hàng tận nơi hỏa tốc trong 2 giờ nội thành Hà Nội</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-gift text-warning fs-5"></i>
+                        <span>Tặng kèm dao, dĩa, nến và trang trí thiệp theo yêu cầu miễn phí</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Related Products -->
+    <!-- Khối sản phẩm cùng loại (Related Products) -->
     @if (related != null && related.Any())
     {
-        <h4 class="fw-bold text-dark mb-4 border-start border-4 border-danger ps-3">SẢN PHẨM CÙNG LOẠI</h4>
-        <div class="row g-4">
-            @foreach (var r in related)
-            {
-                string rImg = string.IsNullOrEmpty(r.ImageUrl) 
-                    ? "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80" 
-                    : r.ImageUrl;
-                <div class="col-6 col-md-3">
-                    <div class="cake-product-card h-100 shadow-sm">
-                        <div class="cake-img-wrapper">
-                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@r.ProductId">
-                                <img src="@rImg" alt="@r.Name" class="img-fluid cake-card-img" />
-                            </a>
-                        </div>
-                        <div class="cake-card-body p-3 text-center">
-                            <h6 class="cake-product-name mb-2">
-                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@r.ProductId" class="text-decoration-none text-dark">
-                                    @r.Name.ToUpper()
+        <div class="mt-5">
+            <h4 class="fw-bold text-dark mb-4">
+                <i class="bi bi-stars text-warning me-2"></i>SẢN PHẨM CÙNG DANH MỤC
+            </h4>
+            <div class="row g-4">
+                @foreach (var rp in related)
+                {
+                    var rImg = $"/uploads/products/{rp.ProductId}.jpg";
+                    var rPath = System.IO.Path.Combine(HostEnvironment.WebRootPath, "uploads", "products", $"{rp.ProductId}.jpg");
+                    if (!System.IO.File.Exists(rPath))
+                    {
+                        rImg = !string.IsNullOrWhiteSpace(rp.ImageUrl) ? rp.ImageUrl : "/uploads/products/1.jpg";
+                    }
+
+                    <div class="col-6 col-md-3">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden" style="background: #ffffff; border: 1px solid #f0e6d8 !important;">
+                            <div class="position-relative" style="height: 180px; background: #faf3e0;">
+                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@rp.ProductId" class="d-block w-100 h-100">
+                                    <img src="@Url.Content("~" + rImg)" alt="@rp.Name" class="w-100 h-100 object-fit-cover" loading="lazy" />
                                 </a>
-                            </h6>
-                            <div class="cake-price-cart-bar d-flex align-items-stretch">
-                                <div class="cake-price-lime-badge flex-grow-1 d-flex align-items-center justify-content-center">
-                                    <span>@r.Price.ToString("N0")đ</span>
+                            </div>
+                            <div class="card-body p-3 d-flex flex-column">
+                                <h6 class="fw-bold mb-1 text-truncate">
+                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@rp.ProductId" class="text-decoration-none text-dark">
+                                        @rp.Name
+                                    </a>
+                                </h6>
+                                <div class="fw-bold text-danger mt-auto pt-2">
+                                    @rp.Price.ToString("N0") đ
                                 </div>
-                                <button type="button" class="btn cake-cart-brown-btn" onclick="addToCart(@r.ProductId, 1)">
-                                    <i class="bi bi-cart-fill"></i>
-                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
         </div>
     }
 </div>
@@ -113,12 +158,29 @@
 @section Scripts {
     <script>
         function incQty() {
-            let val = parseInt($('#detailQty').val()) || 1;
-            $('#detailQty').val(val + 1);
+            var input = document.getElementById('detailQty');
+            var max = parseInt(input.getAttribute('max')) || 99;
+            var val = parseInt(input.value) || 1;
+            if (val < max) input.value = val + 1;
         }
+
         function decQty() {
-            let val = parseInt($('#detailQty').val()) || 1;
-            if (val > 1) $('#detailQty').val(val - 1);
+            var input = document.getElementById('detailQty');
+            var val = parseInt(input.value) || 1;
+            if (val > 1) input.value = val - 1;
+        }
+
+        function buyNow(productId) {
+            var qty = parseInt(document.getElementById('detailQty').value) || 1;
+            $.post('/Cart/AddToCart', { productId: productId, quantity: qty }, function(res) {
+                if (res.success) {
+                    window.location.href = '/Checkout';
+                } else {
+                    alert(res.message);
+                }
+            }).fail(function() {
+                alert('Có lỗi xảy ra, vui lòng thử lại!');
+            });
         }
     </script>
 }

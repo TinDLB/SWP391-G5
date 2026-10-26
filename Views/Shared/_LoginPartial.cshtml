@@ -8,7 +8,7 @@
 
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.9rem;">
+            <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 34px; height: 34px; font-size: 0.9rem;">
                 @(string.IsNullOrEmpty(User.Identity.Name) ? "U" : User.Identity.Name.Substring(0, 1).ToUpper())
             </div>
             <div class="text-start d-none d-md-block">
@@ -16,8 +16,8 @@
                 <span class="user-role-badge">@role</span>
             </div>
         </a>
-        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2" aria-labelledby="userDropdown">
-            <li class="px-3 py-2 border-bottom">
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2" aria-labelledby="userDropdown" style="min-width: 240px;">
+            <li class="px-3 py-2 border-bottom mb-2">
                 <div class="fw-bold small text-dark">@User.Identity.Name</div>
                 <div class="text-muted small">@email</div>
                 <span class="badge bg-warning text-dark mt-1">Vai trò: @role</span>
@@ -25,63 +25,68 @@
             @if (role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
             {
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Admin" asp-action="Dashboard">
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold rounded-2 py-2" asp-controller="Admin" asp-action="Dashboard">
                         <i class="bi bi-speedometer2"></i> Trang Admin Dashboard
                     </a>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                <li><hr class="dropdown-divider my-1"></li>
             }
             @if (role.Equals("Cashier", StringComparison.OrdinalIgnoreCase))
             {
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Cashier" asp-action="Dashboard">
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold rounded-2 py-2" asp-controller="Cashier" asp-action="Dashboard">
                         <i class="bi bi-receipt"></i> Trang Cashier Dashboard
                     </a>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                <li><hr class="dropdown-divider my-1"></li>
             }
             @if (role.Equals("Baker", StringComparison.OrdinalIgnoreCase))
             {
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold" asp-controller="Baker" asp-action="Index">
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-primary fw-semibold rounded-2 py-2" asp-controller="Baker" asp-action="Index">
                         <i class="bi bi-cake2-fill"></i> Trang Baker Dashboard
                     </a>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                <li><hr class="dropdown-divider my-1"></li>
             }
             @if (role.Equals("Customer", StringComparison.OrdinalIgnoreCase))
             {
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 fw-semibold" asp-controller="Account" asp-action="Profile" style="color: var(--bakery-primary);">
+                    <a class="dropdown-item d-flex align-items-center gap-2 fw-semibold rounded-2 py-2" asp-controller="Account" asp-action="Profile" asp-route-tab="info" style="color: var(--bakery-primary);">
                         <i class="bi bi-person-lines-fill"></i> Thông tin tài khoản
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark" asp-controller="Account" asp-action="ChangePassword">
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Account" asp-action="Profile" asp-route-tab="address">
+                        <i class="bi bi-geo-alt-fill text-danger"></i> Sổ địa chỉ giao hàng
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Account" asp-action="Profile" asp-route-tab="password">
                         <i class="bi bi-key-fill text-warning"></i> Đổi mật khẩu
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark" asp-controller="Order" asp-action="Index">
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Order" asp-action="Index">
                         <i class="bi bi-clock-history text-primary"></i> Đơn hàng của tôi
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark" asp-controller="Cart" asp-action="Index">
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Cart" asp-action="Index">
                         <i class="bi bi-cart3 text-success"></i> Giỏ hàng của tôi
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark" asp-controller="Notification" asp-action="Index">
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Notification" asp-action="Index">
                         <i class="bi bi-bell text-warning"></i> Thông báo của tôi
                     </a>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                <li><hr class="dropdown-divider my-1"></li>
             }
             <li>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 rounded-2">
+                    <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 rounded-2 py-2">
                         <i class="bi bi-box-arrow-right"></i> Đăng xuất
                     </button>
                 </form>
