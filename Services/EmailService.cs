@@ -56,7 +56,7 @@ namespace SWP391_G5.Services
                         Credentials = new NetworkCredential(senderEmail, appPassword.Replace(" ", "")),
                         EnableSsl = enableSsl,
                         DeliveryMethod = SmtpDeliveryMethod.Network,
-                        Timeout = 30000 // 30s timeout (tăng từ 15s)
+                        Timeout = 30000 // 30s timeout
                     };
 
                     await client.SendMailAsync(message);
@@ -66,7 +66,7 @@ namespace SWP391_G5.Services
                 catch (SmtpException ex) when (attempt < maxRetries)
                 {
                     _logger.LogWarning(ex, "Lỗi SMTP khi gửi email tới {ToEmail} (lần thử {Attempt}/{MaxRetries}). Sẽ thử lại sau 2 giây...", toEmail, attempt, maxRetries);
-                    await Task.Delay(2000 * attempt); // Chờ 2s, 4s trước khi thử lại
+                    await Task.Delay(2000 * attempt);
                 }
                 catch (Exception ex) when (attempt < maxRetries && (ex.InnerException is System.IO.IOException || ex.InnerException is TimeoutException))
                 {
@@ -76,13 +76,23 @@ namespace SWP391_G5.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Lỗi khi gửi email qua SMTP tới {ToEmail} (lần thử {Attempt}/{MaxRetries})", toEmail, attempt, maxRetries);
-                    throw; // Lần cuối cùng hoặc lỗi không thể retry -> ném ra ngoài
+                    throw;
                 }
             }
         }
 
         public async Task SendOtpEmailAsync(string toEmail, string otpCode, string purpose)
         {
+            var appPassword = _configuration["EmailSettings:AppPassword"] ?? "";
+            if (string.IsNullOrWhiteSpace(appPassword) || appPassword.Contains("xxxx"))
+            {
+                _logger.LogWarning("==================================================================================");
+                _logger.LogWarning(" [MÃ OTP THỬ NGHIỆM] Gửi tới: {ToEmail} | Mục đích: {Purpose} | MÃ OTP: {OtpCode}", toEmail, purpose, otpCode);
+                _logger.LogWarning(" (Để gửi email thực tế, vui lòng cấu hình AppPassword Gmail trong appsettings.json)");
+                _logger.LogWarning("==================================================================================");
+                return;
+            }
+
             var title = purpose == "Register" 
                 ? "Mã xác thực đăng ký tài khoản BMS Bakery" 
                 : "Mã xác thực đặt lại mật khẩu BMS Bakery";
@@ -136,7 +146,6 @@ namespace SWP391_G5.Services
             }
             catch (Exception ex)
             {
-                // Log lỗi chi tiết nhưng cho phép controller tiếp tục (mã OTP vẫn có trong cache và log)
                 _logger.LogError(ex, "Không thể gửi email OTP tới {ToEmail}. Mã OTP là: {OtpCode}. Mục đích: {Purpose}", toEmail, otpCode, purpose);
             }
         }

@@ -1,4 +1,4 @@
-@model SWP391_G5.Models.ViewModels.VerifyOtpViewModel
+﻿@model SWP391_G5.Models.ViewModels.VerifyOtpViewModel
 
 @{
     ViewData["Title"] = "Xác Thực Email Đăng Ký - Tiệm Bánh BMS";
@@ -56,6 +56,24 @@
                         }
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+                        @if (ViewBag.DevOtp != null)
+            {
+                <div class="alert alert-warning py-3 px-3 small rounded-3 mb-4 text-start border-0 shadow-sm" style="background-color: #fff8e6; border-left: 4px solid #dda15e !important;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <i class="bi bi-key-fill text-warning me-1"></i>
+                            <strong>Mã OTP thử nghiệm:</strong> <span class="badge bg-danger fs-6 px-2 py-1 ms-1" style="letter-spacing: 2px;">@ViewBag.DevOtp</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-dark rounded-pill py-1 px-3 fw-semibold" onclick="document.getElementById('OtpCode').value = '@ViewBag.DevOtp';">
+                            <i class="bi bi-magic me-1"></i>Tự điền mã
+                        </button>
+                    </div>
+                    <div class="text-muted mt-2" style="font-size: 0.8rem;">
+                        <i class="bi bi-info-circle me-1"></i>Dành cho chế độ kiểm thử (khi chưa cấu hình Google App Password thật trong <code>appsettings.json</code>).
+                    </div>
                 </div>
             }
 
