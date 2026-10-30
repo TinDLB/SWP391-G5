@@ -38,7 +38,7 @@ namespace SWP391_G5.Controllers
             _logger = logger;
         }
 
-        #region --- 1. ÄÄ‚NG NHáº¬P (LOGIN) ---
+        #region --- 1. ĐĂNG NHẬP (LOGIN) ---
 
         // GET: /Account/Login
         [HttpGet]
@@ -75,13 +75,13 @@ namespace SWP391_G5.Controllers
 
             if (user == null || !_passwordService.VerifyPassword(model.Password, user.PasswordHash))
             {
-                ModelState.AddModelError(string.Empty, "Email hoáº·c máº­t kháº©u khÃ´ng chÃ­nh xÃ¡c.");
+                ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không chính xác.");
                 return View(model);
             }
 
             if (!user.IsActive)
             {
-                ModelState.AddModelError(string.Empty, "TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ khÃ³a hoáº·c táº¡m ngÆ°ng hoáº¡t Ä‘á»™ng. Vui lÃ²ng liÃªn há»‡ tiá»‡m bÃ¡nh Ä‘á»ƒ Ä‘Æ°á»£c há»— trá»£.");
+                ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa hoặc tạm ngưng hoạt động. Vui lòng liên hệ tiệm bánh để được hỗ trợ.");
                 return View(model);
             }
 
@@ -107,12 +107,12 @@ namespace SWP391_G5.Controllers
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            // Äá»“ng bá»™ giá» hÃ ng tá»« Guest Session vÃ o tÃ i khoáº£n cá»§a khÃ¡ch (UC-04)
+            // Đồng bộ giỏ hàng từ Guest Session vào tài khoản của khách (UC-04)
             await MergeSessionCartAsync(user.UserId);
 
-            _logger.LogInformation("NgÆ°á»i dÃ¹ng {Email} (Role: {Role}) Ä‘Ã£ Ä‘Äƒng nháº­p thÃ nh cÃ´ng.", user.Email, user.Role);
+            _logger.LogInformation("Người dùng {Email} (Role: {Role}) đã đăng nhập thành công.", user.Email, user.Role);
 
-            TempData["SuccessMessage"] = $"ÄÄƒng nháº­p thÃ nh cÃ´ng! ChÃ o má»«ng {user.FullName} trá»Ÿ láº¡i tiá»‡m bÃ¡nh.";
+            TempData["SuccessMessage"] = $"Đăng nhập thành công! Chào mừng {user.FullName} trở lại tiệm bánh.";
 
             return RedirectToLocal(model.ReturnUrl, user.Role);
         }
@@ -123,7 +123,7 @@ namespace SWP391_G5.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            TempData["InfoMessage"] = "Báº¡n Ä‘Ã£ Ä‘Äƒng xuáº¥t tÃ i khoáº£n thÃ nh cÃ´ng.";
+            TempData["InfoMessage"] = "Bạn đã đăng xuất tài khoản thành công.";
             return RedirectToAction("Index", "Home");
         }
 
@@ -136,7 +136,7 @@ namespace SWP391_G5.Controllers
 
         #endregion
 
-        #region --- 2. ÄÄ‚NG KÃ Vá»šI XÃC THá»°C OTP QUA EMAIL ---
+        #region --- 2. ĐĂNG KÝ VỚI XÁC THỰC OTP QUA EMAIL ---
 
         // GET: /Account/Register
         [HttpGet]
@@ -165,20 +165,20 @@ namespace SWP391_G5.Controllers
 
             var normalizedEmail = model.Email.Trim().ToLower();
 
-            // Kiá»ƒm tra trÃ¹ng email trong DB
+            // Kiểm tra trùng email trong DB
             var emailExists = await _context.Users
                 .AnyAsync(u => u.Email.ToLower() == normalizedEmail);
 
             if (emailExists)
             {
-                ModelState.AddModelError("Email", "Email nÃ y Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng. Vui lÃ²ng chá»n email khÃ¡c hoáº·c ÄÄƒng nháº­p.");
+                ModelState.AddModelError("Email", "Email này đã được sử dụng. Vui lòng chọn email khác hoặc Đăng nhập.");
                 return View(model);
             }
 
-            // Sinh mÃ£ OTP 6 chá»¯ sá»‘ ngáº«u nhiÃªn
+            // Sinh mã OTP 6 chữ số ngẫu nhiên
             var otpCode = Random.Shared.Next(100000, 999999).ToString();
 
-            // LÆ°u dá»¯ liá»‡u Ä‘Äƒng kÃ½ táº¡m vÃ o MemoryCache trong 5 phÃºt
+            // Lưu dữ liệu đăng ký tạm vào MemoryCache trong 5 phút
             var pending = new PendingRegistration
             {
                 FullName = model.FullName.Trim(),
@@ -192,10 +192,10 @@ namespace SWP391_G5.Controllers
 
             _cache.Set($"PendingRegister_{normalizedEmail}", pending, TimeSpan.FromMinutes(5));
 
-            // Gá»­i email OTP
+            // Gửi email OTP
             await _emailService.SendOtpEmailAsync(normalizedEmail, otpCode, "Register");
 
-            TempData["InfoMessage"] = $"MÃ£ OTP xÃ¡c thá»±c Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n email {normalizedEmail}. Vui lÃ²ng nháº­p mÃ£ Ä‘á»ƒ hoÃ n táº¥t Ä‘Äƒng kÃ½.";
+            TempData["InfoMessage"] = "Đã gửi mã, vui lòng kiểm tra email";
 
             return RedirectToAction(nameof(VerifyRegisterOtp), new { email = normalizedEmail, returnUrl = model.ReturnUrl });
         }
@@ -236,26 +236,26 @@ namespace SWP391_G5.Controllers
 
             if (!_cache.TryGetValue<PendingRegistration>($"PendingRegister_{normalizedEmail}", out var pending) || pending == null)
             {
-                ModelState.AddModelError(string.Empty, "MÃ£ OTP Ä‘Ã£ háº¿t háº¡n hoáº·c khÃ´ng tá»“n táº¡i. Vui lÃ²ng yÃªu cáº§u gá»­i láº¡i mÃ£ má»›i.");
+                ModelState.AddModelError(string.Empty, "Mã OTP đã hết hạn hoặc không tồn tại. Vui lòng yêu cầu gửi lại mã mới.");
                 return View(model);
             }
 
             if (!string.Equals(pending.OtpCode, model.OtpCode.Trim(), StringComparison.Ordinal))
             {
-                ModelState.AddModelError(nameof(model.OtpCode), "MÃ£ OTP khÃ´ng chÃ­nh xÃ¡c. Vui lÃ²ng kiá»ƒm tra láº¡i.");
+                ModelState.AddModelError(nameof(model.OtpCode), "Mã OTP không chính xác. Vui lòng kiểm tra lại.");
                 return View(model);
             }
 
-            // Kiá»ƒm tra láº¡i trÃ¹ng email láº§n cuá»‘i
+            // Kiểm tra lại trùng email lần cuối
             var emailExists = await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedEmail);
             if (emailExists)
             {
                 _cache.Remove($"PendingRegister_{normalizedEmail}");
-                ModelState.AddModelError(string.Empty, "Email nÃ y Ä‘Ã£ Ä‘Æ°á»£c Ä‘Äƒng kÃ½ trong há»‡ thá»‘ng.");
+                ModelState.AddModelError(string.Empty, "Email này đã được đăng ký trong hệ thống.");
                 return View(model);
             }
 
-            // Táº¡o ngÆ°á»i dÃ¹ng má»›i
+            // Tạo người dùng mới
             var newUser = new User
             {
                 FullName = pending.FullName,
@@ -271,7 +271,7 @@ namespace SWP391_G5.Controllers
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
 
-            // Náº¿u cÃ³ Ä‘á»‹a chá»‰ thÃ¬ lÆ°u vÃ o báº£ng Addresses
+            // Nếu có địa chỉ thì lưu vào bảng Addresses
             if (!string.IsNullOrWhiteSpace(pending.Address))
             {
                 _context.Addresses.Add(new Address
@@ -285,12 +285,12 @@ namespace SWP391_G5.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // XÃ³a cache Ä‘Äƒng kÃ½
+            // Xóa cache đăng ký
             _cache.Remove($"PendingRegister_{normalizedEmail}");
 
-            _logger.LogInformation("NgÆ°á»i dÃ¹ng má»›i {Email} Ä‘Ã£ hoÃ n táº¥t Ä‘Äƒng kÃ½ tÃ i khoáº£n qua xÃ¡c thá»±c OTP thÃ nh cÃ´ng.", newUser.Email);
+            _logger.LogInformation("Người dùng mới {Email} đã hoàn tất đăng ký tài khoản qua xác thực OTP thành công.", newUser.Email);
 
-            TempData["SuccessMessage"] = "ÄÄƒng kÃ½ tÃ i khoáº£n thÃ nh cÃ´ng! Báº¡n cÃ³ thá»ƒ Ä‘Äƒng nháº­p ngay bÃ¢y giá».";
+            TempData["SuccessMessage"] = "Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.";
 
             return RedirectToAction(nameof(Login), new { email = newUser.Email, returnUrl = model.ReturnUrl });
         }
@@ -309,7 +309,7 @@ namespace SWP391_G5.Controllers
 
             if (!_cache.TryGetValue<PendingRegistration>($"PendingRegister_{normalizedEmail}", out var pending) || pending == null)
             {
-                TempData["ErrorMessage"] = "PhiÃªn Ä‘Äƒng kÃ½ Ä‘Ã£ háº¿t háº¡n. Vui lÃ²ng Ä‘iá»n láº¡i thÃ´ng tin Ä‘Äƒng kÃ½.";
+                TempData["ErrorMessage"] = "Phiên đăng ký đã hết hạn. Vui lòng điền lại thông tin đăng ký.";
                 return RedirectToAction(nameof(Register));
             }
 
@@ -321,14 +321,14 @@ namespace SWP391_G5.Controllers
 
             await _emailService.SendOtpEmailAsync(normalizedEmail, newOtp, "Register");
 
-            TempData["SuccessMessage"] = "MÃ£ OTP má»›i Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n email cá»§a báº¡n. Vui lÃ²ng kiá»ƒm tra há»™p thÆ°.";
+            TempData["SuccessMessage"] = "Đã gửi mã, vui lòng kiểm tra email";
 
             return RedirectToAction(nameof(VerifyRegisterOtp), new { email = normalizedEmail, returnUrl });
         }
 
         #endregion
 
-        #region --- 3. QUÃŠN Máº¬T KHáº¨U Vá»šI XÃC THá»°C OTP ---
+        #region --- 3. QUÊN MẬT KHẨU VỚI XÁC THỰC OTP ---
 
         // GET: /Account/ForgotPassword
         [HttpGet]
@@ -352,13 +352,13 @@ namespace SWP391_G5.Controllers
 
             if (user == null)
             {
-                ModelState.AddModelError("Email", "KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n nÃ o liÃªn káº¿t vá»›i email nÃ y.");
+                ModelState.AddModelError("Email", "Không tìm thấy tài khoản nào liên kết với email này.");
                 return View(model);
             }
 
             if (!user.IsActive)
             {
-                ModelState.AddModelError(string.Empty, "TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ khÃ³a. Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn.");
+                ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
                 return View(model);
             }
 
@@ -367,7 +367,35 @@ namespace SWP391_G5.Controllers
 
             await _emailService.SendOtpEmailAsync(normalizedEmail, otpCode, "ForgotPassword");
 
-            TempData["InfoMessage"] = $"MÃ£ OTP khÃ´i phá»¥c máº­t kháº©u Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n {normalizedEmail}. Vui lÃ²ng nháº­p mÃ£ Ä‘á»ƒ tiáº¿p tá»¥c.";
+            TempData["InfoMessage"] = "Đã gửi mã, vui lòng kiểm tra email";
+
+            return RedirectToAction(nameof(VerifyForgotOtp), new { email = normalizedEmail });
+        }
+
+        // POST: /Account/ResendForgotOtp
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendForgotOtp(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            var normalizedEmail = email.Trim().ToLower();
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+            if (user == null || !user.IsActive)
+            {
+                TempData["ErrorMessage"] = "Tài khoản không tồn tại hoặc đã bị khóa.";
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            var newOtp = Random.Shared.Next(100000, 999999).ToString();
+            _cache.Set($"ForgotPassOtp_{normalizedEmail}", newOtp, TimeSpan.FromMinutes(5));
+
+            await _emailService.SendOtpEmailAsync(normalizedEmail, newOtp, "ForgotPassword");
+
+            TempData["SuccessMessage"] = "Đã gửi mã, vui lòng kiểm tra email";
 
             return RedirectToAction(nameof(VerifyForgotOtp), new { email = normalizedEmail });
         }
@@ -404,13 +432,13 @@ namespace SWP391_G5.Controllers
 
             if (!_cache.TryGetValue<string>($"ForgotPassOtp_{normalizedEmail}", out var cachedOtp) || cachedOtp == null)
             {
-                ModelState.AddModelError(string.Empty, "MÃ£ OTP Ä‘Ã£ háº¿t háº¡n. Vui lÃ²ng yÃªu cáº§u gá»­i láº¡i mÃ£ má»›i.");
+                ModelState.AddModelError(string.Empty, "Mã OTP đã hết hạn. Vui lòng yêu cầu gửi lại mã mới.");
                 return View(model);
             }
 
             if (!string.Equals(cachedOtp, model.OtpCode.Trim(), StringComparison.Ordinal))
             {
-                ModelState.AddModelError(nameof(model.OtpCode), "MÃ£ OTP khÃ´ng chÃ­nh xÃ¡c. Vui lÃ²ng kiá»ƒm tra láº¡i.");
+                ModelState.AddModelError(nameof(model.OtpCode), "Mã OTP không chính xác. Vui lòng kiểm tra lại.");
                 return View(model);
             }
 
@@ -434,7 +462,7 @@ namespace SWP391_G5.Controllers
             var normalizedEmail = email.Trim().ToLower();
             if (!_cache.TryGetValue<string>($"ResetPasswordToken_{normalizedEmail}", out var cachedToken) || cachedToken != token)
             {
-                TempData["ErrorMessage"] = "YÃªu cáº§u Ä‘áº·t láº¡i máº­t kháº©u khÃ´ng há»£p lá»‡ hoáº·c Ä‘Ã£ háº¿t háº¡n. Vui lÃ²ng thá»­ láº¡i.";
+                TempData["ErrorMessage"] = "Yêu cầu đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.";
                 return RedirectToAction(nameof(ForgotPassword));
             }
 
@@ -458,7 +486,7 @@ namespace SWP391_G5.Controllers
             var normalizedEmail = model.Email.Trim().ToLower();
             if (!_cache.TryGetValue<string>($"ResetPasswordToken_{normalizedEmail}", out var cachedToken) || cachedToken != model.Token)
             {
-                TempData["ErrorMessage"] = "PhiÃªn Ä‘áº·t láº¡i máº­t kháº©u Ä‘Ã£ háº¿t háº¡n. Vui lÃ²ng thá»±c hiá»‡n láº¡i tá»« Ä‘áº§u.";
+                TempData["ErrorMessage"] = "Phiên đặt lại mật khẩu đã hết hạn. Vui lòng thực hiện lại từ đầu.";
                 return RedirectToAction(nameof(ForgotPassword));
             }
 
@@ -473,16 +501,16 @@ namespace SWP391_G5.Controllers
 
             _cache.Remove($"ResetPasswordToken_{normalizedEmail}");
 
-            _logger.LogInformation("NgÆ°á»i dÃ¹ng {Email} Ä‘Ã£ Ä‘áº·t láº¡i máº­t kháº©u thÃ nh cÃ´ng qua OTP.", user.Email);
+            _logger.LogInformation("Người dùng {Email} đã đặt lại mật khẩu thành công qua OTP.", user.Email);
 
-            TempData["SuccessMessage"] = "Äáº·t láº¡i máº­t kháº©u thÃ nh cÃ´ng! Báº¡n cÃ³ thá»ƒ sá»­ dá»¥ng máº­t kháº©u má»›i Ä‘á»ƒ Ä‘Äƒng nháº­p ngay bÃ¢y giá».";
+            TempData["SuccessMessage"] = "Đặt lại mật khẩu thành công! Bạn có thể sử dụng mật khẩu mới để đăng nhập ngay bây giờ.";
 
             return RedirectToAction(nameof(Login), new { email = user.Email });
         }
 
         #endregion
 
-        #region --- 4. QUáº¢N LÃ TRANG TÃ€I KHOáº¢N & Sá»” Äá»ŠA CHá»ˆ (UC-05: PROFILE & ADDRESSES) ---
+        #region --- 4. QUẢN LÝ TRANG TÀI KHOẢN & SỔ ĐỊA CHỈ (UC-05: PROFILE & ADDRESSES) ---
 
         // GET: /Account/Profile
         [HttpGet]
@@ -540,7 +568,7 @@ namespace SWP391_G5.Controllers
             return View(model);
         }
 
-        // POST: /Account/Profile (Cáº­p nháº­t thÃ´ng tin cÃ¡ nhÃ¢n)
+        // POST: /Account/Profile (Cập nhật thông tin cá nhân)
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -581,7 +609,7 @@ namespace SWP391_G5.Controllers
             user.FullName = model.FullName.Trim();
             user.Phone = model.PhoneNumber.Trim();
 
-            // Náº¿u ngÆ°á»i dÃ¹ng nháº­p Ä‘á»‹a chá»‰ vÃ  chÆ°a cÃ³ Ä‘á»‹a chá»‰ máº·c Ä‘á»‹nh, lÆ°u vÃ o Addresses
+            // Nếu người dùng nhập địa chỉ và chưa có địa chỉ mặc định, lưu vào Addresses
             if (!string.IsNullOrWhiteSpace(model.Address))
             {
                 var defaultAddr = user.Addresses.FirstOrDefault(a => a.IsDefault);
@@ -604,7 +632,7 @@ namespace SWP391_G5.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Cáº­p nháº­t Claims Cookie
+            // Cập nhật Claims Cookie
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -616,7 +644,7 @@ namespace SWP391_G5.Controllers
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            TempData["SuccessMessage"] = "Cáº­p nháº­t thÃ´ng tin tÃ i khoáº£n thÃ nh cÃ´ng!";
+            TempData["SuccessMessage"] = "Cập nhật thông tin tài khoản thành công!";
             TempData["ActiveTab"] = "info";
             return RedirectToAction(nameof(Profile), new { tab = "info" });
         }
@@ -638,7 +666,7 @@ namespace SWP391_G5.Controllers
                 var firstError = ModelState.Values
                     .SelectMany(v => v.Errors)
                     .Select(e => e.ErrorMessage)
-                    .FirstOrDefault() ?? "Dá»¯ liá»‡u Ä‘á»•i máº­t kháº©u khÃ´ng há»£p lá»‡.";
+                    .FirstOrDefault() ?? "Dữ liệu đổi mật khẩu không hợp lệ.";
 
                 TempData["ErrorMessage"] = firstError;
                 TempData["ActiveTab"] = "password";
@@ -653,7 +681,7 @@ namespace SWP391_G5.Controllers
 
             if (!_passwordService.VerifyPassword(model.CurrentPassword, user.PasswordHash))
             {
-                TempData["ErrorMessage"] = "Máº­t kháº©u hiá»‡n táº¡i khÃ´ng chÃ­nh xÃ¡c. Vui lÃ²ng kiá»ƒm tra láº¡i.";
+                TempData["ErrorMessage"] = "Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.";
                 TempData["ActiveTab"] = "password";
                 return RedirectToAction(nameof(Profile), new { tab = "password" });
             }
@@ -661,14 +689,14 @@ namespace SWP391_G5.Controllers
             user.PasswordHash = _passwordService.HashPassword(model.NewPassword);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("NgÆ°á»i dÃ¹ng {Email} Ä‘Ã£ Ä‘á»•i máº­t kháº©u thÃ nh cÃ´ng.", user.Email);
+            _logger.LogInformation("Người dùng {Email} đã đổi mật khẩu thành công.", user.Email);
 
-            TempData["SuccessMessage"] = "Äá»•i máº­t kháº©u thÃ nh cÃ´ng!";
+            TempData["SuccessMessage"] = "Đổi mật khẩu thành công!";
             TempData["ActiveTab"] = "password";
             return RedirectToAction(nameof(Profile), new { tab = "password" });
         }
 
-        // POST: /Account/AddAddress (ThÃªm Ä‘á»‹a chá»‰ giao hÃ ng má»›i)
+        // POST: /Account/AddAddress (Thêm địa chỉ giao hàng mới)
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -682,7 +710,7 @@ namespace SWP391_G5.Controllers
 
             if (string.IsNullOrWhiteSpace(model.ReceiverName) || string.IsNullOrWhiteSpace(model.Phone) || string.IsNullOrWhiteSpace(model.AddressLine))
             {
-                TempData["ErrorMessage"] = "Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ há» tÃªn, sá»‘ Ä‘iá»‡n thoáº¡i vÃ  Ä‘á»‹a chá»‰ nháº­n hÃ ng.";
+                TempData["ErrorMessage"] = "Vui lòng điền đầy đủ họ tên, số điện thoại và địa chỉ nhận hàng.";
                 return RedirectToAction(nameof(Profile), new { tab = "address" });
             }
 
@@ -709,11 +737,11 @@ namespace SWP391_G5.Controllers
             _context.Addresses.Add(newAddress);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "ÄÃ£ thÃªm Ä‘á»‹a chá»‰ nháº­n hÃ ng má»›i thÃ nh cÃ´ng.";
+            TempData["SuccessMessage"] = "Đã thêm địa chỉ nhận hàng mới thành công.";
             return RedirectToAction(nameof(Profile), new { tab = "address" });
         }
 
-        // POST: /Account/UpdateAddress (Sá»­a Ä‘á»‹a chá»‰ giao hÃ ng)
+        // POST: /Account/UpdateAddress (Sửa địa chỉ giao hàng)
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -728,7 +756,7 @@ namespace SWP391_G5.Controllers
             var address = await _context.Addresses.FirstOrDefaultAsync(a => a.AddressId == model.AddressId && a.UserId == userId);
             if (address == null)
             {
-                TempData["ErrorMessage"] = "KhÃ´ng tÃ¬m tháº¥y Ä‘á»‹a chá»‰ cáº§n cáº­p nháº­t.";
+                TempData["ErrorMessage"] = "Không tìm thấy địa chỉ cần cập nhật.";
                 return RedirectToAction(nameof(Profile), new { tab = "address" });
             }
 
@@ -748,11 +776,11 @@ namespace SWP391_G5.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Cáº­p nháº­t Ä‘á»‹a chá»‰ nháº­n hÃ ng thÃ nh cÃ´ng.";
+            TempData["SuccessMessage"] = "Cập nhật địa chỉ nhận hàng thành công.";
             return RedirectToAction(nameof(Profile), new { tab = "address" });
         }
 
-        // POST: /Account/DeleteAddress (XÃ³a Ä‘á»‹a chá»‰)
+        // POST: /Account/DeleteAddress (Xóa địa chỉ)
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -767,15 +795,15 @@ namespace SWP391_G5.Controllers
             var address = await _context.Addresses.FirstOrDefaultAsync(a => a.AddressId == addressId && a.UserId == userId);
             if (address == null)
             {
-                TempData["ErrorMessage"] = "KhÃ´ng tÃ¬m tháº¥y Ä‘á»‹a chá»‰ cáº§n xÃ³a.";
+                TempData["ErrorMessage"] = "Không tìm thấy địa chỉ cần xóa.";
                 return RedirectToAction(nameof(Profile), new { tab = "address" });
             }
 
-            // Kiá»ƒm tra rÃ ng buá»™c Ä‘Æ¡n hÃ ng
+            // Kiểm tra ràng buộc đơn hàng
             bool isUsedInOrders = await _context.Orders.AnyAsync(o => o.AddressId == addressId);
             if (isUsedInOrders)
             {
-                TempData["ErrorMessage"] = "Äá»‹a chá»‰ nÃ y Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng trong cÃ¡c Ä‘Æ¡n hÃ ng Ä‘Ã£ Ä‘áº·t cá»§a báº¡n, khÃ´ng thá»ƒ xÃ³a Ä‘á»ƒ lÆ°u trá»¯ lá»‹ch sá»­ váº­n chuyá»ƒn.";
+                TempData["ErrorMessage"] = "Địa chỉ này đã được sử dụng trong các đơn hàng đã đặt của bạn, không thể xóa để lưu trữ lịch sử vận chuyển.";
                 return RedirectToAction(nameof(Profile), new { tab = "address" });
             }
 
@@ -783,7 +811,7 @@ namespace SWP391_G5.Controllers
             _context.Addresses.Remove(address);
             await _context.SaveChangesAsync();
 
-            // Náº¿u xÃ³a Ä‘á»‹a chá»‰ máº·c Ä‘á»‹nh, gÃ¡n Ä‘á»‹a chá»‰ Ä‘áº§u tiÃªn cÃ²n láº¡i lÃ m máº·c Ä‘á»‹nh
+            // Nếu xóa địa chỉ mặc định, gán địa chỉ đầu tiên còn lại làm mặc định
             if (wasDefault)
             {
                 var remaining = await _context.Addresses.FirstOrDefaultAsync(a => a.UserId == userId);
@@ -794,11 +822,11 @@ namespace SWP391_G5.Controllers
                 }
             }
 
-            TempData["SuccessMessage"] = "ÄÃ£ xÃ³a Ä‘á»‹a chá»‰ thÃ nh cÃ´ng.";
+            TempData["SuccessMessage"] = "Đã xóa địa chỉ thành công.";
             return RedirectToAction(nameof(Profile), new { tab = "address" });
         }
 
-        // POST: /Account/SetDefaultAddress (Äáº·t lÃ m máº·c Ä‘á»‹nh)
+        // POST: /Account/SetDefaultAddress (Đặt làm mặc định)
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -814,7 +842,7 @@ namespace SWP391_G5.Controllers
             var target = addresses.FirstOrDefault(a => a.AddressId == addressId);
             if (target == null)
             {
-                TempData["ErrorMessage"] = "KhÃ´ng tÃ¬m tháº¥y Ä‘á»‹a chá»‰.";
+                TempData["ErrorMessage"] = "Không tìm thấy địa chỉ.";
                 return RedirectToAction(nameof(Profile), new { tab = "address" });
             }
 
@@ -825,7 +853,7 @@ namespace SWP391_G5.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "ÄÃ£ cáº­p nháº­t Ä‘á»‹a chá»‰ máº·c Ä‘á»‹nh.";
+            TempData["SuccessMessage"] = "Đã cập nhật địa chỉ mặc định.";
             return RedirectToAction(nameof(Profile), new { tab = "address" });
         }
 
