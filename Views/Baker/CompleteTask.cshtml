@@ -1,0 +1,91 @@
+@model SWP391_G5.Models.ViewModels.CompleteTaskViewModel
+@{
+    ViewData["Title"] = $"Hoàn tất Task #{Model.TaskId}";
+    Layout = "~/Views/Shared/_BakerLayout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="mb-3">
+            <a asp-action="TaskDetail" asp-route-id="@Model.TaskId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại chi tiết task
+            </a>
+        </div>
+
+        <div class="card stat-card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-bold text-success">
+                    <i class="bi bi-check2-circle me-2"></i>Báo cáo hoàn tất sản xuất
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-light border mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Mã công việc:</span>
+                        <span class="fw-bold">#@Model.TaskId</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Sản phẩm:</span>
+                        <span class="fw-bold text-primary">@Model.ProductName</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Mục tiêu ban đầu:</span>
+                        <span class="badge bg-secondary fs-6">@Model.TargetQty cái</span>
+                    </div>
+                </div>
+
+                <form asp-action="CompleteTask" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="TaskId" />
+                    <input type="hidden" asp-for="ProductName" />
+                    <input type="hidden" asp-for="TargetQty" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="ActualYield" class="form-label fw-semibold">
+                            Sản lượng thực tế làm ra <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="ActualYield" class="form-control" type="number" min="0" placeholder="VD: 30" required />
+                            <span class="input-group-text">cái</span>
+                        </div>
+                        <span asp-validation-for="ActualYield" class="text-danger small"></span>
+                        <div class="form-text small text-muted">Tổng số lượng bánh được nướng/chế biến trong mẻ này.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DefectQty" class="form-label fw-semibold">
+                            Số lượng lỗi / hỏng <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="DefectQty" class="form-control" type="number" min="0" placeholder="VD: 2" required />
+                            <span class="input-group-text">cái</span>
+                        </div>
+                        <span asp-validation-for="DefectQty" class="text-danger small"></span>
+                        <div class="form-text small text-muted">Số bánh bị cháy, biến dạng, không đạt tiêu chuẩn bán.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Note" class="form-label fw-semibold">Ghi chú của Baker</label>
+                        <textarea asp-for="Note" class="form-control" rows="3" placeholder="Lý do hỏng bánh, tình trạng mẻ nướng (nếu có)..."></textarea>
+                        <span asp-validation-for="Note" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success py-2 fw-semibold">
+                            <i class="bi bi-check-lg me-1"></i>Xác nhận & Hoàn tất sản xuất
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-light small text-muted text-center py-3">
+                <i class="bi bi-info-circle me-1"></i>Khi bấm hoàn tất, hệ thống sẽ tự động trừ kho nguyên liệu và cộng sản phẩm đạt tiêu chuẩn vào kho thành phẩm.
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

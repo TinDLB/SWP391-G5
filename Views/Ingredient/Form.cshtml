@@ -1,0 +1,83 @@
+@model SWP391_G5.Models.ViewModels.IngredientFormViewModel
+@{
+    var title = Model.IsEdit ? $"Chỉnh sửa nguyên liệu: {Model.Name}" : "Thêm nguyên liệu mới";
+    ViewData["Title"] = title;
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="mb-3">
+            <a asp-action="@(Model.IsEdit ? "Details" : "Index")" asp-route-id="@(Model.IsEdit ? Model.IngredientId : null)" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </a>
+        </div>
+
+        <div class="card stat-card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-bold text-primary">
+                    <i class="bi @(Model.IsEdit ? "bi-pencil-square" : "bi-plus-circle") me-2"></i>@title
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
+                    @Html.AntiForgeryToken()
+                    @if (Model.IsEdit)
+                    {
+                        <input type="hidden" asp-for="IngredientId" />
+                    }
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                    @if (Model.IsEdit)
+                    {
+                        <div class="alert alert-light border d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">Tồn kho hiện tại:</span>
+                            <span class="fs-6 fw-bold text-success">@Model.StockQty.ToString("#,##0.###") @Model.Unit</span>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-semibold"></label>
+                        <input asp-for="Name" class="form-control" placeholder="VD: Bột mì số 13, Bơ lạt, Trứng gà..." />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Unit" class="form-label fw-semibold"></label>
+                        @if (Model.UnitLocked)
+                        {
+                            <input asp-for="Unit" class="form-control" readonly />
+                            <div class="form-text text-warning small">
+                                <i class="bi bi-lock-fill me-1"></i>Đơn vị tính đã khóa vì nguyên liệu này đã có giao dịch kho hoặc đang dùng trong công thức bánh.
+                            </div>
+                        }
+                        else
+                        {
+                            <input asp-for="Unit" class="form-control" placeholder="VD: kg, g, lít, ml, quả..." />
+                        }
+                        <span asp-validation-for="Unit" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="MinThreshold" class="form-label fw-semibold"></label>
+                        <input asp-for="MinThreshold" class="form-control" type="number" step="0.001" min="0" placeholder="VD: 5" />
+                        <span asp-validation-for="MinThreshold" class="text-danger small"></span>
+                        <div class="form-text small text-muted">
+                            Hệ thống sẽ gửi cảnh báo "Tồn thấp" khi lượng tồn kho nhỏ hơn mức này.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary py-2 fw-semibold">
+                            <i class="bi bi-save me-1"></i>@(Model.IsEdit ? "Lưu thay đổi" : "Tạo nguyên liệu")
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
