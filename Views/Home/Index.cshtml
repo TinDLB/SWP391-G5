@@ -144,12 +144,11 @@
                     }
                     <div class="product-card">
                         <div class="product-image">
-                            <img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" />
-                            <button class="cart-button" type="button" aria-label="Thêm @product.Name vào giỏ">🛒</button>
+                            <a asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId"><img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" /></a>
                         </div>
                         <div class="product-info">
                             <span class="product-category">@product.Category.Name</span>
-                            <h3>@product.Name</h3>
+                            <h3><a asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId" class="text-reset text-decoration-none">@product.Name</a></h3>
                             <p>@product.Description</p>
                             <div class="price">@product.Price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) đ</div>
                         </div>

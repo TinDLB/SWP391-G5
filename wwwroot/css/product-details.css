@@ -1,0 +1,16 @@
+﻿.product-details{padding-top:32px;padding-bottom:56px}
+.detail-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:48px;align-items:start}
+.detail-photo{background:#faf3e0;border-radius:24px;overflow:hidden}
+.detail-photo img{width:100%;height:560px;object-fit:contain;display:block}
+.detail-info h1{font-size:clamp(2rem,4vw,3rem);margin:14px 0;color:var(--bakery-dark)}
+.detail-price{color:var(--bakery-primary);font-size:2rem;font-weight:700}
+.detail-price small{font-size:1rem;font-weight:400;color:#65564a}
+.quantity-picker{display:flex;align-items:center;gap:8px}
+.quantity-picker button{width:44px;height:44px;background:white;border:1px solid #cbbba6;border-radius:8px;font-size:1.3rem}
+.quantity-picker button:disabled{opacity:.4}
+.quantity-picker input{width:90px;height:44px;text-align:center;border:1px solid #cbbba6;border-radius:8px}
+.detail-actions{display:flex;gap:12px;flex-wrap:wrap}
+.detail-actions .btn{padding:14px 24px;font-weight:600;border-radius:12px}
+.detail-description{background:white;padding:32px;border:1px solid var(--bakery-border);border-radius:20px}
+.detail-description>p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
+@media(max-width:767px){.detail-grid{grid-template-columns:1fr;gap:24px}.detail-photo img{height:380px}.detail-actions .btn{flex:1}.detail-description{padding:20px}}
