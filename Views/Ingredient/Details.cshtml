@@ -1,0 +1,152 @@
+@model SWP391_G5.Models.ViewModels.IngredientDetailViewModel
+@{
+    ViewData["Title"] = $"Chi tiết: {Model.Name}";
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách kho
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Cột thông tin tổng quan -->
+    <div class="col-12 col-lg-5">
+        <div class="card stat-card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-basket me-2 text-warning"></i>@Model.Name
+                </h5>
+                @if (Model.IsLow)
+                {
+                    <span class="badge bg-danger">Tồn thấp</span>
+                }
+                else if (!Model.IsActive)
+                {
+                    <span class="badge bg-secondary">Ngừng dùng</span>
+                }
+                else
+                {
+                    <span class="badge bg-success">Đang dùng</span>
+                }
+            </div>
+            <div class="card-body">
+                <table class="table table-sm mb-3">
+                    <tr>
+                        <td class="text-muted w-50">Mã nguyên liệu:</td>
+                        <td class="fw-semibold">#@Model.IngredientId</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Đơn vị tính:</td>
+                        <td><span class="badge bg-light text-dark border">@Model.Unit</span></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Tồn kho hiện tại:</td>
+                        <td class="fs-5 fw-bold @(Model.IsLow ? "text-danger" : "text-success")">
+                            @Model.StockQty.ToString("#,##0.###") @Model.Unit
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Ngưỡng tối thiểu:</td>
+                        <td class="fw-semibold">@Model.MinThreshold.ToString("#,##0.###") @Model.Unit</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Đang dùng trong công thức:</td>
+                        <td class="fw-semibold">@Model.UsedInRecipes công thức</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Trong task đang làm:</td>
+                        <td class="fw-semibold">@Model.UsedInOpenTasks mẻ bánh</td>
+                    </tr>
+                </table>
+
+                @if (isAdmin)
+                {
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.IngredientId" class="btn btn-outline-primary btn-sm flex-grow-1">
+                            <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                        </a>
+                        <form asp-action="SetActive" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.IngredientId" />
+                            <input type="hidden" name="isActive" value="@(!Model.IsActive ? "true" : "false")" />
+                            <button type="submit" class="btn btn-sm @(Model.IsActive ? "btn-outline-danger" : "btn-outline-success")"
+                                    onclick="return confirm('@(Model.IsActive ? "Bạn có chắc muốn ngừng sử dụng nguyên liệu này?" : "Kích hoạt lại nguyên liệu này?")')">
+                                <i class="bi @(Model.IsActive ? "bi-slash-circle" : "bi-check-circle") me-1"></i>
+                                @(Model.IsActive ? "Ngừng dùng" : "Kích hoạt lại")
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột lịch sử biến động kho -->
+    <div class="col-12 col-lg-7">
+        <div class="card stat-card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-clock-history me-2 text-primary"></i>Lịch sử giao dịch kho gần đây (20 lần gần nhất)
+                </h6>
+            </div>
+            @if (Model.RecentTransactions == null || !Model.RecentTransactions.Any())
+            {
+                <div class="card-body text-center py-4 text-muted">
+                    <i class="bi bi-journal-x fs-2 d-block mb-2"></i>
+                    Chưa có giao dịch kho nào được ghi nhận cho nguyên liệu này.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Loại giao dịch</th>
+                                <th class="text-end">Biến động</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var txn in Model.RecentTransactions)
+                            {
+                                var isPositive = txn.QtyChange > 0;
+                                var txnBadge = txn.TxnType switch
+                                {
+                                    "Receipt" => "bg-success bg-opacity-75",
+                                    "ProductionUse" => "bg-warning text-dark",
+                                    "AdjustmentIn" => "bg-info text-dark",
+                                    "AdjustmentOut" => "bg-danger",
+                                    "StockCount" => "bg-primary",
+                                    _ => "bg-secondary"
+                                };
+                                var txnText = txn.TxnType switch
+                                {
+                                    "Receipt" => "Nhập kho (PO)",
+                                    "ProductionUse" => "Baker sản xuất",
+                                    "AdjustmentIn" => "Điều chỉnh tăng",
+                                    "AdjustmentOut" => "Điều chỉnh giảm",
+                                    "StockCount" => "Kiểm kê",
+                                    _ => txn.TxnType
+                                };
+
+                                <tr>
+                                    <td class="small text-muted">@txn.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td><span class="badge @txnBadge">@txnText</span></td>
+                                    <td class="text-end fw-bold @(isPositive ? "text-success" : "text-danger")">
+                                        @(isPositive ? "+" : "")@txn.QtyChange.ToString("#,##0.###") @Model.Unit
+                                    </td>
+                                    <td class="small text-muted">@(string.IsNullOrEmpty(txn.Note) ? "-" : txn.Note)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

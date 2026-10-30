@@ -1,0 +1,56 @@
+﻿@model SWP391_G5.Models.ViewModels.CashierProfileViewModel
+@{
+    Layout = "_CashierLayout";
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card stat-card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-person-circle me-1"></i> Hồ sơ cá nhân</span>
+                <a asp-action="ChangePassword" class="btn btn-sm btn-bakery-outline">
+                    <i class="bi bi-key me-1"></i> Đổi mật khẩu
+                </a>
+            </div>
+            <div class="card-body">
+                <form asp-action="Profile" asp-controller="Cashier" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label small text-muted"></label>
+                            <input asp-for="Email" class="form-control" readonly disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Role" class="form-label small text-muted"></label>
+                            <input asp-for="Role" class="form-control" readonly disabled />
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="FullName" class="form-label"></label>
+                            <input asp-for="FullName" class="form-control" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Phone" class="form-label"></label>
+                            <input asp-for="Phone" class="form-control" placeholder="0912345678" />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12 small text-muted">
+                            Tài khoản được tạo lúc @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-bakery mt-4">
+                        <i class="bi bi-save me-1"></i> Lưu thay đổi
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

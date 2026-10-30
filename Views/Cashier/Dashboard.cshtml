@@ -1,0 +1,71 @@
+﻿@model SWP391_G5.Models.ViewModels.CashierDashboardViewModel
+@{
+    Layout = "_CashierLayout";
+    ViewData["Title"] = "Cashier Dashboard";
+}
+
+<h4 class="fw-bold mb-3">Tổng quan hôm nay <small class="text-muted fs-6">(@DateTime.Today.ToString("dd/MM/yyyy"))</small></h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card stat-card h-100"><div class="card-body">
+            <div class="text-muted small">Doanh thu hôm nay</div>
+            <div class="fs-4 fw-bold text-success">@Model.TodayRevenue.ToString("N0") ₫</div>
+            <div class="small text-muted">@Model.TodayCompletedOrders đơn hoàn thành</div>
+        </div></div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card stat-card h-100"><div class="card-body">
+            <div class="text-muted small">Đơn online chờ xử lý</div>
+            <div class="fs-4 fw-bold text-warning">@Model.PendingOnlineOrders</div>
+            <div class="small text-muted">Trạng thái Pending</div>
+        </div></div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card stat-card h-100"><div class="card-body">
+            <div class="text-muted small">Đang chuẩn bị</div>
+            <div class="fs-4 fw-bold text-info">@Model.PreparingOnlineOrders</div>
+            <div class="small text-muted">Trạng thái Preparing</div>
+        </div></div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card stat-card h-100"><div class="card-body">
+            <div class="text-muted small">Đang giao</div>
+            <div class="fs-4 fw-bold text-primary">@Model.DeliveringOnlineOrders</div>
+            <div class="small text-muted">Trạng thái Delivering</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="card stat-card">
+    <div class="card-header bg-white fw-semibold">
+        <i class="bi bi-hourglass-split text-warning me-1"></i> Đơn online chờ xử lý (5 đơn cũ nhất)
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã đơn</th><th>Khách hàng</th><th>Thời gian đặt</th>
+                    <th class="text-center">Số món</th><th class="text-end">Tổng tiền</th><th>Thanh toán</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.RecentPendingOrders.Any())
+            {
+                <tr><td colspan="6" class="text-center text-muted py-4">Hiện không có đơn nào đang chờ xử lý 🎉</td></tr>
+            }
+            @foreach (var o in Model.RecentPendingOrders)
+            {
+                <tr>
+                    <td class="fw-semibold">@o.OrderCode</td>
+                    <td>@o.CustomerName</td>
+                    <td>@o.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td class="text-center">@o.ItemCount</td>
+                    <td class="text-end">@o.TotalAmount.ToString("N0") ₫</td>
+                    <td>@(o.PaymentMethod == "COD" ? "COD" : "Online")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -189,7 +189,8 @@
                     </a>
                 </li>
                 <li class="nav-item-admin">
-                    <a class="nav-link-admin" href="#">
+                    <a class="nav-link-admin @(ViewContext.RouteData.Values["controller"]?.ToString() == "PurchaseOrder" ? "active" : "")"
+                       asp-controller="PurchaseOrder" asp-action="Index">
                         <i class="bi bi-cart-check"></i> Đơn mua hàng
                     </a>
                 </li>

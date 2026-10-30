@@ -1,0 +1,177 @@
+@model SWP391_G5.Models.ViewModels.BakerTaskDetailViewModel
+@{
+    ViewData["Title"] = $"Chi tiết Task #{Model.TaskId}";
+    Layout = "~/Views/Shared/_BakerLayout.cshtml";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Quay lại
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Thông tin task -->
+    <div class="col-12 col-lg-5">
+        <div class="card stat-card">
+            <div class="card-header bg-transparent fw-semibold">
+                <i class="bi bi-info-circle me-2 text-primary"></i>Thông tin công việc
+            </div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <tr>
+                        <td class="text-muted w-40">Sản phẩm</td>
+                        <td class="fw-semibold">@Model.ProductName</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Số lượng mục tiêu</td>
+                        <td><strong>@Model.TargetQty</strong> cái</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Trạng thái</td>
+                        <td>
+                            @{
+                                var (badge, label) = Model.Status switch
+                                {
+                                    "InProgress" => ("bg-warning text-dark", "Đang làm"),
+                                    "Assigned"   => ("bg-primary",           "Chờ bắt đầu"),
+                                    "Completed"  => ("bg-success",           "Hoàn tất"),
+                                    _            => ("bg-secondary",         Model.Status)
+                                };
+                            }
+                            <span class="badge @badge">@label</span>
+                        </td>
+                    </tr>
+                    @if (Model.Deadline.HasValue)
+                    {
+                        var isOverdue = Model.Deadline < DateTime.Now && Model.Status != "Completed";
+                        <tr>
+                            <td class="text-muted">Hạn chót</td>
+                            <td class="@(isOverdue ? "text-danger fw-semibold" : "")">
+                                @Model.Deadline.Value.ToString("dd/MM/yyyy HH:mm")
+                                @if (isOverdue) { <i class="bi bi-exclamation-triangle ms-1"></i> }
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.StartedAt.HasValue)
+                    {
+                        <tr>
+                            <td class="text-muted">Bắt đầu</td>
+                            <td>@Model.StartedAt.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                    @if (Model.CompletedAt.HasValue)
+                    {
+                        <tr>
+                            <td class="text-muted">Hoàn tất</td>
+                            <td>@Model.CompletedAt.Value.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                    @if (Model.ActualYield.HasValue)
+                    {
+                        <tr>
+                            <td class="text-muted">Sản lượng thực tế</td>
+                            <td class="text-success fw-semibold">@Model.ActualYield cái</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Số lượng lỗi</td>
+                            <td class="text-danger fw-semibold">@Model.DefectQty cái</td>
+                        </tr>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Note))
+                    {
+                        <tr>
+                            <td class="text-muted">Ghi chú</td>
+                            <td>@Model.Note</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+            <!-- Action buttons -->
+            <div class="card-footer bg-transparent">
+                @if (Model.Status == "Assigned")
+                {
+                    <form asp-action="StartTask" method="post">
+                        <input type="hidden" name="taskId" value="@Model.TaskId" />
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="bi bi-play-fill me-1"></i>Bắt đầu sản xuất
+                        </button>
+                    </form>
+                }
+                else if (Model.Status == "InProgress")
+                {
+                    <a asp-action="CompleteTask" asp-route-id="@Model.TaskId"
+                       class="btn btn-success w-100">
+                        <i class="bi bi-check-lg me-1"></i>Hoàn tất & nhập kết quả
+                    </a>
+                }
+                else if (Model.Status == "Completed")
+                {
+                    <div class="text-center text-success fw-semibold">
+                        <i class="bi bi-check-circle-fill me-1"></i>Đã hoàn tất
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách nguyên liệu cần dùng -->
+    <div class="col-12 col-lg-7">
+        <div class="card stat-card">
+            <div class="card-header bg-transparent fw-semibold">
+                <i class="bi bi-basket me-2 text-warning"></i>Nguyên liệu cần dùng
+            </div>
+            @if (!Model.Ingredients.Any())
+            {
+                <div class="card-body">
+                    <p class="text-muted mb-0">Chưa có dữ liệu nguyên liệu cho task này.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nguyên liệu</th>
+                                <th class="text-end">Cần dùng</th>
+                                <th class="text-end">Tồn kho</th>
+                                <th class="text-center">Đủ?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ing in Model.Ingredients)
+                            {
+                                <tr class="@(!ing.IsStockSufficient ? "table-danger" : "")">
+                                    <td class="fw-medium">@ing.IngredientName</td>
+                                    <td class="text-end">@ing.RequiredQty.ToString("#,##0.###") @ing.Unit</td>
+                                    <td class="text-end @(!ing.IsStockSufficient ? "text-danger fw-semibold" : "")">
+                                        @ing.CurrentStock.ToString("#,##0.###") @ing.Unit
+                                    </td>
+                                    <td class="text-center">
+                                        @if (ing.IsStockSufficient)
+                                        {
+                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-x-circle-fill text-danger"></i>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (Model.Ingredients.Any(i => !i.IsStockSufficient))
+                {
+                    <div class="card-footer bg-danger bg-opacity-10 text-danger small">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Một số nguyên liệu chưa đủ. Liên hệ Admin để bổ sung trước khi bắt đầu sản xuất.
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

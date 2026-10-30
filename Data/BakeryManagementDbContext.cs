@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using SWP391_G5.Models.Entities;
@@ -66,7 +66,12 @@ public partial class BakeryManagementDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.UseCollation("Vietnamese_CI_AS");
+        var isSqlServer = Database.IsSqlServer();
+        if (isSqlServer)
+        {
+            modelBuilder.UseCollation("Vietnamese_CI_AS");
+        }
+        var nowSql = isSqlServer ? "(sysdatetime())" : "CURRENT_TIMESTAMP";
 
         modelBuilder.Entity<Address>(entity =>
         {
@@ -121,7 +126,7 @@ public partial class BakeryManagementDbContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasDefaultValue("Unpaid");
-            entity.Property(e => e.ReceivedDate).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.ReceivedDate).HasDefaultValueSql(nowSql);
             entity.Property(e => e.TotalCost).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.Po).WithMany(p => p.GoodsReceipts)
@@ -175,7 +180,7 @@ public partial class BakeryManagementDbContext : DbContext
 
             entity.HasIndex(e => new { e.IngredientId, e.CreatedAt }, "IX_InvTxn_Ingredient");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql(nowSql);
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.QtyChange).HasColumnType("decimal(18, 3)");
             entity.Property(e => e.RefTable)
@@ -206,7 +211,7 @@ public partial class BakeryManagementDbContext : DbContext
             entity.Property(e => e.InvoiceNo)
                 .HasMaxLength(30)
                 .IsUnicode(false);
-            entity.Property(e => e.IssuedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.IssuedAt).HasDefaultValueSql(nowSql);
 
             entity.HasOne(d => d.IssuedByNavigation).WithMany(p => p.Invoices)
                 .HasForeignKey(d => d.IssuedBy)
@@ -224,7 +229,7 @@ public partial class BakeryManagementDbContext : DbContext
 
             entity.HasIndex(e => new { e.UserId, e.IsRead }, "IX_Notif_User");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql(nowSql);
             entity.Property(e => e.Message).HasMaxLength(500);
             entity.Property(e => e.NotificationType)
                 .HasMaxLength(20)
@@ -250,7 +255,7 @@ public partial class BakeryManagementDbContext : DbContext
             entity.Property(e => e.Channel)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql(nowSql);
             entity.Property(e => e.DeliveryStaffName).HasMaxLength(100);
             entity.Property(e => e.DeliveryStaffPhone)
                 .HasMaxLength(20)
@@ -337,7 +342,7 @@ public partial class BakeryManagementDbContext : DbContext
 
             entity.HasIndex(e => new { e.AssignedBaker, e.Status }, "IX_ProdTasks_Baker");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql(nowSql);
             entity.Property(e => e.Note).HasMaxLength(500);
             entity.Property(e => e.Status)
                 .HasMaxLength(12)
@@ -385,7 +390,7 @@ public partial class BakeryManagementDbContext : DbContext
             entity.HasIndex(e => e.PoCode, "UQ_PurchaseOrders_Code").IsUnique();
 
             entity.Property(e => e.Note).HasMaxLength(500);
-            entity.Property(e => e.OrderDate).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.OrderDate).HasDefaultValueSql(nowSql);
             entity.Property(e => e.PoCode)
                 .HasMaxLength(30)
                 .IsUnicode(false);
@@ -464,7 +469,7 @@ public partial class BakeryManagementDbContext : DbContext
             entity.Property(e => e.AdjustType)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql(nowSql);
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.Quantity).HasColumnType("decimal(18, 3)");
             entity.Property(e => e.Reason)
@@ -486,7 +491,7 @@ public partial class BakeryManagementDbContext : DbContext
         {
             entity.HasKey(e => e.CountId).HasName("PK__StockCou__06678B7CB64E3DB1");
 
-            entity.Property(e => e.CountDate).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CountDate).HasDefaultValueSql(nowSql);
             entity.Property(e => e.Note).HasMaxLength(255);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.StockCounts)
@@ -503,9 +508,17 @@ public partial class BakeryManagementDbContext : DbContext
 
             entity.Property(e => e.CountedQty).HasColumnType("decimal(18, 3)");
             entity.Property(e => e.SystemQty).HasColumnType("decimal(18, 3)");
-            entity.Property(e => e.Variance)
-                .HasComputedColumnSql("([CountedQty]-[SystemQty])", true)
-                .HasColumnType("decimal(19, 3)");
+            if (isSqlServer)
+            {
+                entity.Property(e => e.Variance)
+                    .HasComputedColumnSql("([CountedQty]-[SystemQty])", true)
+                    .HasColumnType("decimal(19, 3)");
+            }
+            else
+            {
+                entity.Property(e => e.Variance)
+                    .HasComputedColumnSql("(CountedQty - SystemQty)");
+            }
 
             entity.HasOne(d => d.Count).WithMany(p => p.StockCountItems)
                 .HasForeignKey(d => d.CountId)
@@ -540,7 +553,7 @@ public partial class BakeryManagementDbContext : DbContext
 
             entity.HasIndex(e => e.Email, "UQ_Users_Email").IsUnique();
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql(nowSql);
             entity.Property(e => e.Email).HasMaxLength(150);
             entity.Property(e => e.FullName).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);

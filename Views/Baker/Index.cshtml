@@ -1,124 +1,73 @@
-
 @model List<SWP391_G5.Models.ViewModels.BakerProductionTaskViewModel>
-
 @{
-    ViewData["Title"] = "Baker Dashboard";
+    ViewData["Title"] = "Công việc của tôi";
+    Layout = "~/Views/Shared/_BakerLayout.cshtml";
 }
 
-<div class="container py-4">
-    <h2>Baker Dashboard</h2>
-
-    <p>Welcome, @User.Identity?.Name</p>
-
-    <hr />
-
-    <h4>Assigned Production Tasks</h4>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success" role="alert">
-            @TempData["SuccessMessage"]
-        </div>
-    }
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger" role="alert">
-            @TempData["ErrorMessage"]
-        </div>
-    }
-
-    @if (Model == null || !Model.Any())
-    {
-        <div class="alert alert-info">
-            No production tasks assigned.
-        </div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Task ID</th>
-                        <th>Product</th>
-                        <th>Target Quantity</th>
-                        <th>Status</th>
-                        <th>Deadline</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach (var task in Model)
-                    {
-                        <tr>
-                            <td>@task.TaskId</td>
-                            <td>@task.ProductName</td>
-                            <td>@task.TargetQty</td>
-
-                            <td>
-                                @if (task.Status == "Assigned")
-                                {
-                                    <span class="badge bg-primary">
-                                        Assigned
-                                    </span>
-                                }
-                                else if (task.Status == "InProgress")
-                                {
-                                    <span class="badge bg-success">
-                                        In Progress
-                                    </span>
-                                }
-                                else if (task.Status == "Completed")
-                                {
-                                    <span class="badge bg-secondary">
-                                        Completed
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-light text-dark">
-                                        @task.Status
-                                    </span>
-                                }
-                            </td>
-
-                            <td>
-                                @(task.Deadline?.ToString("dd/MM/yyyy HH:mm")
-                                    ?? "No deadline")
-                            </td>
-
-                            <td>
-                                @if (task.Status == "Assigned")
-                                {
-                                    <form asp-controller="Baker"
-                                          asp-action="StartProduction"
-                                          asp-route-id="@task.TaskId"
-                                          method="post">
-                                        @Html.AntiForgeryToken()
-
-                                        <button type="submit"
-                                                class="btn btn-primary btn-sm">
-                                            Start Production
-                                        </button>
-                                    </form>
-                                }
-                                else if (task.Status == "InProgress")
-                                {
-                                    <span class="text-success">
-                                        Production started
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">—</span>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-list-task me-2 text-warning"></i>Công việc sản xuất
+    </h4>
 </div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info rounded-3">
+        <i class="bi bi-info-circle me-2"></i>Chưa có công việc nào được giao.
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var task in Model)
+        {
+            var badgeClass = task.Status switch
+            {
+                "InProgress" => "bg-warning text-dark",
+                "Assigned"   => "bg-primary",
+                "Completed"  => "bg-success",
+                _            => "bg-secondary"
+            };
+            var statusLabel = task.Status switch
+            {
+                "InProgress" => "Đang làm",
+                "Assigned"   => "Chờ bắt đầu",
+                "Completed"  => "Hoàn tất",
+                _            => task.Status
+            };
+            var isOverdue = task.Deadline.HasValue && task.Deadline < DateTime.Now && task.Status != "Completed";
+
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="card stat-card h-100 @(isOverdue ? "border-danger" : "")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0 fw-semibold">@task.ProductName</h6>
+                            <span class="badge @badgeClass">@statusLabel</span>
+                        </div>
+                        <p class="text-muted small mb-1">
+                            <i class="bi bi-hash me-1"></i>Task #@task.TaskId
+                        </p>
+                        <p class="mb-1">
+                            <i class="bi bi-bullseye me-1 text-primary"></i>
+                            Mục tiêu: <strong>@task.TargetQty.ToString("N0")</strong> cái
+                        </p>
+                        @if (task.Deadline.HasValue)
+                        {
+                            <p class="mb-0 @(isOverdue ? "text-danger fw-semibold" : "text-muted") small">
+                                <i class="bi bi-clock me-1"></i>
+                                Hạn: @task.Deadline.Value.ToString("dd/MM/yyyy HH:mm")
+                                @if (isOverdue) { <span class="ms-1">(Quá hạn!)</span> }
+                            </p>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a asp-action="TaskDetail" asp-route-id="@task.TaskId"
+                           class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-eye me-1"></i>Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
