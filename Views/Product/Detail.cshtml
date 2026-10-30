@@ -1,4 +1,4 @@
-﻿@model SWP391_G5.Models.Entities.Product
+@model SWP391_G5.Models.Entities.Product
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
     ViewData["Title"] = Model.Name + " - Bakery Management System";
@@ -16,8 +16,8 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb small">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chá»§</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-decoration-none text-muted">Thá»±c ÄÆ¡n BÃ¡nh</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-decoration-none text-muted">Thực Đơn Bánh</a></li>
             <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">@Model.Name</li>
         </ol>
     </nav>
@@ -25,52 +25,52 @@
     <!-- Product Detail Box -->
     <div class="bg-white p-4 p-lg-5 rounded-4 shadow-sm border mb-5" style="border: 1px solid #f0e6d8 !important;">
         <div class="row g-5 align-items-center">
-            <!-- áº¢nh sáº£n pháº©m -->
+            <!-- Ảnh sản phẩm -->
             <div class="col-md-6 text-center">
                 <div class="rounded-4 overflow-hidden border p-2 bg-light shadow-sm" style="max-height: 440px;">
                     <img src="@Url.Content("~" + imgPath)" alt="@Model.Name" class="img-fluid rounded-4 object-fit-cover w-100" style="max-height: 420px;" />
                 </div>
             </div>
 
-            <!-- ThÃ´ng tin sáº£n pháº©m -->
+            <!-- Thông tin sản phẩm -->
             <div class="col-md-6">
                 <div class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-2">
-                    @(Model.Category?.Name ?? "BÃ¡nh tÆ°Æ¡i")
+                    @(Model.Category?.Name ?? "Bánh tươi")
                 </div>
                 <h2 class="fw-bold text-dark mb-2">@Model.Name</h2>
                 <div class="text-muted small mb-3">
-                    MÃ£ sáº£n pháº©m: <strong>SP0@(Model.ProductId)</strong> | Hotline tÆ° váº¥n: <strong class="text-dark">0123 456 789</strong>
+                    Mã sản phẩm: <strong>SP0@(Model.ProductId)</strong> | Hotline tư vấn: <strong class="text-dark">0123 456 789</strong>
                 </div>
 
                 <div class="fs-2 fw-bold mb-3" style="color: var(--bakery-primary);">
-                    @Model.Price.ToString("N0") <span class="fs-5 text-muted">Ä‘</span>
+                    @Model.Price.ToString("N0") <span class="fs-5 text-muted">đ</span>
                 </div>
 
                 <p class="text-secondary mb-4 lh-base">
-                    @(string.IsNullOrEmpty(Model.Description) ? "BÃ¡nh Ä‘Æ°á»£c cháº¿ biáº¿n tá»« 100% nguyÃªn liá»‡u bÆ¡ sá»¯a tÆ°Æ¡i háº£o háº¡ng, nÆ°á»›ng má»›i má»—i sÃ¡ng vá»›i cÃ´ng thá»©c Ä‘á»™c quyá»n tá»« Bakery Management System." : Model.Description)
+                    @(string.IsNullOrEmpty(Model.Description) ? "Bánh được chế biến từ 100% nguyên liệu bơ sữa tươi hảo hạng, nướng mới mỗi sáng với công thức độc quyền từ Bakery Management System." : Model.Description)
                 </p>
 
-                <!-- TÃ¬nh tráº¡ng kho -->
+                <!-- Tình trạng kho -->
                 <div class="mb-3">
                     @if (Model.StockQty > 0)
                     {
                         <span class="badge bg-success bg-opacity-75 rounded-pill px-3 py-2">
-                            <i class="bi bi-check-circle me-1"></i> CÃ²n hÃ ng (@Model.StockQty sáº£n pháº©m cÃ³ sáºµn)
+                            <i class="bi bi-check-circle me-1"></i> Còn hàng (@Model.StockQty sản phẩm có sẵn)
                         </span>
                     }
                     else
                     {
                         <span class="badge bg-danger rounded-pill px-3 py-2">
-                            <i class="bi bi-x-circle me-1"></i> Táº¡m háº¿t hÃ ng
+                            <i class="bi bi-x-circle me-1"></i> Tạm hết hàng
                         </span>
                     }
                 </div>
 
-                <!-- Chá»n sá»‘ lÆ°á»£ng -->
+                <!-- Chọn số lượng -->
                 @if (Model.StockQty > 0)
                 {
                     <div class="d-flex align-items-center gap-3 mb-4">
-                        <div class="fw-semibold text-muted">Sá»‘ lÆ°á»£ng:</div>
+                        <div class="fw-semibold text-muted">Số lượng:</div>
                         <div class="input-group" style="width: 130px;">
                             <button type="button" class="btn btn-outline-secondary" onclick="decQty()">-</button>
                             <input type="number" id="detailQty" class="form-control text-center fw-bold" value="1" min="1" max="@Model.StockQty" />
@@ -80,7 +80,7 @@
 
                     <div class="d-flex gap-3 flex-wrap">
                         <button type="button" class="btn btn-bakery rounded-pill px-4 py-3 fw-bold flex-grow-1" onclick="addToCart(@Model.ProductId, parseInt($('#detailQty').val()) || 1)">
-                            <i class="bi bi-cart-plus-fill me-2"></i> THÃŠM VÃ€O GIá»Ž HÃ€NG
+                            <i class="bi bi-cart-plus-fill me-2"></i> THÊM VÀO GIỎ HÀNG
                         </button>
                         <button type="button" class="btn btn-dark rounded-pill px-4 py-3 fw-bold" onclick="buyNow(@Model.ProductId)">
                             <i class="bi bi-lightning-fill me-1"></i> MUA NGAY
@@ -90,35 +90,35 @@
                 else
                 {
                     <button type="button" class="btn btn-secondary rounded-pill px-4 py-3 fw-bold disabled w-100" disabled>
-                        Sáº¢N PHáº¨M Táº M Háº¾T HÃ€NG
+                        SẢN PHẨM TẠM HẾT HÀNG
                     </button>
                 }
 
-                <!-- Cam káº¿t cháº¥t lÆ°á»£ng -->
+                <!-- Cam kết chất lượng -->
                 <div class="border-top mt-4 pt-3 text-muted small">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-shield-check text-success fs-5"></i>
-                        <span>NguyÃªn liá»‡u tÆ°Æ¡i má»›i 100%, nÆ°á»›ng bÃ¡nh má»—i ngÃ y khÃ´ng cháº¥t báº£o quáº£n</span>
+                        <span>Nguyên liệu tươi mới 100%, nướng bánh mỗi ngày không chất bảo quản</span>
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-truck text-primary fs-5"></i>
-                        <span>Giao hÃ ng táº­n nÆ¡i há»a tá»‘c trong 2 giá» ná»™i thÃ nh HÃ  Ná»™i</span>
+                        <span>Giao hàng tận nơi hỏa tốc trong 2 giờ nội thành Hà Nội</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-gift text-warning fs-5"></i>
-                        <span>Táº·ng kÃ¨m dao, dÄ©a, náº¿n vÃ  trang trÃ­ thiá»‡p theo yÃªu cáº§u miá»…n phÃ­</span>
+                        <span>Tặng kèm dao, dĩa, nến và trang trí thiệp theo yêu cầu miễn phí</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Khá»‘i sáº£n pháº©m cÃ¹ng loáº¡i (Related Products) -->
+    <!-- Khối sản phẩm cùng loại (Related Products) -->
     @if (related != null && related.Any())
     {
         <div class="mt-5">
             <h4 class="fw-bold text-dark mb-4">
-                <i class="bi bi-stars text-warning me-2"></i>Sáº¢N PHáº¨M CÃ™NG DANH Má»¤C
+                <i class="bi bi-stars text-warning me-2"></i>SẢN PHẨM CÙNG DANH MỤC
             </h4>
             <div class="row g-4">
                 @foreach (var rp in related)
@@ -144,7 +144,7 @@
                                     </a>
                                 </h6>
                                 <div class="fw-bold text-danger mt-auto pt-2">
-                                    @rp.Price.ToString("N0") Ä‘
+                                    @rp.Price.ToString("N0") đ
                                 </div>
                             </div>
                         </div>
@@ -179,7 +179,7 @@
                     alert(res.message);
                 }
             }).fail(function() {
-                alert('CÃ³ lá»—i xáº£y ra, vui lÃ²ng thá»­ láº¡i!');
+                alert('Có lỗi xảy ra, vui lòng thử lại!');
             });
         }
     </script>

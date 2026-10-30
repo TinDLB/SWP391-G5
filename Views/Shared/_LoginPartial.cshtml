@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
 
 <ul class="navbar-nav align-items-lg-center gap-2">
 @if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -20,7 +20,7 @@
             <li class="px-3 py-2 border-bottom mb-2">
                 <div class="fw-bold small text-dark">@User.Identity.Name</div>
                 <div class="text-muted small">@email</div>
-                <span class="badge bg-warning text-dark mt-1">Vai trÃ²: @role</span>
+                <span class="badge bg-warning text-dark mt-1">Vai trò: @role</span>
             </li>
             @if (role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
             {
@@ -53,33 +53,31 @@
             {
                 <li>
                     <a class="dropdown-item d-flex align-items-center gap-2 fw-semibold rounded-2 py-2" asp-controller="Account" asp-action="Profile" asp-route-tab="info" style="color: var(--bakery-primary);">
-                        <i class="bi bi-person-lines-fill"></i> ThÃ´ng tin tÃ i khoáº£n
+                        <i class="bi bi-person-lines-fill"></i> Thông tin tài khoản
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Account" asp-action="Profile" asp-route-tab="address">
-                        <i class="bi bi-geo-alt-fill text-danger"></i> Sá»• Ä‘á»‹a chá»‰ giao hÃ ng
+                        <i class="bi bi-geo-alt-fill text-danger"></i> Sổ địa chỉ giao hàng
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Account" asp-action="Profile" asp-route-tab="password">
-                        <i class="bi bi-key-fill text-warning"></i> Äá»•i máº­t kháº©u
+                        <i class="bi bi-key-fill text-warning"></i> Đổi mật khẩu
                     </a>
                 </li>
-                
                 <li>
                     <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Cart" asp-action="Index">
-                        <i class="bi bi-cart3 text-success"></i> Giá» hÃ ng cá»§a tÃ´i
+                        <i class="bi bi-cart3 text-success"></i> Giỏ hàng của tôi
                     </a>
                 </li>
-                
                 <li><hr class="dropdown-divider my-1"></li>
             }
             <li>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 rounded-2 py-2">
-                        <i class="bi bi-box-arrow-right"></i> ÄÄƒng xuáº¥t
+                        <i class="bi bi-box-arrow-right"></i> Đăng xuất
                     </button>
                 </form>
             </li>
@@ -90,12 +88,12 @@ else
 {
     <li class="nav-item">
         <a class="nav-link" asp-controller="Account" asp-action="Register">
-            <i class="bi bi-person-plus me-1"></i> ÄÄƒng KÃ½
+            <i class="bi bi-person-plus me-1"></i> Đăng Ký
         </a>
     </li>
     <li class="nav-item">
         <a class="btn btn-bakery btn-sm px-3" asp-controller="Account" asp-action="Login">
-            <i class="bi bi-box-arrow-in-right me-1"></i> ÄÄƒng Nháº­p
+            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
         </a>
     </li>
 }

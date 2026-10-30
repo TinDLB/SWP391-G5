@@ -34,32 +34,50 @@ namespace SWP391_G5.Services
                 return;
             }
 
-            try
+            // Thử gửi tối đa 3 lần nếu bị timeout hoặc lỗi tạm thời
+            const int maxRetries = 3;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                using var message = new MailMessage
+                try
                 {
-                    From = new MailAddress(senderEmail, senderName),
-                    Subject = subject,
-                    Body = htmlContent,
-                    IsBodyHtml = true
-                };
-                message.To.Add(toEmail);
+                    using var message = new MailMessage
+                    {
+                        From = new MailAddress(senderEmail, senderName),
+                        Subject = subject,
+                        Body = htmlContent,
+                        IsBodyHtml = true
+                    };
+                    message.SubjectEncoding = System.Text.Encoding.UTF8;
+                    message.BodyEncoding = System.Text.Encoding.UTF8;
+                    message.To.Add(toEmail);
 
-                using var client = new SmtpClient(smtpServer, port)
+                    using var client = new SmtpClient(smtpServer, port)
+                    {
+                        Credentials = new NetworkCredential(senderEmail, appPassword.Replace(" ", "")),
+                        EnableSsl = enableSsl,
+                        DeliveryMethod = SmtpDeliveryMethod.Network,
+                        Timeout = 30000 // 30s timeout (tăng từ 15s)
+                    };
+
+                    await client.SendMailAsync(message);
+                    _logger.LogInformation("Đã gửi email thành công tới {ToEmail}. Tiêu đề: {Subject} (lần thử {Attempt})", toEmail, subject, attempt);
+                    return; // Gửi thành công, thoát vòng lặp
+                }
+                catch (SmtpException ex) when (attempt < maxRetries)
                 {
-                    Credentials = new NetworkCredential(senderEmail, appPassword.Replace(" ", "")),
-                    EnableSsl = enableSsl,
-                    Timeout = 15000 // 15s timeout
-                };
-
-                await client.SendMailAsync(message);
-                _logger.LogInformation("Đã gửi email thành công tới {ToEmail}. Tiêu đề: {Subject}", toEmail, subject);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi gửi email qua SMTP tới {ToEmail}", toEmail);
-                // Ném exception để caller biết và xử lý (hoặc controller có thể hiển thị cảnh báo)
-                throw;
+                    _logger.LogWarning(ex, "Lỗi SMTP khi gửi email tới {ToEmail} (lần thử {Attempt}/{MaxRetries}). Sẽ thử lại sau 2 giây...", toEmail, attempt, maxRetries);
+                    await Task.Delay(2000 * attempt); // Chờ 2s, 4s trước khi thử lại
+                }
+                catch (Exception ex) when (attempt < maxRetries && (ex.InnerException is System.IO.IOException || ex.InnerException is TimeoutException))
+                {
+                    _logger.LogWarning(ex, "Lỗi kết nối khi gửi email tới {ToEmail} (lần thử {Attempt}/{MaxRetries}). Sẽ thử lại...", toEmail, attempt, maxRetries);
+                    await Task.Delay(2000 * attempt);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Lỗi khi gửi email qua SMTP tới {ToEmail} (lần thử {Attempt}/{MaxRetries})", toEmail, attempt, maxRetries);
+                    throw; // Lần cuối cùng hoặc lỗi không thể retry -> ném ra ngoài
+                }
             }
         }
 
@@ -93,19 +111,19 @@ namespace SWP391_G5.Services
 <body>
     <div class='email-container'>
         <div class='email-header'>
-            <h2>🥖 BMS BAKERY SHOP 🥐</h2>
+            <h2>BMS BAKERY SHOP</h2>
         </div>
         <div class='email-body'>
-            <p>Xin chào quý khách,</p>
+            <p>Xin chao quy khach,</p>
             <p>{introText}</p>
             <div class='otp-box'>
                 <div class='otp-code'>{otpCode}</div>
-                <div class='otp-expiry'>⏰ Mã xác thực có hiệu lực trong vòng 5 phút</div>
+                <div class='otp-expiry'>Ma xac thuc co hieu luc trong vong 5 phut</div>
             </div>
-            <p style='color: #666; font-size: 13px;'>* Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này hoặc liên hệ ngay với chúng tôi để bảo vệ tài khoản.</p>
+            <p style='color: #666; font-size: 13px;'>* Neu ban khong thuc hien yeu cau nay, vui long bo qua email nay hoac lien he ngay voi chung toi de bao ve tai khoan.</p>
         </div>
         <div class='email-footer'>
-            &copy; {DateTime.UtcNow.Year} BMS Bakery System. Chúc bạn có trải nghiệm tuyệt vời cùng tiệm bánh!
+            &copy; {DateTime.UtcNow.Year} BMS Bakery System. Chuc ban co trai nghiem tuyet voi cung tiem banh!
         </div>
     </div>
 </body>
@@ -114,11 +132,12 @@ namespace SWP391_G5.Services
             try
             {
                 await SendEmailAsync(toEmail, title, htmlContent);
+                _logger.LogInformation("Đã gửi OTP thành công tới {ToEmail}. Mục đích: {Purpose}", toEmail, purpose);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Cho phép controller tiếp tục (với mã OTP vẫn có trong cache và log)
-                _logger.LogWarning("Không thể gửi email OTP thực tế tới {ToEmail}. Mã OTP là: {OtpCode}", toEmail, otpCode);
+                // Log lỗi chi tiết nhưng cho phép controller tiếp tục (mã OTP vẫn có trong cache và log)
+                _logger.LogError(ex, "Không thể gửi email OTP tới {ToEmail}. Mã OTP là: {OtpCode}. Mục đích: {Purpose}", toEmail, otpCode, purpose);
             }
         }
     }
