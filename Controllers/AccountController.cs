@@ -686,6 +686,15 @@ namespace SWP391_G5.Controllers
                 return RedirectToAction(nameof(Profile), new { tab = "password" });
             }
 
+            if (model.CurrentPassword == model.NewPassword || 
+                model.CurrentPassword == model.ConfirmNewPassword || 
+                _passwordService.VerifyPassword(model.NewPassword, user.PasswordHash))
+            {
+                TempData["ErrorMessage"] = "Mật khẩu mới và xác nhận mật khẩu mới phải khác mật khẩu hiện tại.";
+                TempData["ActiveTab"] = "password";
+                return RedirectToAction(nameof(Profile), new { tab = "password" });
+            }
+
             user.PasswordHash = _passwordService.HashPassword(model.NewPassword);
             await _context.SaveChangesAsync();
 

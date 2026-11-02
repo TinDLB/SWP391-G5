@@ -1,4 +1,4 @@
-@model SWP391_G5.Models.ViewModels.ProfileViewModel
+﻿@model SWP391_G5.Models.ViewModels.ProfileViewModel
 
 @{
     ViewData["Title"] = "Quản Lý Tài Khoản - Tiệm Bánh BMS";
@@ -244,6 +244,11 @@
                         <p class="text-muted small mb-0">Chỉ cần nhập chính xác mật khẩu hiện tại của bạn để tiến hành thiết lập mật khẩu mới.</p>
                     </div>
 
+                                        <div id="passwordErrorAlert" class="alert alert-danger d-none align-items-center mb-3 py-2 px-3 small rounded-3 shadow-sm border-0" role="alert" style="border-left: 5px solid #dc3545 !important;">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-6 text-danger"></i>
+                        <span id="passwordErrorMessage" class="fw-semibold"></span>
+                    </div>
+
                     <form asp-action="ChangePassword" asp-controller="Account" method="post" id="formChangePassword">
                         @Html.AntiForgeryToken()
 
@@ -387,6 +392,40 @@
                 $('#sidebar-info-btn').addClass('active');
             }
         }
+
+        $('#formChangePassword').on('submit', function (e) {
+            var currentPass = $(this).find('input[name="CurrentPassword"]').val().trim();
+            var newPass = $(this).find('input[name="NewPassword"]').val().trim();
+            var confirmPass = $(this).find('input[name="ConfirmNewPassword"]').val().trim();
+
+            var errorEl = $('#passwordErrorAlert');
+            var msgEl = $('#passwordErrorMessage');
+            errorEl.addClass('d-none').removeClass('d-flex');
+
+            if (currentPass && newPass && currentPass === newPass) {
+                e.preventDefault();
+                msgEl.text('Mật khẩu mới và xác nhận mật khẩu mới phải khác mật khẩu hiện tại.');
+                errorEl.removeClass('d-none').addClass('d-flex');
+                $(this).find('input[name="NewPassword"]').focus();
+                return false;
+            }
+
+            if (currentPass && confirmPass && currentPass === confirmPass) {
+                e.preventDefault();
+                msgEl.text('Mật khẩu mới và xác nhận mật khẩu mới phải khác mật khẩu hiện tại.');
+                errorEl.removeClass('d-none').addClass('d-flex');
+                $(this).find('input[name="ConfirmNewPassword"]').focus();
+                return false;
+            }
+
+            if (newPass && confirmPass && newPass !== confirmPass) {
+                e.preventDefault();
+                msgEl.text('Mật khẩu xác nhận không khớp với mật khẩu mới.');
+                errorEl.removeClass('d-none').addClass('d-flex');
+                $(this).find('input[name="ConfirmNewPassword"]').focus();
+                return false;
+            }
+        });
 
         function openEditAddressModal(id, name, phone, line, isDefault) {
             $('#editAddressId').val(id);
