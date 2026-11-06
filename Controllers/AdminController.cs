@@ -29,11 +29,11 @@ namespace SWP391_G5.Controllers
             return View();
         }
 
-        // GET: /Admin/Products
+        // Lấy danh sách sản phẩm với các bộ lọc: search, category, status
         public async Task<IActionResult> Products(string? search, string? category, string? status)
         {
             // 1. Thống kê toàn bộ database (cố định số liệu, không bị nhảy khi lọc)
-            var allProducts = await _context.Products.AsNoTracking().ToListAsync();
+            var allProducts = await _context.Products.AsNoTracking().ToListAsync(); //asnotracking để tránh tracking các entity, giúp tăng hiệu suất khi chỉ đọc dữ liệu
             ViewBag.TotalActive = allProducts.Count(p => p.IsActive);
             ViewBag.TotalInactive = allProducts.Count(p => !p.IsActive);
             ViewBag.TotalInStock = allProducts.Count(p => p.StockQty > 0);
@@ -48,12 +48,12 @@ namespace SWP391_G5.Controllers
             {
                 var keyword = search.Trim().ToLower();
                 query = query.Where(p => p.Name.ToLower().Contains(keyword));
-            }
+            } // Lọc theo từ khóa tìm kiếm, bỏ qua khoảng trắng và không phân biệt hoa thường
 
             if (!string.IsNullOrWhiteSpace(category) && int.TryParse(category, out int catId))
             {
                 query = query.Where(p => p.CategoryId == catId);
-            }
+            } // Lọc theo danh mục, chỉ áp dụng nếu category là số hợp lệ
 
             if (status == "active")
             {
@@ -75,7 +75,7 @@ namespace SWP391_G5.Controllers
             return View(products);
         }
 
-        // POST: /Admin/CreateProduct
+        // Thêm sản phẩm mới vào database, có thể kèm theo ảnh sản phẩm
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateProduct(Product product, IFormFile? imageFile)
@@ -88,10 +88,13 @@ namespace SWP391_G5.Controllers
                     return RedirectToAction(nameof(Products));
                 }
 
+                // Tồn kho do module kho quản lý, không nhận từ form quản lý bánh.
+                product.StockQty = 0;
+
                 if (imageFile != null && imageFile.Length > 0)
                 {
                     product.ImageUrl = await UploadImageFileAsync(imageFile);
-                }
+                } // Nếu không có ảnh, ImageUrl sẽ là null, và view sẽ hiển thị ảnh mặc định
 
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
@@ -107,24 +110,23 @@ namespace SWP391_G5.Controllers
             return RedirectToAction(nameof(Products));
         }
 
-        // POST: /Admin/EditProduct
+        // Chỉnh sửa thông tin sản phẩm, có thể kèm theo thay đổi ảnh sản phẩm
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditProduct(Product product, IFormFile? imageFile)
         {
             try
             {
-                var existingProduct = await _context.Products.FindAsync(product.ProductId);
+                var existingProduct = await _context.Products.FindAsync(product.ProductId); // Tìm sản phẩm trong database theo ProductId
                 if (existingProduct == null)
                 {
                     TempData["ErrorMessage"] = "Không tìm thấy sản phẩm!";
                     return RedirectToAction(nameof(Products));
                 }
 
-                existingProduct.Name = product.Name.Trim();
+                existingProduct.Name = product.Name.Trim(); // Cập nhật tên sản phẩm, loại bỏ khoảng trắng thừa
                 existingProduct.CategoryId = product.CategoryId;
                 existingProduct.Price = product.Price;
-                existingProduct.StockQty = product.StockQty;
                 existingProduct.Description = product.Description;
                 existingProduct.IsActive = product.IsActive;
 
@@ -147,7 +149,7 @@ namespace SWP391_G5.Controllers
             return RedirectToAction(nameof(Products));
         }
 
-        // GET: /Admin/GetProductJson/{id}
+        // Hàm trả về thông tin sản phẩm dưới dạng JSON, dùng cho AJAX khi chỉnh sửa sản phẩm
         [HttpGet]
         public async Task<IActionResult> GetProductJson(int id)
         {
@@ -171,7 +173,7 @@ namespace SWP391_G5.Controllers
             });
         }
 
-        // POST: /Admin/ToggleStatus/{id}
+        // Hàm chuyển trạng thái sản phẩm (active/inactive) bằng AJAX, trả về JSON
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id)

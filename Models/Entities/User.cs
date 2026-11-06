@@ -15,6 +15,8 @@ public partial class User
 
     public string? Phone { get; set; }
 
+    public string? Gender { get; set; }
+
     public string Role { get; set; } = null!;
 
     public bool IsActive { get; set; }

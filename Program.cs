@@ -27,7 +27,7 @@ else
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IBakerService, BakerService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
-
+builder.Services.AddScoped<IVoucherService, VoucherService>();
 
 // 3. Cấu hình Cookie Authentication & Phân quyền Role
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -204,6 +204,10 @@ namespace SWP391_G5.Controllers
             {
                 return RedirectToAction("Dashboard", "Cashier");
             }
+            if (string.Equals(role, "Baker", StringComparison.OrdinalIgnoreCase) || User.IsInRole("Baker"))
+            {
+                return RedirectToAction("Index", "Baker");
+            }
 
             return RedirectToAction("Index", "Home");
         }

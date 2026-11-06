@@ -44,6 +44,7 @@ CREATE TABLE Users (
     PasswordHash VARCHAR(100)  NOT NULL,           -- BCrypt (60 ký tự)
     FullName     NVARCHAR(100) NOT NULL,
     Phone        VARCHAR(20)   NULL,
+    Gender       NVARCHAR(20)  NULL,
     Role         VARCHAR(20)   NOT NULL,
     IsActive     BIT           NOT NULL DEFAULT 1,
     CreatedAt    DATETIME2     NOT NULL DEFAULT SYSDATETIME(),

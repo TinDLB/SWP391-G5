@@ -1,0 +1,52 @@
+﻿@using SWP391_G5.Models.Entities
+@using SWP391_G5.Models.ViewModels
+@model RecipeEditViewModel
+@{ var products = ViewBag.Products as IEnumerable<Product> ?? Enumerable.Empty<Product>(); var ingredients = ViewBag.Ingredients as IEnumerable<Ingredient> ?? Enumerable.Empty<Ingredient>(); }
+<div class="recipe-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-12">
+                <label asp-for="ProductId" class="form-label">T&#234;n c&#244;ng th&#7913;c / s&#7843;n ph&#7849;m</label>
+                <select asp-for="ProductId" class="form-select">
+                    <option value="">-- Ch&#7885;n s&#7843;n ph&#7849;m &#273;&#227; c&#243; --</option>
+                    @foreach (var p in products)
+                    {
+                        <option value="@p.ProductId">@p.Name</option>
+                    }
+                        //Tạo dropdown chọn sản phẩm đã có công thức
+                </select>
+                <span asp-validation-for="ProductId" class="text-danger"></span>
+                <div class="form-text">N&#7871;u l&#224; b&#225;nh m&#7899;i, h&#227;y t&#7841;o b&#225;nh tr&#432;&#7899;c trong m&#7909;c Qu&#7843;n l&#253; b&#225;nh.</div>
+            </div>
+            <div class="col-12">
+                <label asp-for="Instructions" class="form-label">H&#432;&#7899;ng d&#7851;n th&#7921;c hi&#7879;n</label>
+                <textarea asp-for="Instructions" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Instructions" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6>Nguy&#234;n li&#7879;u c&#7847;n thi&#7871;t</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addIngredient()">Th&#234;m nguy&#234;n li&#7879;u</button>
+                </div>
+                <table class="table" id="ingredients">
+                    <thead><tr><th>Nguy&#234;n li&#7879;u</th><th style="width:220px">S&#7889; l&#432;&#7907;ng</th><th style="width:80px"></th></tr></thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.Ingredients.Count; i++)
+                        {
+                            <tr>
+                                <td><input type="hidden" name="Ingredients.index" value="@i" /><select name="Ingredients[@i].IngredientId" class="form-select" required onchange="preventDuplicateIngredient(this)"><option value="">-- Ch&#7885;n --</option>@foreach (var x in ingredients){<option value="@x.IngredientId" selected="@(x.IngredientId == Model.Ingredients[i].IngredientId)">@x.Name (@x.Unit)</option>}</select></td>
+                                <td><input name="Ingredients[@i].Quantity" value="@Model.Ingredients[i].Quantity" type="number" min="0.001" step="0.001" class="form-control" required /></td>
+                                <td><button type="button" class="btn btn-outline-danger" onclick="this.closest('tr').remove()">X&#243;a</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <span asp-validation-for="Ingredients" class="text-danger"></span>
+            </div>
+            <div class="col-12 form-check form-switch"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive" class="form-check-label">&#272;ang s&#7917; d&#7909;ng</label></div>
+        </div>
+    </div>
+    </div>
+</div>

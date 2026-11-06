@@ -77,7 +77,6 @@ public class HomeController : Controller
             SearchError = searchError,
             SelectedCategoryId = categoryId
         });
->>>>>>> origin/Baker
     }
 
     public IActionResult Privacy()

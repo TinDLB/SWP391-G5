@@ -1,0 +1,13 @@
+@using SWP391_G5.Models.ViewModels
+@model StaffEditViewModel
+@{
+    ViewData["Title"] = "Thêm nhân viên"; ViewData["PageTitle"] = "Thêm nhân viên"; Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<h4 class="mb-3">Thêm nhân viên</h4>
+<form asp-action="Create" method="post">@Html.AntiForgeryToken()
+    <partial name="_Form" model="Model" /> <!--Chèn nội dung của _Form.cshtml vào vị trí hiện tại-->
+    <div class="mt-3">
+        <button class="btn btn-primary">Lưu nhân viên</button> 
+        <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+    </div>
+</form>

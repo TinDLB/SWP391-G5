@@ -556,6 +556,7 @@ public partial class BakeryManagementDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql(nowSql);
             entity.Property(e => e.Email).HasMaxLength(150);
             entity.Property(e => e.FullName).HasMaxLength(100);
+            entity.Property(e => e.Gender).HasMaxLength(20);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(100)
