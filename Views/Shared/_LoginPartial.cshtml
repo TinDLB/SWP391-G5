@@ -1,4 +1,4 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 
 <ul class="navbar-nav align-items-lg-center gap-2">
 @if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -67,8 +67,18 @@
                     </a>
                 </li>
                 <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Order" asp-action="Index">
+                        <i class="bi bi-clock-history text-primary"></i> Đơn hàng của tôi
+                    </a>
+                </li>
+                <li>
                     <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Cart" asp-action="Index">
                         <i class="bi bi-cart3 text-success"></i> Giỏ hàng của tôi
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Notification" asp-action="Index">
+                        <i class="bi bi-bell text-warning"></i> Thông báo của tôi
                     </a>
                 </li>
                 <li><hr class="dropdown-divider my-1"></li>

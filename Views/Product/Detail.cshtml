@@ -1,4 +1,4 @@
-@model SWP391_G5.Models.Entities.Product
+﻿@model SWP391_G5.Models.Entities.Product
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
     ViewData["Title"] = Model.Name + " - Bakery Management System";
@@ -174,7 +174,7 @@
             var qty = parseInt(document.getElementById('detailQty').value) || 1;
             $.post('/Cart/AddToCart', { productId: productId, quantity: qty }, function(res) {
                 if (res.success) {
-                    window.location.href = '/Cart';
+                    window.location.href = '/Checkout';
                 } else {
                     alert(res.message);
                 }

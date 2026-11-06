@@ -1,4 +1,4 @@
-@model List<SWP391_G5.Models.Entities.CartItem>
+﻿@model List<SWP391_G5.Models.Entities.CartItem>
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
 @{
     ViewData["Title"] = "Giỏ Hàng Của Bạn - Bakery Management System";
@@ -134,10 +134,10 @@
                             <span class="fw-bold fs-4 text-danger" id="cartGrandTotal">@grandTotal.ToString("N0") đ</span>
                         </div>
 
-                        <button type="button" class="btn btn-bakery w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" onclick="alert('Chức năng Đặt hàng & Thanh toán trực tuyến sẽ được kích hoạt trong đợt phát hành Iteration 3!')">
+                        <a asp-controller="Checkout" asp-action="Index" class="btn btn-bakery w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
                             <span>TIẾN HÀNH ĐẶT HÀNG</span>
                             <i class="bi bi-arrow-right"></i>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SWP391_G5.Models.Entities;
 using SWP391_G5.Services;
 
@@ -344,6 +344,29 @@ namespace SWP391_G5.Data
                 new OrderItem { OrderId = ord1.OrderId, ProductId = prod1.ProductId, Quantity = 1, UnitPrice = 350000 },
                 new OrderItem { OrderId = ord2.OrderId, ProductId = prod3.ProductId, Quantity = 3, UnitPrice = 25000 },
                 new OrderItem { OrderId = ord3.OrderId, ProductId = prod4.ProductId, Quantity = 10, UnitPrice = 6000 }
+            );
+            context.SaveChanges();
+
+            // 11. Seed Notifications cho khách hàng
+            context.Notifications.AddRange(
+                new Notification
+                {
+                    UserId = cust1.UserId,
+                    NotificationType = "Order",
+                    Title = "Đơn hàng ORD-20261002-001 đang được xử lý",
+                    Message = "Cửa hàng đã tiếp nhận đơn hàng ORD-20261002-001 của bạn và đang chuẩn bị giao hàng.",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now.AddHours(-9)
+                },
+                new Notification
+                {
+                    UserId = cust1.UserId,
+                    NotificationType = "Promotion",
+                    Title = "Chào mừng bạn đến với Bakery Management!",
+                    Message = "Bạn đã nhận được voucher giảm giá 10% cho đơn hàng đầu tiên. Mã: WELCOME10",
+                    IsRead = true,
+                    CreatedAt = DateTime.Now.AddDays(-2)
+                }
             );
             context.SaveChanges();
         }
