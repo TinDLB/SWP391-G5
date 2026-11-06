@@ -15,5 +15,8 @@ namespace SWP391_G5.Services
 
         /// <summary>Baker hoàn tất task: InProgress → Completed, trừ nguyên liệu, cộng thành phẩm.</summary>
         Task<ServiceResult> CompleteTaskAsync(CompleteTaskViewModel model, int bakerId);
+
+        /// <summary>Lấy lịch sử sản xuất của Baker (các task đã Completed) kèm thống kê & bộ lọc.</summary>
+        Task<BakerProductionHistoryListViewModel> GetProductionHistoryAsync(int bakerId, string? keyword, DateTime? fromDate, DateTime? toDate);
     }
 }

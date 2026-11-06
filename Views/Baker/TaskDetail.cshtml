@@ -27,6 +27,17 @@
                         <td class="text-muted">Số lượng mục tiêu</td>
                         <td><strong>@Model.TargetQty</strong> cái</td>
                     </tr>
+                    @if (Model.MaxFeasibleQty < Model.TargetQty && Model.Status != "Completed")
+                    {
+                        <tr>
+                            <td class="text-muted">Khả năng kho</td>
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Đủ làm tối đa @Model.MaxFeasibleQty / @Model.TargetQty cái
+                                </span>
+                            </td>
+                        </tr>
+                    }
                     <tr>
                         <td class="text-muted">Trạng thái</td>
                         <td>
@@ -166,9 +177,14 @@
                 </div>
                 @if (Model.Ingredients.Any(i => !i.IsStockSufficient))
                 {
-                    <div class="card-footer bg-danger bg-opacity-10 text-danger small">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Một số nguyên liệu chưa đủ. Liên hệ Admin để bổ sung trước khi bắt đầu sản xuất.
+                    <div class="card-footer bg-warning bg-opacity-10 text-dark small py-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5 mt-0 flex-shrink-0"></i>
+                            <div>
+                                <div><strong>Kho không đủ cho toàn bộ @Model.TargetQty cái:</strong> Hiện tại kho chỉ đủ nguyên liệu để làm tối đa <strong>@Model.MaxFeasibleQty cái</strong> (giới hạn bởi: @(Model.LimitingIngredientName ?? "nguyên liệu thiếu")).</div>
+                                <div class="text-muted mt-1">Baker có thể hoàn tất sản xuất một phần (tối đa @Model.MaxFeasibleQty cái), hệ thống sẽ trừ nguyên liệu tương ứng và tự động lưu báo cáo số lượng thiếu lại cho Quản lý.</div>
+                            </div>
+                        </div>
                     </div>
                 }
             }

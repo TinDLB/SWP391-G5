@@ -20,6 +20,15 @@ namespace SWP391_G5.Models.ViewModels
         // Dùng khi Baker nhập kết quả hoàn tất
         public int? ActualYield { get; set; }
         public int? DefectQty { get; set; }
+
+        /// <summary>Số bánh tối đa có thể sản xuất dựa trên tồn kho nguyên liệu hiện tại.</summary>
+        public int MaxFeasibleQty { get; set; }
+
+        /// <summary>Tên nguyên liệu đang bị thiếu/giới hạn nhiều nhất (nếu có).</summary>
+        public string? LimitingIngredientName { get; set; }
+
+        /// <summary>True nếu tồn kho đủ sản xuất 100% TargetQty.</summary>
+        public bool IsFullyStocked => !Ingredients.Any() || Ingredients.All(i => i.IsStockSufficient);
     }
 
     public class TaskIngredientViewModel

@@ -17,7 +17,7 @@ namespace SWP391_G5.Controllers
         }
 
         // ─────────────────────────────────────────
-        // GET /Baker  →  Danh sách task của baker
+        // GET /Baker  →  Danh sách task của baker (Đang làm & Chờ bắt đầu)
         // ─────────────────────────────────────────
         public async Task<IActionResult> Index()
         {
@@ -26,6 +26,18 @@ namespace SWP391_G5.Controllers
 
             var tasks = await _bakerService.GetAssignedTasksAsync(bakerId.Value);
             return View(tasks);
+        }
+
+        // ─────────────────────────────────────────
+        // GET /Baker/History  →  Lịch sử sản xuất đã hoàn tất (UC-28)
+        // ─────────────────────────────────────────
+        public async Task<IActionResult> History(string? keyword, DateTime? fromDate, DateTime? toDate)
+        {
+            var bakerId = GetBakerId();
+            if (bakerId == null) return Unauthorized();
+
+            var model = await _bakerService.GetProductionHistoryAsync(bakerId.Value, keyword, fromDate, toDate);
+            return View(model);
         }
 
         // ─────────────────────────────────────────
@@ -78,9 +90,11 @@ namespace SWP391_G5.Controllers
 
             var model = new CompleteTaskViewModel
             {
-                TaskId      = detail.TaskId,
-                ProductName = detail.ProductName,
-                TargetQty   = detail.TargetQty
+                TaskId                 = detail.TaskId,
+                ProductName            = detail.ProductName,
+                TargetQty              = detail.TargetQty,
+                MaxFeasibleQty         = detail.MaxFeasibleQty,
+                LimitingIngredientName = detail.LimitingIngredientName
             };
             return View(model);
         }
@@ -92,22 +106,40 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CompleteTask(CompleteTaskViewModel model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
-
             var bakerId = GetBakerId();
             if (bakerId == null) return Unauthorized();
+
+            if (!ModelState.IsValid)
+            {
+                var detail = await _bakerService.GetTaskDetailAsync(model.TaskId, bakerId.Value);
+                if (detail != null)
+                {
+                    model.MaxFeasibleQty         = detail.MaxFeasibleQty;
+                    model.LimitingIngredientName = detail.LimitingIngredientName;
+                    model.ProductName            = detail.ProductName;
+                    model.TargetQty              = detail.TargetQty;
+                }
+                return View(model);
+            }
 
             var result = await _bakerService.CompleteTaskAsync(model, bakerId.Value);
 
             if (!result.Success)
             {
+                var detail = await _bakerService.GetTaskDetailAsync(model.TaskId, bakerId.Value);
+                if (detail != null)
+                {
+                    model.MaxFeasibleQty         = detail.MaxFeasibleQty;
+                    model.LimitingIngredientName = detail.LimitingIngredientName;
+                    model.ProductName            = detail.ProductName;
+                    model.TargetQty              = detail.TargetQty;
+                }
                 ModelState.AddModelError(string.Empty, result.Message);
                 return View(model);
             }
 
             TempData["SuccessMessage"] = result.Message;
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(History));
         }
 
         // ─────────────────────────────────────────
