@@ -1,0 +1,103 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Admin Use Case Diagram" id="admin_uc">
+    <mxGraphModel dx="2245" dy="1058" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;fontColor=#000000;" value="Use Case Diagram — Admin / Shop Owner" vertex="1">
+          <mxGeometry height="30" width="450" x="250" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="system_boundary" parent="1" style="swimlane;whiteSpace=wrap;html=1;fontSize=14;fontStyle=1;startSize=30;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Bakery Management System" vertex="1">
+          <mxGeometry height="980" width="550" x="280" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_category" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Manage Categories" vertex="1">
+          <mxGeometry height="50" width="160" x="50" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_product" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Manage Products" vertex="1">
+          <mxGeometry height="50" width="160" x="50" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_recipe" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Manage Recipes" vertex="1">
+          <mxGeometry height="50" width="160" x="50" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_contact" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Manage Contacts" vertex="1">
+          <mxGeometry height="50" width="160" x="50" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_supplier" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Manage Suppliers" vertex="1">
+          <mxGeometry height="50" width="160" x="50" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_ingredient" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Manage Ingredients" vertex="1">
+          <mxGeometry height="50" width="160" x="50" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_goods_receipt" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Import Stock" vertex="1">
+          <mxGeometry height="60" width="160" x="50" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_prod_task" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Manage Production Tasks" vertex="1">
+          <mxGeometry height="60" width="170" x="50" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_voucher" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Manage Vouchers" vertex="1">
+          <mxGeometry height="50" width="160" x="50" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_dashboard" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="View Dashboards &amp;amp; Reports" vertex="1">
+          <mxGeometry height="60" width="180" x="50" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_view_revenue" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="View Revenue" vertex="1">
+          <mxGeometry height="50" width="140" x="320" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_view_cost" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="View Cost Report" vertex="1">
+          <mxGeometry height="50" width="140" x="330" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_view_prod_hist" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="View Production History" vertex="1">
+          <mxGeometry height="50" width="160" x="300" y="840" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_login" parent="system_boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontColor=#000000;" value="Login" vertex="1">
+          <mxGeometry height="50" width="140" x="50" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="inc1" edge="1" parent="system_boundary" source="uc_dashboard" style="endArrow=open;endSize=12;dashed=1;html=1;strokeColor=#000000;fontColor=#000000;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_view_revenue" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="160" as="geometry" />
+        </mxCell>
+        <mxCell id="inc2" edge="1" parent="system_boundary" source="uc_dashboard" style="endArrow=open;endSize=12;dashed=1;html=1;strokeColor=#000000;fontColor=#000000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_view_cost" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="160" as="geometry" />
+        </mxCell>
+        <mxCell id="inc3" edge="1" parent="system_boundary" source="uc_dashboard" style="endArrow=open;endSize=12;dashed=1;html=1;strokeColor=#000000;fontColor=#000000;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_view_prod_hist" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
+          <mxGeometry relative="1" width="160" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;strokeColor=#000000;strokeWidth=2;fontColor=#000000;" value="Admin /&lt;br&gt;Shop Owner" vertex="1">
+          <mxGeometry height="120" width="60" x="90" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="c_cat" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_category">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_prod" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_product">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_rec" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_recipe">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_contact" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_contact">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sup" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_supplier">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_ing" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_ingredient">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_gr" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_goods_receipt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_task" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_prod_task">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_vou" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_voucher">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_dash" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c_log" edge="1" parent="1" source="admin" style="endArrow=none;html=1;strokeColor=#000000;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

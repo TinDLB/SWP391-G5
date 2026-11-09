@@ -1,0 +1,30 @@
+@using SWP391_G5.Models.ViewModels
+@model OrderMonitoringViewModel
+@{
+    ViewData["Title"] = "Qu\u1ea3n l\u00fd \u0111\u01a1n h\u00e0ng";
+    ViewData["PageTitle"] = "Qu\u1ea3n l\u00fd \u0111\u01a1n h\u00e0ng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Qu&#7843;n l&#253; &#273;&#417;n h&#224;ng</h4>
+</div>
+<form method="get" asp-action="Orders" class="row g-2 mb-3">
+    <div class="col-md-4"><input name="search" value="@Model.Search" class="form-control" placeholder="T&#236;m m&#227; &#273;&#417;n ho&#7863;c t&#234;n kh&#225;ch h&#224;ng" /></div>
+    <div class="col-md-2"><select name="channel" class="form-select"><option value="">T&#7845;t c&#7843; k&#234;nh</option><option value="Online" selected="@(Model.Channel == "Online")">Online</option><option value="Offline" selected="@(Model.Channel == "Offline")">T&#7841;i qu&#7847;y</option></select></div>
+    <div class="col-md-2"><select name="status" class="form-select"><option value="">T&#7845;t c&#7843; tr&#7841;ng th&#225;i</option><option value="Pending" selected="@(Model.Status == "Pending")">Ch&#7901; x&#7917; l&#253;</option><option value="Preparing" selected="@(Model.Status == "Preparing")">&#272;ang chu&#7849;n b&#7883;</option><option value="Delivering" selected="@(Model.Status == "Delivering")">&#272;ang giao</option><option value="Completed" selected="@(Model.Status == "Completed")">Ho&#224;n th&#224;nh</option><option value="Cancelled" selected="@(Model.Status == "Cancelled")">&#272;&#227; h&#7911;y</option></select></div>
+    <div class="col-auto"><button type="submit" class="btn btn-outline-secondary">L&#7885;c</button></div>
+</form>
+<div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>M&#227; &#273;&#417;n</th><th>K&#234;nh</th><th>Kh&#225;ch h&#224;ng</th><th>Tr&#7841;ng th&#225;i</th><th>Thanh to&#225;n</th><th>T&#7893;ng ti&#7873;n</th><th>Ng&#224;y t&#7841;o</th></tr></thead><tbody>
+@if (!Model.Orders.Any())
+{
+    <tr><td colspan="7" class="text-center text-muted py-5">Kh&#244;ng c&#243; &#273;&#417;n h&#224;ng.</td></tr>
+}
+else
+{
+    @foreach (var order in Model.Orders)
+    {
+        <tr><td class="fw-semibold">@order.OrderCode</td><td>@order.Channel</td><td>@order.CustomerName</td><td>@order.Status</td><td>@order.PaymentStatus</td><td>@order.TotalAmount.ToString("N0") &#273;</td><td>@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td></tr>
+    }
+}
+</tbody></table></div></div>

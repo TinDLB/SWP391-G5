@@ -156,7 +156,7 @@
                             <tr>
                                 <td class="ps-3 fw-medium">@item.Ingredient?.Name</td>
                                 <td class="text-center text-muted">@item.Ingredient?.Unit</td>
-                                <td class="text-end fw-semibold">@item.OrderedQty.ToString("N1")</td>
+                                <td class="text-end fw-semibold">@item.OrderedQty.ToString("0.###")</td>
                                 <td class="text-end">@item.UnitPrice.ToString("N0") đ</td>
                                 <td class="text-end pe-3 fw-bold text-dark">@subtotal.ToString("N0") đ</td>
                             </tr>
@@ -202,10 +202,10 @@
 
                                 <tr>
                                     <td class="ps-3 fw-medium">@p.IngredientName</td>
-                                    <td class="text-end">@p.OrderedQty.ToString("N1") @p.Unit</td>
-                                    <td class="text-end text-success fw-semibold">@accepted.ToString("N1") @p.Unit</td>
+                                    <td class="text-end">@p.OrderedQty.ToString("0.###") @p.Unit</td>
+                                    <td class="text-end text-success fw-semibold">@accepted.ToString("0.###") @p.Unit</td>
                                     <td class="text-end @(isDone ? "text-muted" : "text-danger fw-bold")">
-                                        @((p.RemainingQty ?? 0) > 0 ? (p.RemainingQty!.Value.ToString("N1") + " " + p.Unit) : "Đã đủ")
+                                        @((p.RemainingQty ?? 0) > 0 ? (p.RemainingQty!.Value.ToString("0.###") + " " + p.Unit) : "Đã đủ")
                                     </td>
                                     <td class="pe-3">
                                         <div class="d-flex align-items-center gap-2">

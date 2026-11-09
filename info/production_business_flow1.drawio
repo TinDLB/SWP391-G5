@@ -1,0 +1,243 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Production Business Flow" id="prod_flow">
+    <mxGraphModel dx="1456" dy="610" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3600" pageHeight="1020" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=18;fontStyle=1;align=center;fillColor=none;strokeColor=none;" value="Production Business Flow — Task Planning &amp;amp; Execution (BF-02)" vertex="1">
+          <mxGeometry height="28" width="1000" x="1100" y="2" as="geometry" />
+        </mxCell>
+        <mxCell id="la" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;opacity=40;" value="" vertex="1">
+          <mxGeometry height="320" width="3450" x="110" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="hla" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;verticalAlign=middle;" value="&lt;b&gt;Admin&lt;br&gt;(Manager)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="320" width="100" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ls" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;opacity=40;" value="" vertex="1">
+          <mxGeometry height="280" width="3450" x="110" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="hls" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=13;verticalAlign=middle;" value="&lt;b&gt;System&lt;/b&gt;" vertex="1">
+          <mxGeometry height="280" width="100" x="10" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="lb" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;opacity=40;" value="" vertex="1">
+          <mxGeometry height="200" width="3450" x="110" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="hlb" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=13;verticalAlign=middle;" value="&lt;b&gt;Baker&lt;/b&gt;" vertex="1">
+          <mxGeometry height="200" width="100" x="10" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="a_start" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Start" vertex="1">
+          <mxGeometry height="40" width="70" x="180" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="a_need" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Need&lt;br&gt;Production?" vertex="1">
+          <mxGeometry height="76" width="120" x="320" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="a_noend" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=10;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="End" vertex="1">
+          <mxGeometry height="30" width="60" x="350" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="a_create" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Create Production Task:&lt;br&gt;Product Variant, Target Qty, Deadline&lt;br&gt;+ Assign Baker (view workload)" vertex="1">
+          <mxGeometry height="60" width="190" x="490" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="a_choice" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Shortage Alert:&lt;br&gt;Admin chooses?" vertex="1">
+          <mxGeometry height="76" width="150" x="725" y="262" as="geometry" />
+        </mxCell>
+        <mxCell id="a_cancelend" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=10;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="End" vertex="1">
+          <mxGeometry height="30" width="60" x="770" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="a_po" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Create Purchase Order for Shortage (UC-31)&lt;br&gt;&lt;i&gt;Re-create task after goods receipt&lt;/i&gt;" vertex="1">
+          <mxGeometry height="60" width="180" x="950" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="a_poend" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=10;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="End" vertex="1">
+          <mxGeometry height="30" width="60" x="1170" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="a_edit" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;dashed=1;" value="Edit / Reassign / Cancel Task&lt;br&gt;(only while Planned)&lt;br&gt;&lt;i&gt;System updates task and notifies Baker&lt;/i&gt;" vertex="1">
+          <mxGeometry height="70" width="190" x="1200" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="a_editend" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=10;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="End" vertex="1">
+          <mxGeometry height="30" width="60" x="1430" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="a_hist" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="View Completion in Dashboard /&lt;br&gt;Production History (UC-28)" vertex="1">
+          <mxGeometry height="60" width="180" x="3220" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="a_end" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=10;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="End" vertex="1">
+          <mxGeometry height="30" width="60" x="3440" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="s_stock" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;" value="Load Finished-Cake Stock vs Threshold&lt;br&gt;+ Recent Sales; Flag Low Stock" vertex="1">
+          <mxGeometry height="50" width="150" x="140" y="445" as="geometry" />
+        </mxCell>
+        <mxCell id="s_calc" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;" value="Calculate Required Ingredients&lt;br&gt;via Recipe (x Target Qty)" vertex="1">
+          <mxGeometry height="50" width="190" x="490" y="445" as="geometry" />
+        </mxCell>
+        <mxCell id="s_suff" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Ingredients&lt;br&gt;Sufficient?" vertex="1">
+          <mxGeometry height="76" width="140" x="730" y="432" as="geometry" />
+        </mxCell>
+        <mxCell id="s_save" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;" value="Save Task (Status = Planned)&lt;br&gt;&amp;amp; Notify Baker (TaskAssigned)" vertex="1">
+          <mxGeometry height="60" width="200" x="930" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="s_re" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Ingredients Still&lt;br&gt;Sufficient?" vertex="1">
+          <mxGeometry height="76" width="140" x="1620" y="432" as="geometry" />
+        </mxCell>
+        <mxCell id="s_block" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#f8cecc;strokeColor=#b85450;" value="Block Start &amp;amp; Notify Admin&lt;br&gt;(task stays Planned)" vertex="1">
+          <mxGeometry height="60" width="180" x="1600" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="s_blockend" parent="1" style="ellipse;whiteSpace=wrap;html=1;fontSize=10;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="End" vertex="1">
+          <mxGeometry height="30" width="60" x="1830" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="s_start" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;" value="Status = In Progress, Record Start Time,&lt;br&gt;Deduct Ingredients (planned qty)&lt;br&gt;&amp;amp; Log Inventory Transaction" vertex="1">
+          <mxGeometry height="70" width="220" x="1820" y="435" as="geometry" />
+        </mxCell>
+        <mxCell id="s_low" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;" value="Check Ingredients vs Min Threshold:&lt;br&gt;Low-Stock Notification to Admin if below" vertex="1">
+          <mxGeometry height="60" width="200" x="2090" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="s_val" parent="1" style="rhombus;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Valid?&lt;br&gt;Actual &amp;gt; 0 and&lt;br&gt;0 ≤ Defect ≤ Actual" vertex="1">
+          <mxGeometry height="86" width="180" x="2535" y="427" as="geometry" />
+        </mxCell>
+        <mxCell id="s_done" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;" value="Status = Completed,&lt;br&gt;Record End Time" vertex="1">
+          <mxGeometry height="50" width="150" x="2770" y="445" as="geometry" />
+        </mxCell>
+        <mxCell id="s_add" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;" value="Add Good Qty (Actual − Defect)&lt;br&gt;to Product Stock &amp;amp; Log Transaction" vertex="1">
+          <mxGeometry height="60" width="200" x="2970" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="s_notif" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;" value="Send Completion Notice&lt;br&gt;(TaskCompleted) to Admin" vertex="1">
+          <mxGeometry height="50" width="180" x="3220" y="445" as="geometry" />
+        </mxCell>
+        <mxCell id="b1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;" value="Receive Notification, View Task&lt;br&gt;&amp;amp; Required Ingredients" vertex="1">
+          <mxGeometry height="50" width="180" x="1190" y="715" as="geometry" />
+        </mxCell>
+        <mxCell id="b2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;" value="Confirm &amp;amp; Click&lt;br&gt;Start Production" vertex="1">
+          <mxGeometry height="50" width="150" x="1410" y="715" as="geometry" />
+        </mxCell>
+        <mxCell id="b3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;dashed=1;" value="Bake &amp;amp; Decorate Cakes&lt;br&gt;(manual step)" vertex="1">
+          <mxGeometry height="50" width="180" x="2100" y="715" as="geometry" />
+        </mxCell>
+        <mxCell id="b4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;" value="Enter Actual Yield&lt;br&gt;&amp;amp; Defect Qty" vertex="1">
+          <mxGeometry height="50" width="170" x="2330" y="715" as="geometry" />
+        </mxCell>
+        <mxCell id="b5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;" value="Submit Task&lt;br&gt;Completion" vertex="1">
+          <mxGeometry height="50" width="150" x="2550" y="715" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" value="&lt;b&gt;Notes&lt;/b&gt;&lt;br&gt;• Task status: Planned → In Progress → Completed. A Planned task can be edited, reassigned or Cancelled.&lt;br&gt;• Ingredients are checked when the task is created and re-checked when the Baker clicks Start; they are deducted at Start using the planned quantity.&lt;br&gt;• On shortage the Admin chooses: reduce to the feasible qty (re-calculate), create a Purchase Order (UC-31), or cancel.&lt;br&gt;• Good quantity added to Product Stock = Actual Yield − Defect Qty.&lt;br&gt;• Dashed step = performed outside the system. Optional, not drawn: a scheduled job notifies Admin when a task passes its deadline without being Completed." vertex="1">
+          <mxGeometry height="120" width="1700" x="110" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="a_start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="s_stock" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="s_stock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="a_need" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="a_need" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="a_noend" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="a_need" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="a_create" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="a_create" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="s_calc" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="s_calc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_suff" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="s_suff" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="a_choice" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="a_choice" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="a_create" value="Reduce to feasible qty (re-calculate)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="705" y="300" />
+              <mxPoint x="705" y="150" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="a_choice" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="a_po" value="Create PO">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="a_po" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="a_poend" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="a_choice" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="a_cancelend" value="Cancel">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="s_suff" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_save" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="s_save" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;" target="a_edit" value="Optional (while Planned)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1030" y="395" />
+              <mxPoint x="1295" y="395" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="a_edit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="a_editend" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="s_save" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="b1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1280" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="b1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="b2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="b2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_re" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1485" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="s_re" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="s_block" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="s_block" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_blockend" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="s_re" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_start" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="s_start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_low" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="s_low" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="b3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="b3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="b4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="b4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="b5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="b5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="s_val" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="s_val" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="b4" value="No: show error, re-enter">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2415" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e27" edge="1" parent="1" source="s_val" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_done" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" edge="1" parent="1" source="s_done" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_add" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" edge="1" parent="1" source="s_add" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s_notif" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" edge="1" parent="1" source="s_notif" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="a_hist" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" edge="1" parent="1" source="a_hist" style="edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=classic;html=1;fontSize=10;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="a_end" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,35 @@
+@using SWP391_G5.Models.ViewModels
+@model IEnumerable<ProductionTaskListItemViewModel>
+@{
+    ViewData["Title"] = "Kế hoạch sản xuất"; ViewData["PageTitle"] = "Kế hoạch sản xuất"; Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Công việc sản xuất</h4>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tạo công việc</a>
+</div>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5"><input name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm theo mã task hoặc sản phẩm..." /></div><div class="col-md-3"><select name="status" class="form-select"><option value="">Tất cả trạng thái</option><option value="Assigned">Chờ bắt đầu</option><option value="InProgress">Đang làm</option><option value="Completed">Hoàn tất</option></select></div><div class="col-auto"><button class="btn btn-outline-secondary">Lọc</button></div>
+</form>
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>Task</th><th>Sản phẩm</th><th>Mục tiêu</th><th>Baker</th><th>Deadline</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+@if (!Model.Any())
+{
+                    <tr><td colspan="7" class="text-center text-muted py-5">Chưa có công việc sản xuất.</td></tr>
+}
+else
+{
+    @foreach (var task in Model)
+    {
+                        <tr><td>#@task.TaskId</td><td class="fw-semibold">@task.ProductName</td><td>@task.TargetQty.ToString("N0") cái</td><td>@(task.AssignedBakerName ?? "-")</td><td>@(task.Deadline?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td><td>@task.Status</td><td class="text-end">@if (task.Status is "Planned" or "Assigned") {
+                        <a asp-action="Edit" asp-route-id="@task.TaskId" class="btn btn-sm btn-outline-primary">Sửa</a>
+                    }
+     @if (task.Status is "Planned" or "Assigned" or "InProgress")
+    {
+                        <form asp-action="Cancel" asp-route-id="@task.TaskId" method="post" class="d-inline"><button class="btn btn-sm btn-outline-danger" onclick="return confirm('Hủy công việc này?')">Hủy</button></form>
+                    }
+    </td></tr>
+}
+                }</ tbody ></ table ></ div ></ div >

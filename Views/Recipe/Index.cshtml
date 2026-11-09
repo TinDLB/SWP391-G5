@@ -1,0 +1,16 @@
+@using SWP391_G5.Models.ViewModels
+@model IEnumerable<RecipeListItemViewModel>
+@{
+    ViewData["Title"] = "Quản lý công thức"; ViewData["PageTitle"] = "Quản lý công thức"; Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="d-flex justify-content-between align-items-center mb-3"><h4 class="mb-0">Công thức sản phẩm</h4><a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Thêm công thức</a></div>
+<form method="get" class="row g-2 mb-3"><div class="col-md-5"><input name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm theo tên sản phẩm..." /></div><div class="col-md-3"><select name="status" class="form-select"><option value="">Tất cả trạng thái</option><option value="active" selected="@(ViewBag.Status == "active")">Đang dùng</option><option value="inactive" selected="@(ViewBag.Status == "inactive")">Tạm tắt</option></select></div><div class="col-auto"><button class="btn btn-outline-secondary">Lọc</button></div></form>
+<div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Sản phẩm / công thức</th><th>Số nguyên liệu</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead><tbody>@if (!Model.Any()){
+<tr><td colspan="4" class="text-center text-muted py-5">Chưa có công thức.</td></tr>
+} else
+{
+     @foreach (var item in Model)
+    {
+        <tr><td class="fw-semibold">@item.ProductName</td><td>@item.IngredientCount</td><td>@(item.IsActive ? "Đang dùng" : "Tạm tắt")</td><td class="text-end"><a asp-action="Details" asp-route-id="@item.RecipeId" class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></a> <a asp-action="Edit" asp-route-id="@item.RecipeId" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a></td></tr>
+    }
+}</ tbody ></ table ></ div ></ div >

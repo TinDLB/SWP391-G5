@@ -1,0 +1,5 @@
+@using SWP391_G5.Models.Entities
+@model Recipe
+@{ ViewData["Title"] = "Chi tiết công thức"; ViewData["PageTitle"] = "Chi tiết công thức"; Layout = "~/Views/Shared/_AdminLayout.cshtml"; }
+<div class="d-flex justify-content-between mb-3"><a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a><a asp-action="Edit" asp-route-id="@Model.RecipeId" class="btn btn-warning">Chỉnh sửa</a></div>
+<div class="card border-0 shadow-sm"><div class="card-body"><h4>@Model.Product.Name</h4><p>Định lượng: <strong>@Model.YieldQty sản phẩm</strong> | Trạng thái: <strong>@(Model.IsActive ? "Đang dùng" : "Tạm tắt")</strong></p><h6>Nguyên liệu</h6><table class="table"><thead><tr><th>Nguyên liệu</th><th>Khối lượng</th><th>Đơn vị</th></tr></thead><tbody>@foreach (var item in Model.RecipeItems){<tr><td>@item.Ingredient.Name</td><td>@item.Quantity.ToString("0.###")</td><td>@item.Ingredient.Unit</td></tr>}</tbody></table><h6>Hướng dẫn</h6><p class="text-muted">@(string.IsNullOrWhiteSpace(Model.Instructions) ? "Chưa có hướng dẫn." : Model.Instructions)</p></div></div>

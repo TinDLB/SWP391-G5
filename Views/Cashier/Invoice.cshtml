@@ -1,0 +1,22 @@
+﻿@using SWP391_G5.Models.Entities
+@model Order
+@{ Layout = null; }
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Hóa đơn @Model.Invoice!.InvoiceNo</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="p-4">
+    <main class="mx-auto" style="max-width:760px"><div class="d-flex justify-content-between"><div><h3>BAKERY MANAGEMENT SYSTEM</h3><div>HÓA ĐƠN BÁN HÀNG</div></div><div class="text-end">Số: <strong>@Model.Invoice.InvoiceNo</strong><br />@Model.Invoice.IssuedAt.ToString("dd/MM/yyyy HH:mm")</div></div><hr /><div>Mã đơn: <strong>@Model.OrderCode</strong></div><div>Khách hàng: @(Model.Customer?.FullName ?? "Khách tại quầy")</div><div>Người nhận: @(Model.Address?.ReceiverName ?? "Không có")</div><div>Số điện thoại: @(Model.Address?.Phone ?? "Không có")</div><div>Địa chỉ giao hàng: @(Model.Address?.AddressLine ?? "Nhận tại tiệm bánh")</div><div>Phương thức thanh toán: @(Model.PaymentMethod == "COD" ? "Thanh toán khi nhận hàng (COD)" : Model.PaymentMethod == "Cash" ? "Tiền mặt" : Model.PaymentMethod)</div><div>Trạng thái thanh toán: @(Model.PaymentStatus == "Paid" ? "Đã thanh toán" : Model.PaymentStatus == "Unpaid" ? "Chưa thanh toán" : Model.PaymentStatus)</div>
+    @if (!string.IsNullOrWhiteSpace(Model.DeliveryStaffName) || !string.IsNullOrWhiteSpace(Model.DeliveryStaffPhone))
+    {
+        <div class="border rounded p-2 mt-2"><strong>Người giao hàng:</strong> @(Model.DeliveryStaffName ?? "Chưa cập nhật")<br /><strong>Số điện thoại:</strong> @(Model.DeliveryStaffPhone ?? "Chưa cập nhật")</div>
+    }
+    <table class="table mt-3"><thead><tr><th>Sản phẩm</th><th class="text-end">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr></thead><tbody>@foreach (var item in Model.OrderItems){
+    <tr><td>@item.Product.Name</td><td class="text-end">@item.Quantity</td><td class="text-end">@item.UnitPrice.ToString("N0") đ</td><td class="text-end">@((item.Quantity * item.UnitPrice).ToString("N0")) đ</td></tr>
+        }
+</tbody></table><div class="text-end"><div>Tạm tính: @Model.Subtotal.ToString("N0") đ</div><div>Giảm giá: @Model.DiscountAmount.ToString("N0") đ</div><h5>Tổng cộng: @Model.TotalAmount.ToString("N0") đ</h5></div><div class="text-center mt-5">Cảm ơn quý khách!</div><button class="btn btn-primary mt-3" onclick="window.print()">In hóa đơn</button></main>
+</body>
+</html>

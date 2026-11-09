@@ -33,6 +33,10 @@ public partial class Order
 
     public decimal TotalAmount { get; set; }
 
+    public int PointsEarned { get; set; } = 0;
+
+    public int PointsUsed { get; set; } = 0;
+
     public string? DeliveryStaffName { get; set; }
 
     public string? DeliveryStaffPhone { get; set; }

@@ -1,3 +1,4 @@
+@model SWP391_G5.Models.ViewModels.AdminDashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
     ViewData["PageTitle"] = "Tổng quan hệ thống";
@@ -23,7 +24,7 @@
                 </div>
                 <div>
                     <div class="text-muted small">Tổng sản phẩm</div>
-                    <div class="fw-bold fs-4 lh-1 mt-1">—</div>
+                    <div class="fw-bold fs-4 lh-1 mt-1">@Model.ProductCount</div>
                 </div>
             </div>
         </div>
@@ -37,7 +38,7 @@
                 </div>
                 <div>
                     <div class="text-muted small">Đơn hàng hôm nay</div>
-                    <div class="fw-bold fs-4 lh-1 mt-1">—</div>
+                    <div class="fw-bold fs-4 lh-1 mt-1">@Model.TodayOrderCount</div>
                 </div>
             </div>
         </div>
@@ -51,7 +52,7 @@
                 </div>
                 <div>
                     <div class="text-muted small">Người dùng</div>
-                    <div class="fw-bold fs-4 lh-1 mt-1">—</div>
+                    <div class="fw-bold fs-4 lh-1 mt-1">@Model.ActiveUserCount</div>
                 </div>
             </div>
         </div>
@@ -65,7 +66,7 @@
                 </div>
                 <div>
                     <div class="text-muted small">Nguyên liệu sắp hết</div>
-                    <div class="fw-bold fs-4 lh-1 mt-1">—</div>
+                    <div class="fw-bold fs-4 lh-1 mt-1">@Model.LowStockCount</div>
                 </div>
             </div>
         </div>

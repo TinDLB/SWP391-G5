@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SWP391_G5.Models.Entities;
 using SWP391_G5.Services;
 
@@ -344,6 +344,81 @@ namespace SWP391_G5.Data
                 new OrderItem { OrderId = ord1.OrderId, ProductId = prod1.ProductId, Quantity = 1, UnitPrice = 350000 },
                 new OrderItem { OrderId = ord2.OrderId, ProductId = prod3.ProductId, Quantity = 3, UnitPrice = 25000 },
                 new OrderItem { OrderId = ord3.OrderId, ProductId = prod4.ProductId, Quantity = 10, UnitPrice = 6000 }
+            );
+            context.SaveChanges();
+
+            // 11. Seed ProductionTasks cho Baker (để test luồng Baker Dashboard)
+            if (!context.ProductionTasks.Any())
+            {
+                var task1 = new ProductionTask
+                {
+                    ProductId = prod1.ProductId,
+                    TargetQty = 10,
+                    Status = "Assigned",
+                    CreatedBy = admin.UserId,
+                    AssignedBaker = baker.UserId,
+                    Deadline = DateTime.Now.AddDays(1),
+                    Note = "Sản xuất bánh kem dâu tây phục vụ đơn đặt hàng",
+                    CreatedAt = DateTime.Now.AddHours(-2)
+                };
+
+                var task2 = new ProductionTask
+                {
+                    ProductId = prod2.ProductId,
+                    TargetQty = 30,
+                    Status = "InProgress",
+                    CreatedBy = admin.UserId,
+                    AssignedBaker = baker.UserId,
+                    Deadline = DateTime.Now.AddHours(4),
+                    StartedAt = DateTime.Now.AddMinutes(-30),
+                    Note = "Mẻ bánh mì bơ sữa buổi sáng",
+                    CreatedAt = DateTime.Now.AddHours(-1)
+                };
+
+                context.ProductionTasks.AddRange(task1, task2);
+                context.SaveChanges();
+
+                // Định lượng nguyên liệu cho từng task
+                context.ProductionTaskIngredients.AddRange(
+                    // Task 1: Bánh kem (10 cái)
+                    new ProductionTaskIngredient { TaskId = task1.TaskId, IngredientId = ing1.IngredientId, RequiredQty = 1.5m },
+                    new ProductionTaskIngredient { TaskId = task1.TaskId, IngredientId = ing3.IngredientId, RequiredQty = 1.2m },
+                    new ProductionTaskIngredient { TaskId = task1.TaskId, IngredientId = ing4.IngredientId, RequiredQty = 0.5m },
+                    new ProductionTaskIngredient { TaskId = task1.TaskId, IngredientId = ing5.IngredientId, RequiredQty = 50m },
+                    new ProductionTaskIngredient { TaskId = task1.TaskId, IngredientId = ing7.IngredientId, RequiredQty = 4.0m },
+                    new ProductionTaskIngredient { TaskId = task1.TaskId, IngredientId = ing11.IngredientId, RequiredQty = 3.0m },
+
+                    // Task 2: Bánh mì (30 cái - 3 mẻ)
+                    new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing2.IngredientId, RequiredQty = 1.5m },
+                    new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing3.IngredientId, RequiredQty = 0.15m },
+                    new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing4.IngredientId, RequiredQty = 0.15m },
+                    new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing5.IngredientId, RequiredQty = 3m },
+                    new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing6.IngredientId, RequiredQty = 0.6m },
+                    new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing8.IngredientId, RequiredQty = 15m }
+                );
+                context.SaveChanges();
+            }
+
+            // 11. Seed Notifications cho khách hàng
+            context.Notifications.AddRange(
+                new Notification
+                {
+                    UserId = cust1.UserId,
+                    NotificationType = "Order",
+                    Title = "Đơn hàng ORD-20261002-001 đang được xử lý",
+                    Message = "Cửa hàng đã tiếp nhận đơn hàng ORD-20261002-001 của bạn và đang chuẩn bị giao hàng.",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now.AddHours(-9)
+                },
+                new Notification
+                {
+                    UserId = cust1.UserId,
+                    NotificationType = "Promotion",
+                    Title = "Chào mừng bạn đến với Bakery Management!",
+                    Message = "Bạn đã nhận được voucher giảm giá 10% cho đơn hàng đầu tiên. Mã: WELCOME10",
+                    IsRead = true,
+                    CreatedAt = DateTime.Now.AddDays(-2)
+                }
             );
             context.SaveChanges();
         }
