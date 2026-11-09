@@ -1,0 +1,26 @@
+﻿@using SWP391_G5.Services
+@model SWP391_G5.Models.Entities.GoodsReceipt
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Phiếu nhận #" + Model.ReceiptId;
+    ViewData["PageTitle"] = ViewData["Title"];
+}
+<a asp-controller="PurchaseOrder" asp-action="Details" asp-route-id="@Model.PoId" class="btn btn-outline-secondary mb-3">PO @Model.Po.PoCode</a>
+<div class="card p-4 mb-3"><p>Nhà cung cấp: <strong>@Model.Po.Supplier.Name</strong></p><p>Nhận ngày: @Model.ReceivedDate.ToString("dd/MM/yyyy HH:mm") · Người nhận: @Model.ReceivedByNavigation.FullName</p><p>Thanh toán: @Model.PaymentStatus · Tổng chi phí: <strong>@Model.TotalCost.ToString("N2") đ</strong></p><p>Ghi chú: @Model.Note</p><p>Trạng thái PO hiện tại: @Model.Po.Status</p></div>
+<div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Nguyên liệu / ĐVT</th><th>SL đặt</th><th>SL nhận</th><th>Từ chối</th><th>Đạt / tăng kho</th><th>Lý do</th><th>Đơn giá</th><th>Chi phí</th><th>Còn thiếu hiện tại</th></tr></thead><tbody>
+@foreach (var i in Model.GoodsReceiptItems) {
+    var current=Model.Po.PurchaseOrderItems.Single(x=>x.PoItemId==i.PoItemId);
+    var qty=i.ReceivedQty-i.RejectedQty;
+    <tr>
+        <td>@i.PoItem.Ingredient.Name (@i.PoItem.Ingredient.Unit)</td>
+        <td>@i.PoItem.OrderedQty.ToString("0.###")</td>
+        <td>@i.ReceivedQty.ToString("0.###")</td>
+        <td>@i.RejectedQty.ToString("0.###")</td>
+        <td>+@qty.ToString("0.###")</td>
+        <td>@i.RejectReason</td>
+        <td>@i.PoItem.UnitPrice.ToString("N2")</td>
+        <td>@((qty * i.PoItem.UnitPrice).ToString("N2"))</td>
+        <td>@((current.OrderedQty - PurchasingService.Accepted(current)).ToString("0.###"))</td>
+    </tr>
+}
+</tbody></table></div>

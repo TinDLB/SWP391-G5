@@ -1,4 +1,5 @@
-@using SWP391_G5.Models.Entities
+﻿@using SWP391_G5.Models.Entities
+@using SWP391_G5.Services
 @model IEnumerable<PurchaseOrder>
 
 @{
@@ -89,6 +90,10 @@
 
         <!-- Filter Form -->
         <form method="get" class="row g-2 mb-4 p-3 bg-light rounded-3">
+<div class="col-md-3"><label class="form-label">Tìm mã PO / Nhà cung cấp</label><input name="search" value="@Context.Request.Query["search"]" class="form-control" /></div>
+<div class="col-md-3"><label class="form-label">Ngày đặt từ</label><input type="date" name="from" value="@Context.Request.Query["from"]" class="form-control" /></div>
+<div class="col-md-3"><label class="form-label">Ngày đặt đến</label><input type="date" name="to" value="@Context.Request.Query["to"]" class="form-control" /></div>
+<div class="col-md-3"><label class="form-label">Ngày dự kiến giao</label><input type="date" name="expectedDate" value="@Context.Request.Query["expectedDate"]" class="form-control" /></div>
             <div class="col-12 col-md-4">
                 <label class="form-label small fw-semibold text-muted mb-1">Nhà cung cấp</label>
                 <select name="supplierId" class="form-select form-select-sm rounded-2">
@@ -137,7 +142,7 @@
                         <th>Ngày đặt</th>
                         <th>Ngày dự kiến</th>
                         <th class="text-end">Tổng tiền</th>
-                        <th>Người tạo</th>
+                        <th>Người tạo</th><th>Tiến độ / Ghi chú</th>
                         <th class="text-center">Trạng thái</th>
                         <th class="text-end pe-3">Hành động</th>
                     </tr>
@@ -199,7 +204,8 @@
                                             break;
                                     }
                                 </td>
-                                <td class="text-end pe-3">
+                                <td><strong>@(po.PurchaseOrderItems.Count == 0 ? "0" : (po.PurchaseOrderItems.Average(i=>i.OrderedQty > 0 ? Math.Min(1m, PurchasingService.Accepted(i)/i.OrderedQty) : 0m)*100).ToString("N1"))%</strong><div class="small text-muted">@po.Note</div></td>
+<td class="text-end pe-3">
                                     <a asp-action="Details" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-primary rounded-2 px-2 py-1" title="Xem chi tiết">
                                         <i class="bi bi-eye"></i> Chi tiết
                                     </a>
@@ -210,7 +216,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
                                 Không tìm thấy đơn mua hàng nào phù hợp với điều kiện lọc.
                             </td>

@@ -1,0 +1,27 @@
+@model SWP391_G5.Models.ViewModels.IngredientListViewModel
+@{ ViewData["Title"]="Quản lý nguyên liệu"; Layout="~/Views/Shared/_AdminLayout.cshtml"; }
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+<div><h3 class="mb-1">Quản lý nguyên liệu</h3><p class="text-muted mb-0">Theo dõi tồn kho và thông tin nguyên liệu làm bánh.</p></div>
+<div class="d-flex gap-2"><a asp-controller="StockAdjustment" asp-action="Index" class="btn btn-outline-primary">Điều chỉnh tồn kho</a><a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Thêm nguyên liệu</a></div>
+</div>
+<form method="get" class="card card-body border-0 shadow-sm mb-4"><div class="row g-3 align-items-end">
+<div class="col-md-5"><label for="search" class="form-label">Tìm nguyên liệu</label><input id="search" name="search" value="@Model.Search" class="form-control" placeholder="Tên hoặc đơn vị tính" /></div>
+<div class="col-md-3"><label for="status" class="form-label">Trạng thái</label><select id="status" name="status" class="form-select"><option value="">Tất cả</option><option value="active" selected="@(Model.Status=="active")">Đang hoạt động</option><option value="inactive" selected="@(Model.Status=="inactive")">Ngừng hoạt động</option></select></div>
+<div class="col-md-2"><div class="form-check mb-2"><input id="lowStock" name="lowStock" value="true" type="checkbox" checked="@Model.LowStock" class="form-check-input" /><label for="lowStock" class="form-check-label">Tồn thấp</label></div></div>
+<div class="col-md-2 d-flex gap-2"><button class="btn btn-primary">Lọc</button><a asp-action="Index" class="btn btn-outline-secondary">Đặt lại</a></div>
+</div></form>
+<p class="text-muted">@Model.Items.Count nguyên liệu phù hợp · Tồn thấp: số lượng tồn nhỏ hơn hoặc bằng ngưỡng tối thiểu.</p>
+<div class="table-responsive bg-white shadow-sm rounded"><table class="table table-hover align-middle mb-0">
+<thead><tr><th>Nguyên liệu</th><th>Tồn kho</th><th>Đơn vị</th><th>Ngưỡng tối thiểu</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+@foreach(var item in Model.Items) {
+<tr><td class="fw-semibold">@item.Name</td><td>@item.StockQty.ToString("N0") @if(item.StockQty<=item.MinThreshold) {<span class="badge bg-warning text-dark ms-1">Tồn thấp</span>}</td><td>@item.Unit</td><td>@item.MinThreshold.ToString("N0")</td>
+<td><span class="badge @(item.IsActive ? "bg-success" : "bg-secondary")">@(item.IsActive ? "Đang hoạt động" : "Ngừng hoạt động")</span></td>
+<td><div class="d-flex gap-2">
+@if(item.IsActive) {
+<a asp-controller="StockAdjustment" asp-action="Index" asp-route-ingredientId="@item.IngredientId" class="btn btn-sm btn-outline-success">Điều chỉnh</a>
+}
+<a asp-action="Edit" asp-route-id="@item.IngredientId" class="btn btn-sm btn-outline-primary">Sửa</a>
+<form asp-action="SetActive" method="post"><input type="hidden" name="id" value="@item.IngredientId"/><input type="hidden" name="isActive" value="@(item.IsActive ? "false" : "true")"/><button class="btn btn-sm @(item.IsActive ? "btn-outline-danger" : "btn-outline-success")" onclick="return confirm('Xác nhận thay đổi trạng thái nguyên liệu?')">@(item.IsActive ? "Ngừng sử dụng" : "Kích hoạt")</button></form></div></td></tr>
+}
+@if(Model.Items.Count==0) {<tr><td colspan="6" class="text-center text-muted p-4">Không tìm thấy nguyên liệu.</td></tr>}
+</tbody></table></div>
