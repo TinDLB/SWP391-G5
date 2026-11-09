@@ -14,6 +14,14 @@ public class StockAdjustmentService(BakeryManagementDbContext db)
         if (!StockAdjustmentViewModel.Reasons.ContainsKey(model.Reason ?? "")) throw new InvalidOperationException("Vui lòng chọn lý do hợp lệ.");
         if (model.Quantity <= 0 || model.Quantity > max || decimal.Round(model.Quantity, 3) != model.Quantity)
             throw new InvalidOperationException("Số lượng phải dương và có tối đa 3 chữ số thập phân.");
+        var unit = await db.Ingredients.AsNoTracking()
+            .Where(i => i.IngredientId == model.IngredientId && i.IsActive)
+            .Select(i => i.Unit)
+            .SingleOrDefaultAsync();
+        if (unit is null) throw new InvalidOperationException("Nguyên liệu không hoạt động hoặc không tồn tại.");
+        if (string.Equals(unit.Trim(), "quả", StringComparison.OrdinalIgnoreCase)
+            && model.Quantity != decimal.Truncate(model.Quantity))
+            throw new InvalidOperationException("Số lượng nguyên liệu tính theo quả phải là số nguyên.");
         var note = model.Note?.Trim();
         if (note?.Length > 255) throw new InvalidOperationException("Ghi chú tối đa 255 ký tự.");
         if (model.Reason == "Other" && string.IsNullOrWhiteSpace(note)) throw new InvalidOperationException("Vui lòng ghi rõ lý do khác.");
