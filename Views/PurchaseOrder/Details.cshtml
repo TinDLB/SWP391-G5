@@ -1,4 +1,5 @@
-@using SWP391_G5.Models.Entities
+﻿@using SWP391_G5.Models.Entities
+@using SWP391_G5.Services
 @model PurchaseOrder
 
 @{
@@ -14,7 +15,16 @@
         <i class="bi bi-arrow-left"></i> Quay lại danh sách
     </a>
 
-    <!-- Action Buttons for Status -->
+    @if (Model.Status == "Draft" && !Model.GoodsReceipts.Any()) {
+<a asp-action="Edit" asp-route-id="@Model.PoId" class="btn btn-outline-primary">Sửa bản nháp</a>
+}
+@if (PurchasingService.CanReceive(Model)) {
+<a asp-controller="GoodsReceipt" asp-action="Create" asp-route-poId="@Model.PoId" class="btn btn-success">Nhận hàng / Nhập kho</a>
+}
+@if (Model.Status == "PartiallyFulfilled") {
+<form method="post" asp-action="UpdateStatus"><input type="hidden" name="id" value="@Model.PoId" /><input type="hidden" name="newStatus" value="Cancelled" /><button class="btn btn-outline-danger" onclick="return confirm('Hủy phần còn thiếu? Lịch sử nhập kho được giữ lại.')">Hủy phần còn thiếu</button></form>
+}
+<!-- Action Buttons for Status -->
     <div class="d-flex align-items-center gap-2">
         @if (Model.Status == "Draft")
         {
@@ -222,4 +232,15 @@
             </div>
         </div>
     </div>
+</div>
+<div class="card p-3 mt-4">
+<h5>Lịch sử nhận hàng</h5>
+<div class="table-responsive"><table class="table"><thead><tr><th>Phiếu</th><th>Ngày nhận</th><th>Người nhận</th><th>Chi phí</th><th>Thanh toán</th><th>Ghi chú</th></tr></thead><tbody>
+@foreach (var receipt in Model.GoodsReceipts.OrderByDescending(r=>r.ReceivedDate)) {
+<tr><td><a asp-controller="GoodsReceipt" asp-action="Details" asp-route-id="@receipt.ReceiptId">#@receipt.ReceiptId</a></td><td>@receipt.ReceivedDate.ToString("dd/MM/yyyy HH:mm")</td><td>@receipt.ReceivedByNavigation.FullName</td><td>@receipt.TotalCost.ToString("N2") đ</td><td>@receipt.PaymentStatus</td><td>@receipt.Note</td></tr>
+}
+</tbody></table></div>
+<h6>Tổng lượng từ chối theo nguyên liệu</h6>
+@foreach (var item in Model.PurchaseOrderItems) { <p>@item.Ingredient.Name: @item.GoodsReceiptItems.Sum(r=>r.RejectedQty) @item.Ingredient.Unit</p> }
+<p>Tiến độ toàn PO: @(Model.PurchaseOrderItems.Count == 0 ? "0" : (Model.PurchaseOrderItems.Average(i => i.OrderedQty > 0 ? Math.Min(1m, PurchasingService.Accepted(i) / i.OrderedQty) : 0m) * 100).ToString("N1"))% (trung bình tỷ lệ từng nguyên liệu)</p>
 </div>

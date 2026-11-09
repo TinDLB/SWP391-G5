@@ -32,6 +32,9 @@ builder.Services.AddScoped<IIngredientService, IngredientService>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
+builder.Services.AddScoped<PurchasingService>();
+builder.Services.AddScoped<StockAdjustmentService>();
+
 // 3. Cấu hình Cookie Authentication & Phân quyền Role
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

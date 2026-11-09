@@ -1,156 +1,71 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using SWP391_G5.Data;
 using SWP391_G5.Models.Entities;
 using SWP391_G5.Models.ViewModels;
-using System.Security.Claims;
-
-namespace SWP391_G5.Controllers
+using SWP391_G5.Services;
+namespace SWP391_G5.Controllers;
+[Authorize(Roles = Role.Admin)]
+public class PurchaseOrderController(BakeryManagementDbContext db, PurchasingService service, ILogger<PurchaseOrderController> logger) : Controller
 {
-    [Authorize(Roles = Role.Admin)]
-    public class PurchaseOrderController : Controller
+    public async Task<IActionResult> Index(int? supplierId, string? status, string? search, DateTime? from, DateTime? to, DateOnly? expectedDate)
     {
-        private readonly BakeryManagementDbContext _context;
-        private readonly ILogger<PurchaseOrderController> _logger;
-
-        public PurchaseOrderController(BakeryManagementDbContext context, ILogger<PurchaseOrderController> logger)
+        var q = service.Orders.AsNoTracking();
+        if (supplierId.HasValue) q = q.Where(p => p.SupplierId == supplierId);
+        if (!string.IsNullOrWhiteSpace(status)) q = q.Where(p => p.Status == status);
+        if (!string.IsNullOrWhiteSpace(search)) q = q.Where(p => p.PoCode.Contains(search) || p.Supplier.Name.Contains(search));
+        if (from.HasValue) q = q.Where(p => p.OrderDate >= from.Value.Date);
+        if (to.HasValue) q = q.Where(p => p.OrderDate < to.Value.Date.AddDays(1));
+        if (expectedDate.HasValue) q = q.Where(p => p.ExpectedDate == expectedDate);
+        ViewBag.Suppliers = await db.Suppliers.OrderBy(s => s.Name).ToListAsync();
+        ViewBag.SupplierId = supplierId; ViewBag.Status = status;
+        var all = await db.PurchaseOrders.AsNoTracking().ToListAsync();
+        ViewBag.TotalOrders = all.Count; ViewBag.TotalDraft = all.Count(p => p.Status == "Draft"); ViewBag.TotalSent = all.Count(p => p.Status == "Sent"); ViewBag.TotalPartially = all.Count(p => p.Status == "PartiallyFulfilled"); ViewBag.TotalCompleted = all.Count(p => p.Status == "Completed"); ViewBag.TotalAmountSum = all.Sum(p => p.TotalAmount);
+        return View(await q.OrderByDescending(p => p.OrderDate).ToListAsync());
+    }
+    public async Task<IActionResult> Details(int id)
+    {
+        var p = await service.Orders.AsNoTracking().FirstOrDefaultAsync(p => p.PoId == id);
+        if (p == null) return NotFound();
+        ViewBag.Progress = p.PurchaseOrderItems.Select(i => new VwPurchaseOrderProgress { PoId = id, PoCode = p.PoCode, PoStatus = p.Status, PoItemId = i.PoItemId, IngredientName = i.Ingredient.Name, Unit = i.Ingredient.Unit, OrderedQty = i.OrderedQty, AcceptedQty = PurchasingService.Accepted(i), RemainingQty = i.OrderedQty - PurchasingService.Accepted(i) }).ToList();
+        return View(p);
+    }
+    private async Task Options()
+    {
+        ViewBag.Suppliers = await db.Suppliers.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+        ViewBag.Ingredients = await db.Ingredients.Where(i => i.IsActive).OrderBy(i => i.Name).ToListAsync();
+    }
+    public async Task<IActionResult> Create() { await Options(); return View(new CreatePurchaseOrderViewModel { Items = new() { new() } }); }
+    public async Task<IActionResult> Edit(int id)
+    {
+        var p = await service.Orders.AsNoTracking().FirstOrDefaultAsync(p => p.PoId == id);
+        if (p == null) return NotFound();
+        if (p.Status != "Draft" || p.GoodsReceipts.Any()) return BadRequest("Chỉ sửa PO nháp chưa nhận hàng.");
+        ViewBag.EditId = id; await Options();
+        return View("Create", new CreatePurchaseOrderViewModel { SupplierId = p.SupplierId, OrderDate = p.OrderDate, ExpectedDate = p.ExpectedDate, Note = p.Note, Items = p.PurchaseOrderItems.Select(i => new PurchaseOrderItemInputModel { IngredientId = i.IngredientId, OrderedQty = i.OrderedQty, UnitPrice = i.UnitPrice }).ToList() });
+    }
+    [HttpPost, ValidateAntiForgeryToken] public Task<IActionResult> Create(CreatePurchaseOrderViewModel model) => Save(model, null);
+    [HttpPost, ValidateAntiForgeryToken] public Task<IActionResult> Edit(int id, CreatePurchaseOrderViewModel model) => Save(model, id);
+    private async Task<IActionResult> Save(CreatePurchaseOrderViewModel m, int? id)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uid)) return Forbid();
+        if (ModelState.IsValid)
         {
-            _context = context;
-            _logger = logger;
+            try { var saved = await service.SaveOrder(m, uid, id); TempData["SuccessMessage"] = "Đã lưu đơn mua hàng."; return RedirectToAction(nameof(Details), new { id = saved }); }
+            catch (InvalidOperationException e) { ModelState.AddModelError("", e.Message); }
+            catch (DbUpdateException e) { logger.LogError(e, "Save PO failed"); ModelState.AddModelError("", "Không lưu được đơn. Vui lòng tải lại và thử lại."); }
+            catch (OverflowException) { ModelState.AddModelError("", "Số lượng hoặc tổng tiền quá lớn."); }
         }
-
-        public async Task<IActionResult> Index(int? supplierId, string? status)
-        {
-            var query = _context.PurchaseOrders
-                .Include(po => po.Supplier)
-                .Include(po => po.CreatedByNavigation)
-                .AsQueryable();
-
-            if (supplierId.HasValue)
-                query = query.Where(po => po.SupplierId == supplierId.Value);
-
-            if (!string.IsNullOrWhiteSpace(status))
-                query = query.Where(po => po.Status == status);
-
-            var allOrders = await _context.PurchaseOrders.ToListAsync();
-            var orders = await query.OrderByDescending(po => po.OrderDate).ToListAsync();
-            var suppliers = await _context.Suppliers.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
-
-            ViewBag.SupplierId = supplierId;
-            ViewBag.Status = status;
-            ViewBag.Suppliers = suppliers;
-            ViewBag.TotalOrders = allOrders.Count;
-            ViewBag.TotalDraft = allOrders.Count(o => o.Status == "Draft");
-            ViewBag.TotalSent = allOrders.Count(o => o.Status == "Sent");
-            ViewBag.TotalPartially = allOrders.Count(o => o.Status == "PartiallyFulfilled");
-            ViewBag.TotalCompleted = allOrders.Count(o => o.Status == "Completed");
-            ViewBag.TotalAmountSum = allOrders.Sum(o => o.TotalAmount);
-
-            return View(orders);
-        }
-
-        public async Task<IActionResult> Details(int id)
-        {
-            var po = await _context.PurchaseOrders
-                .Include(p => p.Supplier)
-                .Include(p => p.CreatedByNavigation)
-                .Include(p => p.PurchaseOrderItems)
-                    .ThenInclude(i => i.Ingredient)
-                .Include(p => p.GoodsReceipts)
-                .FirstOrDefaultAsync(p => p.PoId == id);
-
-            if (po == null)
-                return NotFound();
-
-            var progress = await _context.VwPurchaseOrderProgresses
-                .Where(v => v.PoId == id)
-                .ToListAsync();
-
-            ViewBag.Progress = progress;
-
-            return View(po);
-        }
-
-        public async Task<IActionResult> Create()
-        {
-            var model = new CreatePurchaseOrderViewModel();
-            ViewBag.Suppliers = await _context.Suppliers.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
-            ViewBag.Ingredients = await _context.Ingredients.Where(i => i.IsActive).OrderBy(i => i.Name).ToListAsync();
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreatePurchaseOrderViewModel model)
-        {
-            if (!ModelState.IsValid || model.Items == null || !model.Items.Any())
-            {
-                if (model.Items == null || !model.Items.Any())
-                    ModelState.AddModelError("Items", "Vui lòng thêm ít nhất một nguyên liệu vào đơn hàng.");
-
-                ViewBag.Suppliers = await _context.Suppliers.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
-                ViewBag.Ingredients = await _context.Ingredients.Where(i => i.IsActive).OrderBy(i => i.Name).ToListAsync();
-                return View(model);
-            }
-
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdStr, out int userId))
-                return Forbid();
-
-            var today = DateTime.Now.ToString("yyyyMMdd");
-            var todayCount = await _context.PurchaseOrders
-                .CountAsync(po => po.PoCode.StartsWith($"PO-{today}-"));
-            var poCode = $"PO-{today}-{(todayCount + 1):D3}";
-
-            var totalAmount = model.Items.Sum(i => i.OrderedQty * i.UnitPrice);
-
-            var po = new PurchaseOrder
-            {
-                PoCode = poCode,
-                SupplierId = model.SupplierId,
-                CreatedBy = userId,
-                Status = "Draft",
-                OrderDate = DateTime.Now,
-                ExpectedDate = model.ExpectedDate,
-                TotalAmount = totalAmount,
-                Note = model.Note,
-                PurchaseOrderItems = model.Items.Select(i => new PurchaseOrderItem
-                {
-                    IngredientId = i.IngredientId,
-                    OrderedQty = i.OrderedQty,
-                    UnitPrice = i.UnitPrice
-                }).ToList()
-            };
-
-            _context.PurchaseOrders.Add(po);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Đã tạo đơn mua hàng {PoCode} bởi UserId={UserId}", poCode, userId);
-            TempData["SuccessMessage"] = $"Đã tạo thành công đơn đặt hàng {poCode}.";
-
-            return RedirectToAction(nameof(Details), new { id = po.PoId });
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateStatus(int id, string newStatus)
-        {
-            var allowed = new[] { "Sent", "Cancelled" };
-            if (!allowed.Contains(newStatus))
-            {
-                TempData["ErrorMessage"] = "Trạng thái không hợp lệ.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
-
-            var po = await _context.PurchaseOrders.FindAsync(id);
-            if (po == null) return NotFound();
-
-            po.Status = newStatus;
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = $"Đơn hàng {po.PoCode} đã chuyển sang trạng thái '{newStatus}'.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
+        ViewBag.EditId = id; await Options(); return View("Create", m);
+    }
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateStatus(int id, string newStatus)
+    {
+        try { await service.ChangeStatus(id, newStatus); TempData["SuccessMessage"] = "Đã cập nhật trạng thái đơn."; }
+        catch (InvalidOperationException e) { TempData["ErrorMessage"] = e.Message; }
+        catch (DbUpdateException e) { logger.LogError(e, "Status update failed"); TempData["ErrorMessage"] = "Không thể cập nhật; vui lòng tải lại đơn."; }
+        return RedirectToAction(nameof(Details), new { id });
     }
 }
