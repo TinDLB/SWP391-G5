@@ -1,0 +1,96 @@
+﻿@model SWP391_G5.Models.Entities.Product
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
+@{
+    ViewData["Title"] = Model.Name;
+    var maximum = Math.Max(0, Model.StockQty);
+    var imageUrl = $"/uploads/products/{Model.ProductId}.jpg";
+    if (!string.IsNullOrWhiteSpace(Model.ImageUrl)
+        && Model.ImageUrl.StartsWith("/uploads/products/", StringComparison.Ordinal)
+        && !Model.ImageUrl.Contains("..")
+        && System.IO.File.Exists(System.IO.Path.Combine(HostEnvironment.WebRootPath, Model.ImageUrl.TrimStart('/'))))
+        imageUrl = Model.ImageUrl;
+    if (!System.IO.File.Exists(System.IO.Path.Combine(HostEnvironment.WebRootPath, imageUrl.TrimStart('/'))))
+        imageUrl = "/uploads/products/1.jpg";
+}
+<link rel="stylesheet" href="~/css/product-details.css" asp-append-version="true" />
+<div class="container product-details">
+    <nav aria-label="Đường dẫn" class="mb-4">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a> /
+        <a asp-controller="Home" asp-action="Index" asp-route-categoryId="@Model.CategoryId" asp-fragment="products">@Model.Category.Name</a> /
+        <span aria-current="page">@Model.Name</span>
+    </nav>
+    <div class="detail-grid">
+        <div class="detail-photo"><img src="@Url.Content("~" + imageUrl)" alt="@Model.Name" /></div>
+        <section class="detail-info" aria-labelledby="product-name">
+            <span class="text-muted">@Model.Category.Name</span>
+            <h1 id="product-name">@Model.Name</h1>
+            <p class="detail-price">@Model.Price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) đ <small>/ bánh</small></p>
+            <span class="badge @(Model.StockQty > 0 ? "bg-success" : "bg-secondary")">@(Model.StockQty > 0 ? "Còn hàng" : "Hết hàng")</span>
+            <p class="mt-3">Tồn kho: <strong>@Model.StockQty bánh</strong> · Đang kinh doanh</p>
+            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+            <form asp-controller="Products" asp-action="AddToCart" method="post" id="purchase-form">
+                <input type="hidden" name="id" value="@Model.ProductId" />
+                @if (maximum > 0)
+                {
+                    <label for="quantity" class="form-label fw-bold">Số lượng bánh</label>
+                    <div class="quantity-picker">
+                        <button type="button" id="decrease" aria-label="Giảm số lượng">−</button>
+                        <input id="quantity" name="quantity" type="number" min="1" max="@maximum" step="1" value="1" required aria-describedby="quantity-help" />
+                        <button type="button" id="increase" aria-label="Tăng số lượng">+</button>
+                    </div>
+                    <p id="quantity-help" class="text-muted mt-2">Chọn từ 1 đến @maximum bánh, tối đa bằng số bánh hiện có trong kho.</p>
+                    <p>Tạm tính: <strong id="subtotal" aria-live="polite">@Model.Price.ToString("N0") đ</strong></p>
+                    <div class="detail-actions">
+                        <button class="btn btn-outline-dark" type="submit">Thêm vào giỏ</button>
+                        <button class="btn btn-warning" type="submit" formaction="@Url.Action("Checkout", "Products")" formmethod="get">Mua ngay</button>
+                    </div>
+                    @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <p class="text-muted mt-3">Vui lòng đăng nhập tài khoản khách hàng để mua bánh.</p>
+                    }
+                }
+                else
+                {
+                    <p class="alert alert-secondary mt-3">Bánh hiện đã hết hàng.</p>
+                    <button class="btn btn-secondary" type="button" disabled>Thêm vào giỏ</button>
+                    <button class="btn btn-secondary" type="button" disabled>Mua ngay</button>
+                }
+            </form>
+            <a asp-action="Cart" class="d-inline-block mt-4">Xem giỏ hàng →</a>
+        </section>
+    </div>
+    <section class="detail-description mt-5">
+        <h2>Thông tin sản phẩm</h2>
+        <p>@(string.IsNullOrWhiteSpace(Model.Description) ? "Chưa có mô tả cho sản phẩm này." : Model.Description)</p>
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Tên bánh</dt><dd class="col-sm-9">@Model.Name</dd>
+            <dt class="col-sm-3">Danh mục</dt><dd class="col-sm-9">@Model.Category.Name</dd>
+            <dt class="col-sm-3">Tình trạng</dt><dd class="col-sm-9">@(Model.StockQty > 0 ? "Còn hàng" : "Hết hàng")</dd>
+        </dl>
+    </section>
+</div>
+@section Scripts {
+    <script>
+        (() => {
+            const input = document.getElementById('quantity');
+            if (!input) return;
+            const max = Number(input.max);
+            const price = @Model.Price.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            const decrease = document.getElementById('decrease');
+            const increase = document.getElementById('increase');
+            const update = () => {
+                const value = input.valueAsNumber;
+                input.setCustomValidity(Number.isInteger(value) && value >= 1 && value <= max ? '' : 'Chọn số bánh nguyên từ 1 đến ' + max + '.');
+                decrease.disabled = value <= 1;
+                increase.disabled = value >= max;
+                document.getElementById('subtotal').textContent = input.validity.valid
+                    ? (value * price).toLocaleString('vi-VN') + ' đ' : '—';
+            };
+            decrease.addEventListener('click', () => { input.value = Math.max(1, (input.valueAsNumber || 1) - 1); update(); });
+            increase.addEventListener('click', () => { input.value = Math.min(max, (input.valueAsNumber || 0) + 1); update(); });
+            input.addEventListener('input', update);
+            update();
+        })();
+    </script>
+}
+

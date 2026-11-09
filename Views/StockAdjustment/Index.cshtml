@@ -1,0 +1,79 @@
+﻿@using SWP391_G5.Models.ViewModels
+@using System.Globalization
+@model StockAdjustmentViewModel
+@{
+    ViewData["Title"] = "Điều chỉnh tồn kho";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<h3 class="mb-2">Điều chỉnh tồn kho thủ công</h3>
+<p class="text-muted">Tăng hoặc giảm tồn nguyên liệu theo thực tế. Mỗi điều chỉnh đều được lưu lịch sử.</p>
+<div class="card border-0 shadow-sm mb-4"><div class="card-body p-4">
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+    <div class="row g-3">
+        <div class="col-md-6"><label asp-for="IngredientId" class="form-label">Nguyên liệu *</label>
+            <select asp-for="IngredientId" class="form-select" required>
+                <option value="">Chọn nguyên liệu</option>
+                @foreach (var ingredient in Model.Ingredients) {
+                    <option value="@ingredient.IngredientId" data-stock="@ingredient.StockQty.ToString(CultureInfo.InvariantCulture)" data-unit="@ingredient.Unit">@ingredient.Name (@ingredient.Unit) — Tồn: @ingredient.StockQty.ToString("N3")</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3"><label asp-for="AdjustType" class="form-label">Loại điều chỉnh *</label>
+            <select asp-for="AdjustType" class="form-select"><option value="Increase">Tăng kho (Add)</option><option value="Decrease">Giảm kho (Deduct)</option></select>
+        </div>
+        <div class="col-md-3"><label asp-for="Quantity" class="form-label">Số lượng *</label><input asp-for="Quantity" type="number" min="0.001" max="999999999999999.999" step="0.001" class="form-control" required /></div>
+        <div class="col-md-4"><label asp-for="Reason" class="form-label">Lý do *</label>
+            <select asp-for="Reason" class="form-select" required><option value="">Chọn lý do</option>
+                @foreach (var reason in StockAdjustmentViewModel.Reasons) { <option value="@reason.Key">@reason.Value</option> }
+            </select>
+        </div>
+        <div class="col-md-8"><label asp-for="Note" class="form-label">Ghi chú (bắt buộc khi chọn lý do khác)</label><textarea asp-for="Note" maxlength="255" rows="2" class="form-control"></textarea></div>
+    </div>
+    <p id="stockPreview" class="mt-3 mb-3" aria-live="polite">Chọn nguyên liệu để xem tồn kho.</p>
+    <button type="submit" class="btn btn-primary" disabled="@(Model.Ingredients.Count == 0)">Lưu điều chỉnh</button>
+    @if (Model.Ingredients.Count == 0) { <span class="text-muted ms-2">Chưa có nguyên liệu đang hoạt động.</span> }
+</form>
+</div></div>
+<h5 class="mb-3">100 điều chỉnh gần nhất</h5>
+<div class="table-responsive bg-white rounded shadow-sm"><table class="table table-hover align-middle mb-0">
+<thead><tr><th>Thời gian</th><th>Nguyên liệu</th><th>Thay đổi</th><th>Lý do</th><th>Ghi chú</th><th>Người thực hiện</th></tr></thead>
+<tbody>
+@foreach (var row in Model.History) {
+    <tr><td>@row.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td><td>@row.Ingredient.Name</td>
+    <td class="@(row.AdjustType == "Increase" ? "text-success" : "text-danger")">@(row.AdjustType == "Increase" ? "+" : "−")@row.Quantity.ToString("N3") @row.Ingredient.Unit</td>
+    <td>@(StockAdjustmentViewModel.Reasons.TryGetValue(row.Reason, out var label) ? label : row.Reason)</td><td>@row.Note</td><td>@row.CreatedByNavigation.FullName</td></tr>
+}
+@if (Model.History.Count == 0) { <tr><td colspan="6" class="text-center text-muted p-4">Chưa có điều chỉnh tồn kho.</td></tr> }
+</tbody></table></div>
+@section Scripts {
+<script>
+const ingredient = document.getElementById('IngredientId');
+const type = document.getElementById('AdjustType');
+const quantity = document.getElementById('Quantity');
+const reason = document.getElementById('Reason');
+const note = document.getElementById('Note');
+function preview() {
+    const option = ingredient.selectedOptions[0];
+    const output = document.getElementById('stockPreview');
+    note.required = reason.value === 'Other';
+    const wholeUnit = option && option.value && option.dataset.unit.trim().toLocaleLowerCase() === 'quả';
+    quantity.min = wholeUnit ? '1' : '0.001';
+    quantity.step = wholeUnit ? '1' : '0.001';
+    quantity.setCustomValidity(
+        wholeUnit && quantity.value && !Number.isInteger(Number(quantity.value))
+            ? 'Số lượng tính theo quả phải là số nguyên.'
+            : ''
+    );
+    if (!option || !option.value) { output.textContent = 'Chọn nguyên liệu để xem tồn kho.'; return; }
+    const current = Number(option.dataset.stock);
+    const value = Number(quantity.value) || 0;
+    const after = current + (type.value === 'Increase' ? value : -value);
+    output.textContent = `Tồn hiện tại: ${current.toLocaleString('vi-VN')} ${option.dataset.unit} → Dự kiến sau điều chỉnh: ${after.toLocaleString('vi-VN')} ${option.dataset.unit}`;
+    output.classList.toggle('text-danger', after < 0);
+}
+[ingredient, type, quantity, reason].forEach(element => element.addEventListener('input', preview));
+ingredient.addEventListener('change', preview);
+preview();
+</script>
+}

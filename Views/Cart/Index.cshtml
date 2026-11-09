@@ -1,0 +1,216 @@
+﻿@model List<SWP391_G5.Models.Entities.CartItem>
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment HostEnvironment
+@{
+    ViewData["Title"] = "Giỏ Hàng Của Bạn - Bakery Management System";
+    decimal subtotal = Model?.Where(i => i.Product != null).Sum(i => i.Quantity * i.Product.Price) ?? 0;
+    decimal shippingFee = subtotal >= 200000 || subtotal == 0 ? 0 : 25000;
+    decimal grandTotal = subtotal + shippingFee;
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">Trang Chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" class="text-decoration-none text-muted">Thực Đơn Bánh</a></li>
+            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Giỏ Hàng</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h3 class="fw-bold text-dark mb-0">
+            <i class="bi bi-bag-check-fill text-warning me-2"></i>GIỎ HÀNG CỦA BẠN
+        </h3>
+        @if (Model != null && Model.Any(i => i.Product != null))
+        {
+            <form asp-controller="Cart" asp-action="ClearCart" method="post" onsubmit="return confirm('Bạn có chắc muốn làm trống giỏ hàng?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                    <i class="bi bi-trash3 me-1"></i> Xóa tất cả
+                </button>
+            </form>
+        }
+    </div>
+
+    <div id="cartContentArea">
+        @if (Model != null && Model.Any(i => i.Product != null))
+        {
+            <div class="row g-4">
+                <!-- Bảng danh sách sản phẩm trong giỏ -->
+                <div class="col-lg-8">
+                    <div class="bg-white rounded-4 shadow-sm border p-3 p-md-4" style="border: 1px solid #f0e6d8 !important;">
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light small text-uppercase">
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Đơn giá</th>
+                                        <th class="text-center" style="width: 140px;">Số lượng</th>
+                                        <th class="text-end">Thành tiền</th>
+                                        <th class="text-center" style="width: 50px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        if (item.Product == null) { continue; }
+
+                                        var imgPath = $"/uploads/products/{item.ProductId}.jpg";
+                                        var fullLocalPath = System.IO.Path.Combine(HostEnvironment.WebRootPath, "uploads", "products", $"{item.ProductId}.jpg");
+                                        if (!System.IO.File.Exists(fullLocalPath))
+                                        {
+                                            imgPath = !string.IsNullOrWhiteSpace(item.Product.ImageUrl) ? item.Product.ImageUrl : "/uploads/products/1.jpg";
+                                        }
+
+                                        decimal lineTotal = item.Quantity * item.Product.Price;
+
+                                        <tr id="cartRow_@item.ProductId">
+                                            <td>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <img src="@Url.Content("~" + imgPath)" alt="@item.Product.Name" class="rounded-3 object-fit-cover shadow-sm" style="width: 65px; height: 65px;" />
+                                                    <div>
+                                                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.ProductId" class="fw-bold text-dark text-decoration-none d-block hover-primary">
+                                                            @item.Product.Name
+                                                        </a>
+                                                        <span class="badge bg-light text-muted border">@(item.Product.Category?.Name ?? "Bánh")</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="fw-semibold">
+                                                @item.Product.Price.ToString("N0") <small>đ</small>
+                                            </td>
+                                            <td>
+                                                <div class="input-group input-group-sm rounded-pill overflow-hidden border">
+                                                    <button class="btn btn-light border-0" type="button" onclick="changeQty(@item.ProductId, -1)">-</button>
+                                                    <input type="text" id="qty_@item.ProductId" class="form-control text-center fw-bold border-0 bg-white" value="@item.Quantity" readonly />
+                                                    <button class="btn btn-light border-0" type="button" onclick="changeQty(@item.ProductId, 1)">+</button>
+                                                </div>
+                                            </td>
+                                            <td class="text-end fw-bold fs-6" style="color: var(--bakery-primary);" id="lineTotal_@item.ProductId">
+                                                @lineTotal.ToString("N0") đ
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeCartItem(@item.ProductId)" title="Xóa món">
+                                                    <i class="bi bi-trash-fill fs-5"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <a asp-controller="Product" asp-action="Index" class="btn btn-outline-dark rounded-pill px-4">
+                            <i class="bi bi-arrow-left me-1"></i> Tiếp tục chọn thêm bánh
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Cột tóm tắt đơn hàng & Đặt hàng -->
+                <div class="col-lg-4">
+                    <div class="bg-white rounded-4 shadow-sm border p-4 sticky-top" style="top: 90px; border: 1px solid #f0e6d8 !important;">
+                        <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">TÓM TẮT ĐƠN HÀNG</h5>
+
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Tạm tính giỏ hàng:</span>
+                            <span class="fw-bold" id="cartSubtotal">@subtotal.ToString("N0") đ</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-3 small">
+                            <span class="text-muted">Phí giao hàng:</span>
+                            <span class="fw-bold text-success" id="cartShippingFee">
+                                @(shippingFee == 0 ? "Miễn phí" : shippingFee.ToString("N0") + " đ")
+                            </span>
+                        </div>
+
+                        <div class="alert alert-warning py-2 px-3 small rounded-3 mb-3">
+                            <i class="bi bi-info-circle me-1"></i> Miễn phí vận chuyển cho đơn hàng từ <strong>200.000đ</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center border-top pt-3 mb-4">
+                            <span class="fw-bold text-dark fs-5">Tổng thanh toán:</span>
+                            <span class="fw-bold fs-4 text-danger" id="cartGrandTotal">@grandTotal.ToString("N0") đ</span>
+                        </div>
+
+                        <a asp-controller="Checkout" asp-action="Index" class="btn btn-bakery w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <span>TIẾN HÀNH ĐẶT HÀNG</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5 bg-white rounded-4 border shadow-sm p-4" style="border: 1px solid #f0e6d8 !important;">
+                <div class="mb-3">
+                    <i class="bi bi-bag-x display-1 text-muted opacity-50"></i>
+                </div>
+                <h4 class="fw-bold text-dark">Giỏ hàng của bạn đang trống</h4>
+                <p class="text-muted mb-4">Hãy khám phá menu các loại bánh tươi thơm ngon mỗi ngày của chúng tôi nhé!</p>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-bakery rounded-pill px-5 py-3 fw-bold">
+                    <i class="bi bi-grid-fill me-2"></i> KHÁM PHÁ MENU BÁNH NGAY
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changeQty(productId, delta) {
+            var input = $('#qty_' + productId);
+            var current = parseInt(input.val()) || 1;
+            var newQty = current + delta;
+            if (newQty < 1) {
+                if (confirm('Bạn có muốn xóa sản phẩm này khỏi giỏ hàng không?')) {
+                    removeCartItem(productId);
+                }
+                return;
+            }
+
+            $.post('/Cart/UpdateQuantity', { productId: productId, quantity: newQty }, function(res) {
+                if (res.success) {
+                    input.val(res.quantity);
+                    $('#lineTotal_' + productId).text(res.formattedLineTotal);
+                    $('#headerCartCount').text(res.cartCount);
+                    recalculateSummary(res.cartTotal);
+                } else {
+                    alert(res.message);
+                }
+            }).fail(function() {
+                alert('Có lỗi xảy ra, vui lòng thử lại!');
+            });
+        }
+
+        function removeCartItem(productId) {
+            $.post('/Cart/RemoveItem', { productId: productId }, function(res) {
+                if (res.success) {
+                    $('#cartRow_' + productId).fadeOut(300, function() {
+                        $(this).remove();
+                        $('#headerCartCount').text(res.cartCount);
+                        if (res.isEmpty) {
+                            location.reload();
+                        } else {
+                            recalculateSummary(res.cartTotal);
+                        }
+                    });
+                } else {
+                    alert(res.message || 'Không thể xóa sản phẩm.');
+                }
+            }).fail(function() {
+                alert('Có lỗi xảy ra, vui lòng thử lại!');
+            });
+        }
+
+        function recalculateSummary(subtotal) {
+            var ship = (subtotal >= 200000 || subtotal === 0) ? 0 : 25000;
+            var grand = subtotal + ship;
+            $('#cartSubtotal').text(subtotal.toLocaleString('vi-VN') + ' đ');
+            $('#cartShippingFee').text(ship === 0 ? 'Miễn phí' : ship.toLocaleString('vi-VN') + ' đ');
+            $('#cartGrandTotal').text(grand.toLocaleString('vi-VN') + ' đ');
+        }
+    </script>
+}

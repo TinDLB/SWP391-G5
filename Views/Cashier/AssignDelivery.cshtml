@@ -1,0 +1,8 @@
+﻿@model SWP391_G5.Models.ViewModels.DeliveryAssignmentViewModel
+@{
+    Layout = "_CashierLayout"; ViewData["Title"] = "Phân công giao hàng";
+}
+<div class="card stat-card"><div class="card-body"><h4 class="fw-bold mb-3">Phân công giao hàng</h4><form asp-action="AssignDelivery" method="post"><input asp-for="OrderId" type="hidden" /><div asp-validation-summary="ModelOnly" class="text-danger"></div><div class="mb-3"><label asp-for="DeliveryStaffName" class="form-label">Tên người giao hàng</label><input asp-for="DeliveryStaffName" class="form-control" /><span asp-validation-for="DeliveryStaffName" class="text-danger"></span></div><div class="mb-3"><label asp-for="DeliveryStaffPhone" class="form-label">S? ?i?n tho?i</label><input asp-for="DeliveryStaffPhone" class="form-control" /><span asp-validation-for="DeliveryStaffPhone" class="text-danger"></span></div><button class="btn btn-primary">Lưu phân công</button> <a asp-action="OrderDetails" asp-route-id="@Model.OrderId" class="btn btn-outline-secondary">Quay l?i</a></form></div></div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

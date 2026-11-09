@@ -1,0 +1,26 @@
+﻿@model SWP391_G5.Models.ViewModels.CashierOrderListViewModel
+@{
+    Layout = "_CashierLayout"; ViewData["Title"] = "Quản lý đơn hàng";
+}
+<div class="d-flex justify-content-between align-items-center mb-3"><h4 class="fw-bold mb-0">Quản lý đơn hàng</h4><a asp-action="CounterOrder" class="btn btn-primary">+ Tạo đơn tại quầy</a></div>
+<form method="get" class="row g-2 mb-3"><div class="col-md-4"><input name="search" value="@Model.Search" class="form-control" placeholder="Mã đơn hoặc tên khách" /></div><div class="col-md-2"><select name="channel" class="form-select"><option value="">Mọi kênh</option><option value="Online" selected="@(Model.Channel == "Online")">Online</option><option value="Offline" selected="@(Model.Channel == "Offline")">Tại quầy</option></select></div><div class="col-md-2"><select name="status" class="form-select"><option value="">Mọi trạng thái</option>@foreach (var value in new[] { "Pending", "Preparing", "Delivering", "Completed", "Cancelled" }) {
+<option value="@value" selected="@(Model.Status == value)">@value</option>
+}
+</select></div><div class="col-auto"><button class="btn btn-primary">Lọc</button></div></form>
+<div class="card stat-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Mã đơn</th><th>Kênh</th><th>Khách hàng</th><th>Trạng thái</th><th>Thanh toán</th><th>Tổng tiền</th><th></th></tr></thead>
+            <tbody>
+                @if (!Model.Orders.Any())
+                {
+                    <tr><td colspan="7" class="text-center text-muted py-5">Không có đơn hàng.</td></tr>
+                }
+                @foreach (var order in Model.Orders)
+                {
+                    <tr><td class="fw-semibold">@order.OrderCode</td><td>@order.Channel</td><td>@order.CustomerName</td><td>@order.Status</td><td>@order.PaymentStatus</td><td>@order.TotalAmount.ToString("N0") đ</td><td><a asp-action="OrderDetails" asp-route-id="@order.OrderId" class="btn btn-sm btn-outline-primary">Chi tiết</a></td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

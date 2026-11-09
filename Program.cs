@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using SWP391_G5.Data;
 using SWP391_G5.Services;
@@ -24,10 +24,16 @@ else
 }
 
 // 2. Đăng ký các dịch vụ (Dependency Injection)
+builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IBakerService, BakerService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
+builder.Services.AddScoped<IVoucherService, VoucherService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
+builder.Services.AddScoped<PurchasingService>();
+builder.Services.AddScoped<StockAdjustmentService>();
 
 // 3. Cấu hình Cookie Authentication & Phân quyền Role
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -43,6 +49,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(2);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -74,6 +88,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

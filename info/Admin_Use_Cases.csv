@@ -1,0 +1,15 @@
+ID,Use Case,Feature,Use Case Description
+UC-A01,Login,Authentication,Allows the Admin to authenticate and access the admin dashboard.
+UC-A02,Manage Categories,Master Data Management,"Allows the Admin to create, read, update, and delete product categories."
+UC-A03,Manage Products,Master Data Management,"Allows the Admin to add new bakery products, update details, or remove them."
+UC-A04,Manage Recipes,Production Management,"Allows the Admin to define the ingredients and quantities required to bake each product."
+UC-A05,Manage Contacts,CRM (Customer Rel. Mgt),"Allows the Admin to view and manage customer information (individuals and organizations)."
+UC-A06,Manage Suppliers,Partner Management,Allows the Admin to add and manage information of raw material suppliers.
+UC-A07,Manage Ingredients,Inventory Management,Allows the Admin to view and update raw ingredient details and stock thresholds.
+UC-A08,Create Goods Receipt (Import Stock),Inventory Management,"Allows the Admin to import new stock from suppliers, update inventory, and record costs."
+UC-A09,Manage Production Tasks,Production Management,"Allows the Admin to create daily baking tasks, calculate required ingredients, and assign them to bakers."
+UC-A10,Manage Vouchers,Sales & Promotions,Allows the Admin to create discount codes and configure their usage rules (e.g. minimum order).
+UC-A11,View Dashboards & Reports,Reporting,Provides a centralized summary view of the bakery's operational and financial metrics.
+UC-A12,View Revenue,Reporting,Displays revenue charts and statistics based on completed customer orders over time.
+UC-A13,View Cost Report,Reporting,Displays the expenses incurred from importing ingredients via Goods Receipts.
+UC-A14,View Production History,Reporting,Displays a log of completed production tasks and compares planned vs actual yields.

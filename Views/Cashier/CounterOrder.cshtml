@@ -1,0 +1,66 @@
+﻿@using SWP391_G5.Models.Entities
+@using SWP391_G5.Models.ViewModels
+@model CashierCounterOrderViewModel
+@{
+    Layout = "_CashierLayout";
+    ViewData["Title"] = "Tạo đơn tại quầy";
+    var products = ViewBag.Products as IEnumerable<Product> ?? Enumerable.Empty<Product>();
+}
+<h4 class="fw-bold mb-3">Tạo đơn tại quầy</h4>
+<form asp-action="CounterOrder" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <div class="card stat-card mb-3"><div class="card-body">
+        <h6 class="fw-bold">Sản phẩm</h6><div class="row g-2 text-muted small mb-1"><div class="col-md-6">Loại bánh</div><div class="col-md-3">Giá</div><div class="col-md-2">Số lượng</div></div>
+        <div id="items">
+            @for (var i = 0; i < Model.Items.Count; i++)
+            {
+                <div class="row g-2 mb-2 item-row align-items-center">
+                    <div class="col-md-6"><select name="Items[@i].ProductId" class="form-select product-select"><option value="0">-- Chọn sản phẩm --</option>@foreach (var product in products){<option value="@product.ProductId" data-price="@product.Price" selected="@(product.ProductId == Model.Items[i].ProductId)">@product.Name (còn @product.StockQty)</option>}</select></div>
+                    <div class="col-md-3 price-cell">0 đ</div>
+                    <div class="col-md-2"><input name="Items[@i].Quantity" value="@Model.Items[i].Quantity" type="number" min="1" class="form-control quantity-input" placeholder="Số lượng" /></div>
+                    <div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-item">×</button></div>
+                </div>
+            }
+        </div>
+        <button type="button" id="addItem" class="btn btn-sm btn-outline-primary">+ Thêm sản phẩm</button>
+    </div></div>
+    <div class="row g-3">
+        <div class="col-lg-7"><div class="card stat-card"><div class="card-body">
+            <label asp-for="VoucherCode" class="form-label">Mã giảm giá (nếu có)</label><input asp-for="VoucherCode" class="form-control" />
+        </div></div></div>
+        <div class="col-lg-5"><div class="card stat-card"><div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3"><span class="fw-bold">Tổng tiền</span><strong id="grandTotal" class="fs-4 text-success">0 đ</strong></div>
+            <label asp-for="PaymentMethod" class="form-label">Phương thức thanh toán</label><select asp-for="PaymentMethod" class="form-select"><option value="Cash">Tiền mặt</option></select>
+        </div></div></div>
+    </div>
+    <div class="mt-3"><button class="btn btn-primary">Tạo đơn và thanh toán</button> <a asp-action="Orders" class="btn btn-outline-secondary">Hủy</a></div>
+</form>
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+    const productsHtml = `<option value="0">-- Chọn sản phẩm --</option>@foreach (var product in products){<option value="@product.ProductId" data-price="@product.Price">@product.Name (còn @product.StockQty)</option>}`;
+    const formatMoney = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' đ';
+    function updateTotal() {
+        let total = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const option = row.querySelector('.product-select option:checked');
+            const quantity = Number(row.querySelector('.quantity-input').value) || 0;
+            const price = Number(option?.dataset.price) || 0;
+            row.querySelector('.price-cell').textContent = formatMoney(price);
+            total += price * quantity;
+        });
+        document.getElementById('grandTotal').textContent = formatMoney(total);
+    }
+    document.getElementById('addItem').addEventListener('click', () => {
+        const index = document.querySelectorAll('.item-row').length;
+        const row = document.createElement('div'); row.className = 'row g-2 mb-2 item-row align-items-center';
+        row.innerHTML = `<div class="col-md-6"><select name="Items[${index}].ProductId" class="form-select product-select">${productsHtml}</select></div><div class="col-md-3 price-cell">0 đ</div><div class="col-md-2"><input name="Items[${index}].Quantity" type="number" min="1" class="form-control quantity-input" placeholder="Số lượng" /></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-item">×</button></div>`;
+        document.getElementById('items').appendChild(row); updateTotal();
+    });
+    document.addEventListener('input', updateTotal);
+    document.addEventListener('change', updateTotal);
+    document.addEventListener('click', e => { if (e.target.classList.contains('remove-item')) { e.target.closest('.item-row').remove(); updateTotal(); } });
+    updateTotal();
+</script>
+}

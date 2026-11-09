@@ -1,0 +1,24 @@
+@model SWP391_G5.Models.ViewModels.AdminReportViewModel
+@{
+    ViewData["Title"] = "Báo cáo";
+    ViewData["PageTitle"] = "Báo cáo ho?t ??ng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">T?ng quan ho?t ??ng</h5>
+    <form method="get" class="d-flex gap-2">
+        <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" class="form-control" />
+        <input type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" class="form-control" />
+        <button class="btn btn-primary">L?c</button>
+        <button type="submit" formaction="@Url.Action("ExportReport", "Admin")" class="btn btn-outline-success">Xu?t CSV</button>
+    </form>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted">T?ng ??n hàng</div><h3>@Model.OrderCount</h3></div></div></div>
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted">??n hoàn t?t</div><h3 class="text-success">@Model.CompletedOrderCount</h3></div></div></div>
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted">??n ?ã h?y</div><h3 class="text-danger">@Model.CancelledOrderCount</h3></div></div></div>
+    <div class="col-md-6"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted">Doanh thu ?ã thanh toán</div><h3 class="text-primary">@Model.Revenue.ToString("N0") ?</h3></div></div></div>
+    <div class="col-md-6"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted">Ng??i dùng m?i</div><h3>@Model.NewUserCount</h3></div></div></div>
+</div>
