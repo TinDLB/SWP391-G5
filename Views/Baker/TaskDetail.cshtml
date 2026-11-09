@@ -146,7 +146,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Nguyên liệu</th>
-                                <th class="text-end">Cần dùng</th>
+                                <th class="text-end">Sẽ dùng</th>
                                 <th class="text-end">Tồn kho</th>
                                 <th class="text-center">Đủ?</th>
                             </tr>
@@ -156,7 +156,7 @@
                             {
                                 <tr class="@(!ing.IsStockSufficient ? "table-danger" : "")">
                                     <td class="fw-medium">@ing.IngredientName</td>
-                                    <td class="text-end">@ing.RequiredQty.ToString("#,##0.###") @ing.Unit</td>
+                                    <td class="text-end">@ing.AvailableQty.ToString("#,##0.###") @ing.Unit</td>
                                     <td class="text-end @(!ing.IsStockSufficient ? "text-danger fw-semibold" : "")">
                                         @ing.CurrentStock.ToString("#,##0.###") @ing.Unit
                                     </td>

@@ -1,0 +1,12 @@
+﻿@model SWP391_G5.Models.ViewModels.IngredientInputModel
+@{ bool editing=ViewBag.EditId!=null; ViewData["Title"]=editing ? "Sửa nguyên liệu" : "Thêm nguyên liệu"; Layout="~/Views/Shared/_AdminLayout.cshtml"; }
+<h3 class="mb-3">@ViewData["Title"]</h3>
+<div class="card border-0 shadow-sm" style="max-width:760px"><div class="card-body p-4">
+<form asp-action="@(editing ? "Edit" : "Create")" asp-route-id="@ViewBag.EditId" method="post">
+<div asp-validation-summary="All" class="text-danger" role="alert"></div>
+<div class="mb-3"><label asp-for="Name" class="form-label">Tên nguyên liệu *</label><input asp-for="Name" class="form-control" maxlength="100" required /><span asp-validation-for="Name" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Unit" class="form-label">Đơn vị tính *</label><input asp-for="Unit" class="form-control" maxlength="20" placeholder="Ví dụ: kg, lít, quả" required /><span asp-validation-for="Unit" class="text-danger"></span><div class="form-text">Đơn vị không được thay đổi khi nguyên liệu đã có tồn kho hoặc dữ liệu sử dụng.</div></div>
+<div class="mb-3"><label asp-for="MinThreshold" class="form-label">Ngưỡng tồn tối thiểu *</label><input asp-for="MinThreshold" type="number" min="0" max="999999999999999.999" step="0.001" class="form-control" required /><span asp-validation-for="MinThreshold" class="text-danger"></span></div>
+<p class="text-muted">Nguyên liệu mới có tồn kho bằng 0. Nhận hàng theo đơn mua hoặc sử dụng màn điều chỉnh tồn kho để cập nhật số lượng.</p>
+<button class="btn btn-primary">Lưu nguyên liệu</button><a asp-action="Index" class="btn btn-outline-secondary ms-2">Quay lại</a>
+</form></div></div>

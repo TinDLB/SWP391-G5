@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SWP391_G5.Models.Entities;
 using SWP391_G5.Services;
 
@@ -450,6 +450,29 @@ namespace SWP391_G5.Data
                 );
                 context.SaveChanges();
             }
+
+            // 11. Seed Notifications cho khách hàng
+            context.Notifications.AddRange(
+                new Notification
+                {
+                    UserId = cust1.UserId,
+                    NotificationType = "Order",
+                    Title = "Đơn hàng ORD-20261002-001 đang được xử lý",
+                    Message = "Cửa hàng đã tiếp nhận đơn hàng ORD-20261002-001 của bạn và đang chuẩn bị giao hàng.",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now.AddHours(-9)
+                },
+                new Notification
+                {
+                    UserId = cust1.UserId,
+                    NotificationType = "Promotion",
+                    Title = "Chào mừng bạn đến với Bakery Management!",
+                    Message = "Bạn đã nhận được voucher giảm giá 10% cho đơn hàng đầu tiên. Mã: WELCOME10",
+                    IsRead = true,
+                    CreatedAt = DateTime.Now.AddDays(-2)
+                }
+            );
+            context.SaveChanges();
         }
 
         private static void SyncMissingTaskIngredients(BakeryManagementDbContext context)

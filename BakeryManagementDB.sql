@@ -44,8 +44,10 @@ CREATE TABLE Users (
     PasswordHash VARCHAR(100)  NOT NULL,           -- BCrypt (60 ký tự)
     FullName     NVARCHAR(100) NOT NULL,
     Phone        VARCHAR(20)   NULL,
+    Gender       NVARCHAR(20)  NULL,
     Role         VARCHAR(20)   NOT NULL,
     IsActive     BIT           NOT NULL DEFAULT 1,
+    LoyaltyPoints INT          NOT NULL DEFAULT 0,
     CreatedAt    DATETIME2     NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT UQ_Users_Email UNIQUE (Email),
     CONSTRAINT CK_Users_Role  CHECK (Role IN ('Customer','Cashier','Baker','Admin'))
@@ -269,6 +271,8 @@ CREATE TABLE Orders (
     Subtotal      DECIMAL(18,2)  NOT NULL DEFAULT 0,
     DiscountAmount DECIMAL(18,2) NOT NULL DEFAULT 0,
     TotalAmount   DECIMAL(18,2)  NOT NULL DEFAULT 0,
+    PointsEarned  INT            NOT NULL DEFAULT 0,
+    PointsUsed    INT            NOT NULL DEFAULT 0,
     DeliveryStaffName  NVARCHAR(100) NULL,            -- không có actor Shipper riêng
     DeliveryStaffPhone VARCHAR(20)   NULL,
     Note          NVARCHAR(500)  NULL,
@@ -279,12 +283,12 @@ CREATE TABLE Orders (
         ('Pending','Preparing','Delivering','Completed','Cancelled')),
     CONSTRAINT CK_Orders_PayStatus CHECK (PaymentStatus IN
         ('Unpaid','Paid','Failed','Refunded')),
-    -- Hai kênh tách biệt: Online chỉ COD/Online + bắt buộc có khách + có địa chỉ;
-    -- Offline chỉ Cash/QR, không có địa chỉ giao.
+    -- Online chỉ COD + bắt buộc có khách + có địa chỉ;
+    -- Offline chỉ Cash, không có địa chỉ giao.
     CONSTRAINT CK_Orders_Channel_Rules CHECK (
-        (Channel = 'Online'  AND PaymentMethod IN ('Online','COD')
+        (Channel = 'Online'  AND PaymentMethod = 'COD'
                              AND CustomerId IS NOT NULL AND AddressId IS NOT NULL)
-     OR (Channel = 'Offline' AND PaymentMethod IN ('Cash','QR')
+     OR (Channel = 'Offline' AND PaymentMethod = 'Cash'
                              AND AddressId IS NULL)
     )
 );
