@@ -35,8 +35,6 @@ namespace SWP391_G5.Models.ViewModels
         [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp.")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        [Range(typeof(bool), "true", "true", ErrorMessage = "Vui lòng đồng ý với Điều khoản dịch vụ và Chính sách của tiệm bánh.")]
-        [Display(Name = "Tôi đồng ý với các điều khoản")]
-        public bool AgreeTerms { get; set; } = false;
+        public string? ReturnUrl { get; set; }
     }
 }

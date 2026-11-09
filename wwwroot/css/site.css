@@ -34,12 +34,6 @@ body {
     color: #f4efe9;
 }
 
-.app-alert .btn-close {
-    align-self: center;
-    flex-shrink: 0;
-    margin-left: .75rem;
-}
-
 .home-page {
     background: #191815;
     min-height: 100vh;

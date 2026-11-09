@@ -116,7 +116,7 @@
                 <span class="section-label">MENU BÁNH</span>
                 <h2>@(Model.Categories.FirstOrDefault(c => c.CategoryId == Model.SelectedCategoryId)?.Name ?? "Khám phá các loại bánh")</h2>
             </div>
-            <a asp-controller="Home" asp-action="Index" asp-fragment="products" class="view-all">Xem tất cả →</a>
+            <a asp-controller="Product" asp-action="Index" class="view-all">Xem tất cả →</a>
         </div>
 
         @if (Model.Products.Count == 0)
@@ -144,12 +144,18 @@
                     }
                     <div class="product-card">
                         <div class="product-image">
-                            <img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" />
-                            <button class="cart-button" type="button" aria-label="Thêm @product.Name vào giỏ">🛒</button>
+                            <a asp-controller="Product" asp-action="Detail" asp-route-id="@product.ProductId" class="d-block w-100 h-100" title="Xem chi tiết @product.Name">
+                                <img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" />
+                            </a>
+                            <button class="cart-button" type="button" aria-label="Thêm @product.Name vào giỏ" onclick="addToCart(@product.ProductId, 1); event.stopPropagation();" title="Thêm vào giỏ">🛒</button>
                         </div>
                         <div class="product-info">
                             <span class="product-category">@product.Category.Name</span>
-                            <h3>@product.Name</h3>
+                            <h3>
+                                <a asp-controller="Product" asp-action="Detail" asp-route-id="@product.ProductId" style="text-decoration:none; color:inherit;">
+                                    @product.Name
+                                </a>
+                            </h3>
                             <p>@product.Description</p>
                             <div class="price">@product.Price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) đ</div>
                         </div>
@@ -342,6 +348,8 @@
     </div>
 
 </section>
+</div>
+
 @section Scripts {
     <script>
         (() => {
