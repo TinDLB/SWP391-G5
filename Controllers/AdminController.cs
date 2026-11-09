@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using System.Text;
 using SWP391_G5.Data;
 using SWP391_G5.Models.Entities;
+using SWP391_G5.Models.ViewModels;
+using SWP391_G5.Services;
 
 namespace SWP391_G5.Controllers
 {
@@ -12,21 +16,180 @@ namespace SWP391_G5.Controllers
         private readonly BakeryManagementDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<AdminController> _logger;
+        private readonly INotificationService _notificationService;
 
         public AdminController(
             BakeryManagementDbContext context,
             IWebHostEnvironment webHostEnvironment,
-            ILogger<AdminController> logger)
+            ILogger<AdminController> logger,
+            INotificationService notificationService)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
-        // GET: /Admin/Dashboard
-        public IActionResult Dashboard()
+        [HttpGet]
+        public async Task<IActionResult> Report(DateTime? from, DateTime? to)
         {
-            return View();
+            var start = (from?.Date ?? DateTime.Today.AddDays(-29));
+            var end = (to?.Date ?? DateTime.Today).AddDays(1);
+            var orders = _context.Orders.Where(o => o.CreatedAt >= start && o.CreatedAt < end);
+            var model = new AdminReportViewModel
+            {
+                From = start,
+                To = end.AddDays(-1),
+                OrderCount = await orders.CountAsync(),
+                CompletedOrderCount = await orders.CountAsync(o => o.Status == "Completed"),
+                CancelledOrderCount = await orders.CountAsync(o => o.Status == "Cancelled"),
+                NewUserCount = await _context.Users.CountAsync(u => u.CreatedAt >= start && u.CreatedAt < end),
+                Revenue = await orders.Where(o => o.Status == "Completed" && o.PaymentStatus == "Paid")
+                    .SumAsync(o => (decimal?)o.TotalAmount) ?? 0
+            };
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportReport(DateTime? from, DateTime? to)
+        {
+            var start = from?.Date ?? DateTime.Today.AddDays(-29);
+            var end = (to?.Date ?? DateTime.Today).AddDays(1);
+            var orders = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.CreatedAt >= start && o.CreatedAt < end)
+                .OrderBy(o => o.CreatedAt)
+                .Select(o => new
+                {
+                    o.OrderCode,
+                    o.Channel,
+                    o.Status,
+                    o.PaymentStatus,
+                    o.TotalAmount,
+                    o.CreatedAt
+                })
+                .ToListAsync();
+
+            var csv = new StringBuilder();
+            csv.AppendLine("OrderCode,Channel,Status,PaymentStatus,TotalAmount,CreatedAt");
+            foreach (var order in orders)
+            {
+                csv.AppendLine(string.Join(",",
+                    Csv(order.OrderCode),
+                    Csv(order.Channel),
+                    Csv(order.Status),
+                    Csv(order.PaymentStatus),
+                    order.TotalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    order.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")));
+            }
+
+            return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", $"bms-report-{start:yyyyMMdd}-{end.AddDays(-1):yyyyMMdd}.csv");
+        }
+
+        private static string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+
+        // GET: /Admin/Dashboard
+        public async Task<IActionResult> Dashboard()
+        {
+            var today = DateTime.Today;
+            var model = new AdminDashboardViewModel
+            {
+                ProductCount = await _context.Products.CountAsync(p => p.IsActive),
+                TodayOrderCount = await _context.Orders.CountAsync(o => o.CreatedAt >= today),
+                ActiveUserCount = await _context.Users.CountAsync(u => u.IsActive),
+                TodayRevenue = await _context.Orders
+                    .Where(o => o.CreatedAt >= today && o.Status == "Completed" && o.PaymentStatus == "Paid")
+                    .SumAsync(o => (decimal?)o.TotalAmount) ?? 0
+            };
+
+            model.LowStockItems = await _context.Ingredients
+                .Where(i => i.IsActive && i.StockQty < i.MinThreshold)
+                .OrderBy(i => i.StockQty / (i.MinThreshold == 0 ? 1 : i.MinThreshold))
+                .Select(i => new LowStockItemViewModel
+                {
+                    IngredientId = i.IngredientId,
+                    Name = i.Name,
+                    Unit = i.Unit,
+                    StockQty = i.StockQty,
+                    MinThreshold = i.MinThreshold
+                }).ToListAsync();
+            model.LowStockCount = model.LowStockItems.Count;
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Notifications(bool unreadOnly = false)
+        {
+            var adminId = int.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!);
+            var query = _context.Notifications.Where(n => n.UserId == adminId).AsNoTracking();
+            if (unreadOnly) query = query.Where(n => !n.IsRead);
+            var notifications = await query.OrderByDescending(n => n.CreatedAt).Take(100).ToListAsync();
+            ViewBag.UnreadOnly = unreadOnly;
+            return View(notifications);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkNotificationRead(int id)
+        {
+            var adminId = int.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!);
+            var notification = await _context.Notifications.FirstOrDefaultAsync(n => n.NotificationId == id && n.UserId == adminId);
+            if (notification != null) { notification.IsRead = true; await _context.SaveChangesAsync(); }
+            return RedirectToAction(nameof(Notifications));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Orders(string? status, string? channel, string? search)
+        {
+            var query = _context.Orders.Include(o => o.Customer).AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(status)) query = query.Where(o => o.Status == status);
+            if (!string.IsNullOrWhiteSpace(channel)) query = query.Where(o => o.Channel == channel);
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+                query = query.Where(o => o.OrderCode.Contains(term) ||
+                    (o.Customer != null && o.Customer.FullName.Contains(term)));
+            }
+
+            var model = new OrderMonitoringViewModel
+            {
+                Status = status,
+                Channel = channel,
+                Search = search,
+                Orders = await query.OrderByDescending(o => o.CreatedAt).Select(o => new OrderMonitoringItemViewModel
+                {
+                    OrderId = o.OrderId, OrderCode = o.OrderCode, Channel = o.Channel,
+                    Status = o.Status, PaymentStatus = o.PaymentStatus,
+                    CustomerName = o.Customer == null ? "Khách vãng lai" : o.Customer.FullName,
+                    TotalAmount = o.TotalAmount, CreatedAt = o.CreatedAt
+                }).ToListAsync()
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateLowStockNotifications()
+        {
+            var lowStock = await _context.Ingredients.Where(i => i.IsActive && i.StockQty < i.MinThreshold).ToListAsync();
+            var adminIds = await _context.Users.Where(u => u.Role == "Admin" && u.IsActive).Select(u => u.UserId).ToListAsync();
+            var today = DateTime.Today;
+            foreach (var ingredient in lowStock)
+            foreach (var adminId in adminIds)
+            {
+                var exists = await _context.Notifications.AnyAsync(n => n.UserId == adminId &&
+                    n.NotificationType == "LowStock" && n.Message!.Contains($"#{ingredient.IngredientId}") && n.CreatedAt >= today);
+                if (!exists) _context.Notifications.Add(new Notification
+                {
+                    UserId = adminId, NotificationType = "LowStock",
+                    Title = $"Tồn kho thấp: {ingredient.Name}",
+                    Message = $"#{ingredient.IngredientId}: còn {ingredient.StockQty} {ingredient.Unit}, ngưỡng {ingredient.MinThreshold}.",
+                    CreatedAt = DateTime.Now
+                });
+            }
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Đã tạo thông báo cho các nguyên liệu dưới ngưỡng.";
+            return RedirectToAction(nameof(Dashboard));
         }
 
         // Lấy danh sách sản phẩm với các bộ lọc: search, category, status
@@ -98,6 +261,7 @@ namespace SWP391_G5.Controllers
 
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
+                await _notificationService.NotifyAdminsAsync("ProductCreated", "Đã thêm sản phẩm", $"Sản phẩm '{product.Name}' vừa được thêm vào hệ thống.");
 
                 TempData["SuccessMessage"] = $"Đã thêm thành công sản phẩm: {product.Name}";
             }
@@ -137,6 +301,7 @@ namespace SWP391_G5.Controllers
 
                 _context.Products.Update(existingProduct);
                 await _context.SaveChangesAsync();
+                await _notificationService.NotifyAdminsAsync("ProductUpdated", "Đã chỉnh sửa sản phẩm", $"Sản phẩm '{existingProduct.Name}' vừa được cập nhật.");
 
                 TempData["SuccessMessage"] = $"Đã cập nhật sản phẩm: {existingProduct.Name}";
             }
@@ -183,6 +348,7 @@ namespace SWP391_G5.Controllers
 
             p.IsActive = !p.IsActive;
             await _context.SaveChangesAsync();
+            await _notificationService.NotifyAdminsAsync("ProductStatusChanged", "Đã thay đổi trạng thái sản phẩm", $"Sản phẩm '{p.Name}' đã chuyển sang {(p.IsActive ? "Đang bán" : "Tạm ngưng")}.");
 
             TempData["SuccessMessage"] = $"Đã chuyển trạng thái sản phẩm '{p.Name}' sang {(p.IsActive ? "Đang bán" : "Tạm ngưng")}";
             return RedirectToAction(nameof(Products));

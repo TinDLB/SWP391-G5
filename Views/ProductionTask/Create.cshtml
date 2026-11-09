@@ -17,7 +17,7 @@
                         <option value="">-- Chọn Baker --</option>
                         @foreach (var baker in bakers)
                         {
-                            <option value="@baker.UserId">@baker.FullName (@baker.Email)</option>
+                            <option value="@baker.UserId">@baker.FullName</option>
                         }
                     </select><span asp-validation-for="AssignedBaker" class="text-danger"></span>
                 </div>
@@ -31,7 +31,7 @@
                         <h6 class="mb-2">So sánh nguyên liệu cần dùng và tồn kho</h6>
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle mb-0">
-                                <thead class="table-light"><tr><th>Nguyên liệu</th><th>Đơn vị</th><th>Cần dùng</th><th>Tồn kho</th><th>Thiếu</th><th>Trạng thái</th></tr></thead>
+                                <thead class="table-light"><tr><th>Nguyên liệu</th><th>Đơn vị</th><th>Sẽ dùng</th><th>Tồn kho</th><th>Thiếu</th><th>Trạng thái</th></tr></thead>
                                 <tbody id="ingredientRequirementsBody"></tbody>
                             </table>
                         </div>
@@ -52,6 +52,7 @@
         const quantityInput = document.getElementById('TargetQty');
         const requirementsBox = document.getElementById('ingredientRequirements');
         const requirementsBody = document.getElementById('ingredientRequirementsBody');
+        const formatQuantity = value => Number(value).toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 3 });
 
         async function loadIngredientRequirements() {
             const productId = productSelect.value;
@@ -72,10 +73,10 @@
                     <tr>
                         <td>${item.ingredientName}</td>
                         <td>${item.unit}</td>
-                        <td>${item.requiredQty}</td>
-                        <td>${item.stockQty}</td>
-                        <td class="${item.shortageQty > 0 ? 'text-danger fw-semibold' : 'text-success'}">${item.shortageQty}</td>
-                        <td><span class="badge ${item.isEnough ? 'bg-success' : 'bg-danger'}">${item.isEnough ? 'Đủ' : 'Thiếu'}</span></td>
+                        <td>${formatQuantity(item.availableQty)}</td>
+                        <td>${formatQuantity(item.stockQty)}</td>
+                        <td class="${item.shortageQty > 0 ? 'text-danger fw-semibold' : 'text-success'}">${formatQuantity(item.shortageQty)}</td>
+                        <td><span class="badge ${item.isEnough ? 'bg-success' : 'bg-danger'}">${item.isEnough ? '\u0110\u1ee7' : 'Thi\u1ebfu'}</span></td>
                     </tr>`).join('');
 
             requirementsBox.classList.remove('d-none');

@@ -27,6 +27,7 @@ namespace SWP391_G5.Models.ViewModels
         public string IngredientName { get; set; } = string.Empty;
         public string Unit { get; set; } = string.Empty;
         public decimal RequiredQty { get; set; }
+        public decimal AvailableQty { get; set; }
         public decimal CurrentStock { get; set; }
 
         /// <summary>True nếu tồn kho hiện tại đủ cho RequiredQty.</summary>

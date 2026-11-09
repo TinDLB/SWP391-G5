@@ -13,11 +13,13 @@ public class StaffController : Controller
 {
     private readonly BakeryManagementDbContext _context; //dbcontext của database
     private readonly IPasswordService _passwordService;  //service để hash password
+    private readonly INotificationService _notificationService;
 
-    public StaffController(BakeryManagementDbContext context, IPasswordService passwordService)
+    public StaffController(BakeryManagementDbContext context, IPasswordService passwordService, INotificationService notificationService)
     {
         _context = context;
         _passwordService = passwordService;
+        _notificationService = notificationService;
     }
 
     public async Task<IActionResult> Index(string? search, string? role, string? status) //Nhận các tham số search, role, status từ query string để lọc danh sách nhân viên
@@ -50,7 +52,6 @@ public class StaffController : Controller
                 Email = u.Email,
                 FullName = u.FullName,
                 Phone = u.Phone,
-                Gender = u.Gender,
                 Address = u.Addresses
                     .Where(a => a.IsDefault)
                     .Select(a => a.AddressLine)
@@ -82,7 +83,6 @@ public class StaffController : Controller
             Email = model.Email,
             FullName = model.FullName,
             Phone = model.Phone,
-            Gender = model.Gender,
             Role = model.Role,
             PasswordHash = _passwordService.HashPassword(model.Password!),
             IsActive = model.IsActive,
@@ -93,6 +93,7 @@ public class StaffController : Controller
         await _context.SaveChangesAsync();
         await SaveStaffAddressAsync(user, model);
         await _context.SaveChangesAsync();
+        await _notificationService.NotifyAdminsAsync("StaffCreated", "Đã thêm nhân viên", $"Nhân viên {user.FullName} ({user.Role}) vừa được tạo.");
         TempData["SuccessMessage"] = "Đã tạo tài khoản nhân viên thành công.";
         return RedirectToAction(nameof(Index)); // Sau khi tạo thành công, chuyển hướng về trang danh sách nhân viên
     }
@@ -112,7 +113,6 @@ public class StaffController : Controller
             Email = user.Email,
             FullName = user.FullName,
             Phone = user.Phone,
-            Gender = user.Gender,
             Address = user.Addresses.FirstOrDefault(a => a.IsDefault)?.AddressLine,
             Role = user.Role,
             IsActive = user.IsActive
@@ -139,7 +139,6 @@ public class StaffController : Controller
         user.Email = model.Email;
         user.FullName = model.FullName;
         user.Phone = model.Phone?.Trim();
-        user.Gender = model.Gender?.Trim();
         user.Role = model.Role;
         user.IsActive = model.IsActive;
         if (!string.IsNullOrWhiteSpace(model.Password))
@@ -147,6 +146,7 @@ public class StaffController : Controller
 
         await SaveStaffAddressAsync(user, model);
         await _context.SaveChangesAsync();
+        await _notificationService.NotifyAdminsAsync("StaffUpdated", "Đã chỉnh sửa nhân viên", $"Thông tin nhân viên {user.FullName} vừa được cập nhật.");
         TempData["SuccessMessage"] = "Đã cập nhật thông tin nhân viên.";
         return RedirectToAction(nameof(Index));
     }
@@ -161,6 +161,7 @@ public class StaffController : Controller
 
         user.IsActive = !user.IsActive;
         await _context.SaveChangesAsync();
+        await _notificationService.NotifyAdminsAsync("StaffStatusChanged", "Đã thay đổi trạng thái nhân viên", $"Tài khoản {user.Email} đã {(user.IsActive ? "được kích hoạt" : "bị tạm khóa")}.");
         TempData["SuccessMessage"] = $"Đã {(user.IsActive ? "kích hoạt" : "tạm khóa")} tài khoản {user.Email}.";
         return RedirectToAction(nameof(Index));
     }

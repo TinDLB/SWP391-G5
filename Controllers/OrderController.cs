@@ -205,6 +205,11 @@ namespace SWP391_G5.Controllers
 
             await _context.SaveChangesAsync();
 
+            await _notificationService.NotifyAdminsAsync(
+                "OrderCancelled",
+                "Khách hàng đã hủy đơn",
+                $"Đơn hàng {order.OrderCode} đã bị khách hàng hủy.");
+
             // 5. Gửi thông báo
             await _notificationService.CreateNotificationAsync(
                 userId.Value,

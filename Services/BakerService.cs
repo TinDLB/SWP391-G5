@@ -58,6 +58,7 @@ namespace SWP391_G5.Services
                     IngredientName = ti.Ingredient.Name,
                     Unit           = ti.Ingredient.Unit,
                     RequiredQty    = ti.RequiredQty,
+                    AvailableQty   = Math.Min(ti.RequiredQty, ti.Ingredient.StockQty),
                     CurrentStock   = ti.Ingredient.StockQty
                 })
                 .ToList();
@@ -125,27 +126,21 @@ namespace SWP391_G5.Services
             if (task.Status != "InProgress")
                 return ServiceResult.Fail($"Chỉ có thể hoàn tất task đang 'InProgress'. Trạng thái hiện tại: '{task.Status}'.");
 
-            // --- Kiểm tra tồn kho nguyên liệu đủ không ---
-            var shortages = task.ProductionTaskIngredients
-                .Where(ti => ti.Ingredient.StockQty < ti.RequiredQty)
-                .Select(ti => $"{ti.Ingredient.Name}: cần {ti.RequiredQty} {ti.Ingredient.Unit}, còn {ti.Ingredient.StockQty}")
-                .ToList();
-
-            if (shortages.Any())
-                return ServiceResult.Fail("Tồn kho nguyên liệu không đủ:\n" + string.Join("\n", shortages));
-
             var now = DateTime.Now;
 
             // --- Trừ nguyên liệu, ghi InventoryTransaction ---
             foreach (var ti in task.ProductionTaskIngredients)
             {
-                ti.Ingredient.StockQty -= ti.RequiredQty;
+                var usedQty = Math.Min(ti.RequiredQty, ti.Ingredient.StockQty);
+                if (usedQty <= 0) continue;
+
+                ti.Ingredient.StockQty -= usedQty;
 
                 _context.InventoryTransactions.Add(new InventoryTransaction
                 {
                     IngredientId = ti.IngredientId,
                     TxnType      = "ProductionUse",
-                    QtyChange    = -ti.RequiredQty,   // âm = xuất kho
+                    QtyChange    = -usedQty,   // âm = xuất kho
                     RefTable     = "ProductionTasks",
                     RefId        = task.TaskId,
                     Note         = $"Sản xuất: {task.Product.Name} (Task #{task.TaskId})",

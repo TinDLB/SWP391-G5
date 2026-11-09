@@ -14,20 +14,10 @@
                 <label asp-for="Email" class="form-label">Email đăng nhập</label>
                 <input asp-for="Email" class="form-control" />
                 <span asp-validation-for="Email" class="text-danger"></span>
-            </div>><div class="col-md-6">
+            </div><div class="col-md-6">
                 <label asp-for="Phone" class="form-label">Sdt</label>
                 <input asp-for="Phone" class="form-control" />
                 <span asp-validation-for="Phone" class="text-danger"></span>
-            </div>
-            <div class="col-md-6">
-                <label asp-for="Gender" class="form-label">Giới tính</label>
-                <select asp-for="Gender" class="form-select">
-                    <option value="">-- Chọn giới tính --</option>
-                    <option value="Nam">Nam</option>
-                    <option value="Nữ">Nữ</option>
-                    <option value="Khác">Khác</option>
-                </select>
-                <span asp-validation-for="Gender" class="text-danger"></span>
             </div>
             <div class="col-12">
                 <label asp-for="Address" class="form-label">Địa chỉ</label>

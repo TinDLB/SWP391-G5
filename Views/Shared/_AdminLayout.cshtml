@@ -221,7 +221,7 @@
                     </a>
                 </li>
                 <li class="nav-item-admin">
-                    <a class="nav-link-admin" href="#">
+                    <a class="nav-link-admin @(ViewContext.RouteData.Values["action"]?.ToString() == "Orders" ? "active" : "")" asp-controller="Admin" asp-action="Orders">
                         <i class="bi bi-receipt"></i> Quản lý đơn hàng
                     </a>
                 </li>
@@ -236,12 +236,12 @@
             <div class="sidebar-section-title mt-2">Hệ thống</div>
             <ul class="list-unstyled mb-0">
                 <li class="nav-item-admin">
-                    <a class="nav-link-admin" href="#">
-                        <i class="bi bi-people"></i> Người dùng
+                    <a class="nav-link-admin @(ViewContext.RouteData.Values["action"]?.ToString() == "Notifications" ? "active" : "")" asp-controller="Admin" asp-action="Notifications">
+                        <i class="bi bi-bell"></i> Thông báo
                     </a>
                 </li>
                 <li class="nav-item-admin">
-                    <a class="nav-link-admin" href="#">
+                    <a class="nav-link-admin @(ViewContext.RouteData.Values["action"]?.ToString() == "Report" ? "active" : "")" asp-controller="Admin" asp-action="Report">
                         <i class="bi bi-bar-chart-line"></i> Báo cáo
                     </a>
                 </li>

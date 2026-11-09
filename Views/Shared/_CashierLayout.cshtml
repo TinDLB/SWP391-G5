@@ -42,6 +42,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link @(action == "Orders" || action == "OrderDetails" || action == "AssignDelivery" ? "active" : "")" asp-controller="Cashier" asp-action="Orders">
+                                <i class="bi bi-receipt me-1"></i> Quản lý đơn hàng
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link @(action == "Profile" || action == "ChangePassword" ? "active" : "")" asp-controller="Cashier" asp-action="Profile">
                                 <i class="bi bi-person-circle me-1"></i> Hồ sơ cá nhân
                             </a>

@@ -137,13 +137,16 @@
                 </div>
             </div>
 
-            @if (Model.Status == "Delivering" && !string.IsNullOrEmpty(Model.DeliveryStaffName))
+            @if (!string.IsNullOrEmpty(Model.DeliveryStaffName) || !string.IsNullOrEmpty(Model.DeliveryStaffPhone))
             {
                 <div class="alert alert-primary d-flex align-items-center mt-5 mb-0 rounded-3">
                     <i class="bi bi-person-badge fs-3 me-3 flex-shrink-0 text-primary"></i>
                     <div>
-                        <div class="fw-bold">Nhân viên giao hàng: @Model.DeliveryStaffName</div>
-                        <div class="small">Số điện thoại liên hệ: <a href="tel:@Model.DeliveryStaffPhone" class="fw-semibold text-primary">@Model.DeliveryStaffPhone</a></div>
+                        <div class="fw-bold">Người giao hàng: @(string.IsNullOrEmpty(Model.DeliveryStaffName) ? "Chưa cập nhật" : Model.DeliveryStaffName)</div>
+                        @if (!string.IsNullOrEmpty(Model.DeliveryStaffPhone))
+                        {
+                            <div class="small">Số điện thoại liên hệ: <a href="tel:@Model.DeliveryStaffPhone" class="fw-semibold text-primary">@Model.DeliveryStaffPhone</a></div>
+                        }
                     </div>
                 </div>
             }

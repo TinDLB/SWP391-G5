@@ -8,7 +8,24 @@
     <h4 class="mb-0">Danh sách nhân viên</h4>
     <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Thêm nhân viên</a>
 </div>
-<form method="get" class="row g-2 mb-3"><div class="col-md-5"><input name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm tên hoặc email..." /></div><div class="col-md-2"><select name="role" class="form-select"><option value="">Tất cả vai trò</option><option value="Cashier">Cashier</option><option value="Baker">Baker</option></select></div><div class="col-md-2"><select name="status" class="form-select"><option value="">Tất cả trạng thái</option><option value="active">Đang hoạt động</option><option value="inactive">Đã khóa</option></select></div><div class="col-auto"><button class="btn btn-outline-secondary">Lọc</button></div></form>
+<form method="get" class="row g-2 mb-3" id="staffFilterForm">
+    <div class="col-md-5"><input name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm tên hoặc email..." /></div>
+    <div class="col-md-2">
+        <select name="role" class="form-select" onchange="this.form.submit()">
+            <option value="">Tất cả vai trò</option>
+            <option value="Cashier" selected="@(ViewBag.Role as string == "Cashier")">Cashier</option>
+            <option value="Baker" selected="@(ViewBag.Role as string == "Baker")">Baker</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="active" selected="@(ViewBag.Status as string == "active")">Đang hoạt động</option>
+            <option value="inactive" selected="@(ViewBag.Status as string == "inactive")">Đã khóa</option>
+        </select>
+    </div>
+    <div class="col-auto"><button type="submit" class="btn btn-outline-secondary">Lọc</button></div>
+</form>
 <div class="card border-0 shadow-sm">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -18,16 +35,16 @@
                 <th>Vai trò</th>
                 <th>Sdt</th>
                 <th>Trạng thái</th>
-                <th>Ngày tạo</th>
+                <th>Địa chỉ</th>
                 <th class="text-end">Thao tác</th></tr>
             </thead>
             <tbody>@if(!Model.Any()){
 <tr>
-    <td colspan="6" class="text-center text-muted py-5">Chưa có nhân viên.</td></tr>
+    <td colspan="7" class="text-center text-muted py-5">Chưa có nhân viên.</td></tr>
 }else
 {
     @foreach (var staff in Model)
     {
-        <tr><td class="fw-semibold">@staff.FullName</td><td>@staff.Email</td><td>@(staff.Phone ?? "-")</td><td>@(staff.Address ?? "-")</td><td>@(staff.Gender ?? "-")</td><td><span class="badge bg-light text-dark border">@staff.Role</span></td><td>@(staff.IsActive ? "Đang hoạt động" : "Đã khóa")</td><td>@staff.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td><td class="text-end"><a asp-action="Edit" asp-route-id="@staff.UserId" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a></td></tr>
+        <tr><td class="fw-semibold">@staff.FullName</td><td>@staff.Email</td><td><span class="badge bg-light text-dark border">@staff.Role</span></td><td>@(staff.Phone ?? "-")</td><td>@(staff.IsActive ? "Đang hoạt động" : "Đã khóa")</td><td>@(staff.Address ?? "-")</td><td class="text-end"><a asp-action="Edit" asp-route-id="@staff.UserId" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a></td></tr>
     }
 }</ tbody ></ table ></ div ></ div >

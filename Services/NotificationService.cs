@@ -16,6 +16,30 @@ namespace SWP391_G5.Services
             _logger = logger;
         }
 
+        public async Task NotifyAdminsAsync(string type, string title, string? message)
+        {
+            var adminIds = await _context.Users
+                .Where(u => u.Role == "Admin" && u.IsActive)
+                .Select(u => u.UserId)
+                .ToListAsync();
+
+            foreach (var adminId in adminIds)
+            {
+                _context.Notifications.Add(new Notification
+                {
+                    UserId = adminId,
+                    NotificationType = type,
+                    Title = title,
+                    Message = message,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            if (adminIds.Count > 0)
+                await _context.SaveChangesAsync();
+        }
+
         public async Task CreateNotificationAsync(int userId, string type, string title, string? message)
         {
             try
