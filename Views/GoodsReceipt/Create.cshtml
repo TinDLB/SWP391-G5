@@ -1,0 +1,70 @@
+﻿@using SWP391_G5.Models.Entities
+@using SWP391_G5.Services
+@model SWP391_G5.Models.ViewModels.CreateGoodsReceiptViewModel
+@{
+    var p = (PurchaseOrder)ViewBag.Po;
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Nhận hàng " + p.PoCode;
+    ViewData["PageTitle"] = ViewData["Title"];
+}
+<a asp-controller="PurchaseOrder" asp-action="Details" asp-route-id="@p.PoId" class="btn btn-outline-secondary mb-3">Quay về PO</a>
+<div class="card p-3 mb-3"><strong>@p.PoCode — @p.Supplier.Name</strong><p>Ngày đặt: @p.OrderDate.ToString("dd/MM/yyyy") · Dự kiến: @p.ExpectedDate · Trạng thái: @p.Status</p><p>Tổng giá trị đặt: @p.TotalAmount.ToString("N2") đ · Ghi chú: @p.Note</p></div>
+<form method="post" asp-action="Create">
+    <input asp-for="PoId" type="hidden" />
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <label asp-for="ReceivedDate">Ngày nhận *</label><input asp-for="ReceivedDate" type="datetime-local" class="form-control mb-3" required />
+    <p>Người nhận: @User.Identity?.Name</p>
+    <label asp-for="PaymentStatus">Thanh toán</label><select asp-for="PaymentStatus" class="form-select mb-3"><option value="Unpaid">Chưa thanh toán</option><option value="Paid">Đã thanh toán</option></select>
+    <label asp-for="Note">Ghi chú</label><textarea asp-for="Note" maxlength="500" class="form-control mb-3"></textarea>
+    <div class="table-responsive"><table class="table table-bordered bg-white"><thead><tr><th>Nguyên liệu / ĐVT</th><th>Đặt</th><th>Đã đạt</th><th>Còn thiếu</th><th>Giao hàng</th><th>Từ chối</th><th>Đạt</th><th>Lý do từ chối</th><th>Đơn giá</th><th>Chi phí đạt</th></tr></thead><tbody id="receiptRows">
+    @for (var i=0; i<Model.Items.Count; i++) {
+        var item=p.PurchaseOrderItems.Single(x=>x.PoItemId==Model.Items[i].PoItemId);
+        var previous=PurchasingService.Accepted(item);
+        var quantityStep=string.Equals(item.Ingredient.Unit,"quả",StringComparison.OrdinalIgnoreCase) ? "1" : "0.001";
+        <tr data-price="@item.UnitPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+            <td>
+                @item.Ingredient.Name (@item.Ingredient.Unit)
+                <input asp-for="Items[i].PoItemId" type="hidden" />
+            </td>
+            <td>@item.OrderedQty.ToString("0.###")</td>
+            <td>@previous.ToString("0.###")</td>
+            <td>@((item.OrderedQty - previous).ToString("0.###"))</td>
+        <td><input asp-for="Items[i].ReceivedQty" type="number" min="0" step="@quantityStep" class="form-control received" style="min-width:100px" required /></td>
+        <td><input asp-for="Items[i].RejectedQty" type="number" min="0" step="@quantityStep" class="form-control rejected" style="min-width:100px" required /></td>
+        <td class="accepted"></td><td><input asp-for="Items[i].RejectReason" maxlength="255" class="form-control reason" style="min-width:150px" /></td><td>@item.UnitPrice.ToString("N2")</td><td class="cost"></td></tr>
+    }
+    </tbody></table></div>
+    <p>Tổng chi phí thực nhập: <strong id="receiptTotal">0</strong> đ</p>
+    <button type="submit" class="btn btn-primary">Xác nhận nhập kho</button>
+    <a asp-controller="PurchaseOrder" asp-action="Details" asp-route-id="@p.PoId" class="btn btn-outline-secondary">Hủy</a>
+</form>
+@section Scripts {
+<script>
+function recalc() {
+    let total = 0;
+    document.querySelectorAll('#receiptRows tr').forEach(row => {
+        const receivedInput = row.querySelector('.received');
+        const rejectedInput = row.querySelector('.rejected');
+        const received = Number(receivedInput.value) || 0;
+        const rejected = Number(rejectedInput.value) || 0;
+        const accepted = received - rejected;
+        const cost = accepted * Number(row.dataset.price);
+
+        receivedInput.setCustomValidity(
+            receivedInput.validity.stepMismatch ? 'Vui lòng nhập giá trị hợp lệ.' : '');
+        rejectedInput.setCustomValidity(
+            rejectedInput.validity.stepMismatch
+                ? 'Vui lòng nhập giá trị hợp lệ.'
+                : rejected > received ? 'Từ chối không được vượt số nhận.' : '');
+
+        row.querySelector('.accepted').textContent = accepted.toLocaleString('vi-VN');
+        row.querySelector('.cost').textContent = cost.toLocaleString('vi-VN');
+        row.querySelector('.reason').required = rejected > 0;
+        total += cost;
+    });
+    document.getElementById('receiptTotal').textContent = total.toLocaleString('vi-VN');
+}
+document.getElementById('receiptRows').addEventListener('input', recalc);
+recalc();
+</script>
+}
