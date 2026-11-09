@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
 
 <ul class="navbar-nav align-items-lg-center gap-2">
 @if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -6,7 +6,7 @@
     var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "Customer";
     var email = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
 
-    <li class="nav-item dropdown">
+    <li class="nav-item dropdown position-relative" style="z-index: 1055;">
         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 34px; height: 34px; font-size: 0.9rem;">
                 @(string.IsNullOrEmpty(User.Identity.Name) ? "U" : User.Identity.Name.Substring(0, 1).ToUpper())
@@ -16,7 +16,7 @@
                 <span class="user-role-badge">@role</span>
             </div>
         </a>
-        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2" aria-labelledby="userDropdown" style="min-width: 240px;">
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2 user-dropdown-menu" aria-labelledby="userDropdown" style="min-width: 240px; z-index: 2000;">
             <li class="px-3 py-2 border-bottom mb-2">
                 <div class="fw-bold small text-dark">@User.Identity.Name</div>
                 <div class="text-muted small">@email</div>

@@ -227,12 +227,12 @@ namespace SWP391_G5.Controllers
             order.CashierId = CurrentUserId;
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
-            await _notificationService.NotifyAdminsAsync("OrderStatusChanged", "Đơn hàng được cập nhật", $"Đơn hàng {order.OrderCode} chuyển sang trạng thái {status}.");
+            await _notificationService.NotifyAdminsAsync("System", "Đơn hàng được cập nhật", $"Đơn hàng {order.OrderCode} chuyển sang trạng thái {status}.");
             if (order.CustomerId.HasValue)
             {
                 await _notificationService.CreateNotificationAsync(
                     order.CustomerId.Value,
-                    "OrderStatusChanged",
+                    "System",
                     $"Đơn hàng {order.OrderCode} đã được cập nhật",
                     $"Đơn hàng của bạn hiện ở trạng thái: {GetOrderStatusText(status)}.");
             }

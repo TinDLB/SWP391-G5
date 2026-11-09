@@ -440,11 +440,24 @@ body {
    NAVBAR
 ========================= */
 
+header,
+.bakery-navbar {
+    position: relative;
+    z-index: 1050;
+}
+
 .bakery-navbar {
     background: #11110f;
     border-bottom: 1px solid #38342f;
     min-height: 76px;
     padding: 0;
+}
+
+.bakery-navbar .dropdown-menu,
+.navbar .dropdown-menu,
+.user-dropdown-menu,
+#userDropdown + .dropdown-menu {
+    z-index: 2000 !important;
 }
 
 .bakery-brand {
@@ -499,6 +512,7 @@ body {
 @media (max-width: 991px) {
 
     .bakery-navbar {
+
         padding: 10px 0;
     }
 

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -23,8 +23,8 @@
     @{
         var action = ViewContext.RouteData.Values["action"]?.ToString();
     }
-    <header>
-        <nav class="navbar navbar-expand-lg bakery-navbar">
+    <header style="position: relative; z-index: 1050;">
+        <nav class="navbar navbar-expand-lg bakery-navbar" style="position: relative; z-index: 1050;">
             <div class="container">
                 <a class="navbar-brand bakery-brand" asp-controller="Cashier" asp-action="Dashboard">
                     <i class="bi bi-cake2-fill" style="color: var(--bakery-primary);"></i>
