@@ -1,8 +1,12 @@
-﻿@model SWP391_G5.Models.Entities.Order
+@model SWP391_G5.Models.Entities.Order
 @{
     ViewData["Title"] = "Cổng Thanh Toán Trực Tuyến - BMS Bakery";
     string transferContent = $"{Model.OrderCode}";
-    string qrUrl = $"https://api.vietqr.io/image/970422-0987654321-compact2.png?amount={Convert.ToInt64(Model.TotalAmount)}&addInfo={transferContent}&accountName=TIEM%20BANH%20BMS";
+    string accountNumber = "0936294891";
+    string bankName = "MBBank";
+    string accountName = "DINH LE BUT TIN";
+    string qrUrl = $"https://qr.sepay.vn/img?acc={accountNumber}&bank={bankName}&amount={Convert.ToInt64(Model.TotalAmount)}&des={transferContent}";
+    string fallbackQrUrl = $"https://api.vietqr.io/image/970422-{accountNumber}-compact2.png?amount={Convert.ToInt64(Model.TotalAmount)}&addInfo={transferContent}&accountName={Uri.EscapeDataString(accountName)}";
 }
 
 <div class="container py-5" style="max-width: 750px;">
@@ -30,7 +34,7 @@
                 <!-- Cột hiển thị mã QR -->
                 <div class="col-md-6 text-center">
                     <div class="p-2 border rounded-4 shadow-sm bg-white d-inline-block">
-                        <img src="@qrUrl" alt="Mã thanh toán VietQR" class="img-fluid rounded-3" style="max-width: 250px;" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=BMS_PAYMENT_@Model.OrderCode'" />
+                        <img src="@qrUrl" alt="Mã thanh toán SePay / VietQR" class="img-fluid rounded-3" style="max-width: 250px;" onerror="this.src='@fallbackQrUrl'" />
                     </div>
                     <div class="small text-muted mt-2"><i class="bi bi-camera me-1"></i> Mở App Ngân hàng hoặc Ví MoMo để quét</div>
                 </div>
@@ -48,13 +52,13 @@
                         </div>
                         <hr class="my-2" />
                         <div class="mb-1 small">
-                            <span class="text-muted">Ngân hàng:</span> <strong>MB Bank (Quân Đội)</strong>
+                            <span class="text-muted">Ngân hàng:</span> <strong>MB Bank (Ngân hàng Quân Đội)</strong>
                         </div>
                         <div class="mb-1 small">
-                            <span class="text-muted">Chủ tài khoản:</span> <strong>TIỆM BÁNH BMS BAKERY</strong>
+                            <span class="text-muted">Chủ tài khoản:</span> <strong>DINH LE BUT TIN</strong>
                         </div>
                         <div class="mb-1 small">
-                            <span class="text-muted">Số tài khoản:</span> <strong class="text-primary fs-6">0987 654 321</strong>
+                            <span class="text-muted">Số tài khoản:</span> <strong class="text-primary fs-6">0936 294 891</strong>
                         </div>
                         <div class="small">
                             <span class="text-muted">Nội dung chuyển khoản:</span> <strong class="badge bg-warning text-dark fs-6 font-monospace">@transferContent</strong>
