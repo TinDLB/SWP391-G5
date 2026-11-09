@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -195,7 +195,7 @@ namespace SWP391_G5.Controllers
             // Gửi email OTP
             await _emailService.SendOtpEmailAsync(normalizedEmail, otpCode, "Register");
 
-            TempData["InfoMessage"] = $"Mã OTP xác thực đã được gửi đến email {normalizedEmail}. Vui lòng nhập mã để hoàn tất đăng ký.";
+            TempData["InfoMessage"] = "Đã gửi mã, vui lòng kiểm tra email";
 
             return RedirectToAction(nameof(VerifyRegisterOtp), new { email = normalizedEmail, returnUrl = model.ReturnUrl });
         }
@@ -207,6 +207,12 @@ namespace SWP391_G5.Controllers
             if (string.IsNullOrWhiteSpace(email))
             {
                 return RedirectToAction(nameof(Register));
+            }
+
+            var normalizedEmail = email.Trim().ToLower();
+            if (_cache.TryGetValue<PendingRegistration>($"PendingRegister_{normalizedEmail}", out var pending) && pending != null)
+            {
+                ViewBag.DevOtp = pending.OtpCode;
             }
 
             return View(new VerifyOtpViewModel
@@ -315,7 +321,7 @@ namespace SWP391_G5.Controllers
 
             await _emailService.SendOtpEmailAsync(normalizedEmail, newOtp, "Register");
 
-            TempData["SuccessMessage"] = "Mã OTP mới đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.";
+            TempData["SuccessMessage"] = "Đã gửi mã, vui lòng kiểm tra email";
 
             return RedirectToAction(nameof(VerifyRegisterOtp), new { email = normalizedEmail, returnUrl });
         }
@@ -361,7 +367,35 @@ namespace SWP391_G5.Controllers
 
             await _emailService.SendOtpEmailAsync(normalizedEmail, otpCode, "ForgotPassword");
 
-            TempData["InfoMessage"] = $"Mã OTP khôi phục mật khẩu đã được gửi đến {normalizedEmail}. Vui lòng nhập mã để tiếp tục.";
+            TempData["InfoMessage"] = "Đã gửi mã, vui lòng kiểm tra email";
+
+            return RedirectToAction(nameof(VerifyForgotOtp), new { email = normalizedEmail });
+        }
+
+        // POST: /Account/ResendForgotOtp
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendForgotOtp(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            var normalizedEmail = email.Trim().ToLower();
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+            if (user == null || !user.IsActive)
+            {
+                TempData["ErrorMessage"] = "Tài khoản không tồn tại hoặc đã bị khóa.";
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            var newOtp = Random.Shared.Next(100000, 999999).ToString();
+            _cache.Set($"ForgotPassOtp_{normalizedEmail}", newOtp, TimeSpan.FromMinutes(5));
+
+            await _emailService.SendOtpEmailAsync(normalizedEmail, newOtp, "ForgotPassword");
+
+            TempData["SuccessMessage"] = "Đã gửi mã, vui lòng kiểm tra email";
 
             return RedirectToAction(nameof(VerifyForgotOtp), new { email = normalizedEmail });
         }
@@ -373,6 +407,12 @@ namespace SWP391_G5.Controllers
             if (string.IsNullOrWhiteSpace(email))
             {
                 return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            var normalizedEmail = email.Trim().ToLower();
+            if (_cache.TryGetValue<string>($"ForgotPassOtp_{normalizedEmail}", out var cachedOtp) && !string.IsNullOrEmpty(cachedOtp))
+            {
+                ViewBag.DevOtp = cachedOtp;
             }
 
             return View(new VerifyOtpViewModel { Email = email });
@@ -642,6 +682,15 @@ namespace SWP391_G5.Controllers
             if (!_passwordService.VerifyPassword(model.CurrentPassword, user.PasswordHash))
             {
                 TempData["ErrorMessage"] = "Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại.";
+                TempData["ActiveTab"] = "password";
+                return RedirectToAction(nameof(Profile), new { tab = "password" });
+            }
+
+            if (model.CurrentPassword == model.NewPassword || 
+                model.CurrentPassword == model.ConfirmNewPassword || 
+                _passwordService.VerifyPassword(model.NewPassword, user.PasswordHash))
+            {
+                TempData["ErrorMessage"] = "Mật khẩu mới và xác nhận mật khẩu mới phải khác mật khẩu hiện tại.";
                 TempData["ActiveTab"] = "password";
                 return RedirectToAction(nameof(Profile), new { tab = "password" });
             }
