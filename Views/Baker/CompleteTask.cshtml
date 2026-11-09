@@ -28,30 +28,57 @@
                         <span class="text-muted">Sản phẩm:</span>
                         <span class="fw-bold text-primary">@Model.ProductName</span>
                     </div>
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between mb-1">
                         <span class="text-muted">Mục tiêu ban đầu:</span>
                         <span class="badge bg-secondary fs-6">@Model.TargetQty cái</span>
                     </div>
+                    <div class="d-flex justify-content-between pt-2 border-top mt-2">
+                        <span class="text-muted">Khả năng đáp ứng của kho:</span>
+                        @if (Model.MaxFeasibleQty >= Model.TargetQty)
+                        {
+                            <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>Đủ làm 100% (@Model.MaxFeasibleQty cái)</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark fs-6"><i class="bi bi-exclamation-triangle me-1"></i>Tối đa @Model.MaxFeasibleQty cái</span>
+                        }
+                    </div>
                 </div>
+
+                @if (Model.MaxFeasibleQty < Model.TargetQty)
+                {
+                    <div class="alert alert-warning border-warning d-flex align-items-start mb-4">
+                        <i class="bi bi-exclamation-triangle-fill fs-5 me-2 flex-shrink-0 text-warning mt-1"></i>
+                        <div class="small">
+                            <strong>Kho không đủ cho toàn bộ @Model.TargetQty cái:</strong> Hiện tại kho chỉ đủ nguyên liệu để làm tối đa <strong>@Model.MaxFeasibleQty cái</strong> (giới hạn bởi @(Model.LimitingIngredientName ?? "nguyên liệu thiếu")).
+                            <br />
+                            💡 <em>Hệ thống cho phép bạn hoàn tất số lượng trong khả năng của kho (≤ @Model.MaxFeasibleQty cái). Nguyên liệu sẽ được trừ tương ứng theo số bánh thực tế làm ra, và hệ thống sẽ tự động lưu báo cáo số lượng thiếu lại cho Quản lý.</em>
+                        </div>
+                    </div>
+                }
 
                 <form asp-action="CompleteTask" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="TaskId" />
                     <input type="hidden" asp-for="ProductName" />
                     <input type="hidden" asp-for="TargetQty" />
+                    <input type="hidden" asp-for="MaxFeasibleQty" />
+                    <input type="hidden" asp-for="LimitingIngredientName" />
 
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert" style="white-space: pre-line;"></div>
 
                     <div class="mb-3">
                         <label asp-for="ActualYield" class="form-label fw-semibold">
                             Sản lượng thực tế làm ra <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
-                            <input asp-for="ActualYield" class="form-control" type="number" min="0" placeholder="VD: 30" required />
+                            <input asp-for="ActualYield" class="form-control" type="number" min="0" max="@Model.MaxFeasibleQty" placeholder="Tối đa @Model.MaxFeasibleQty cái" required />
                             <span class="input-group-text">cái</span>
                         </div>
                         <span asp-validation-for="ActualYield" class="text-danger small"></span>
-                        <div class="form-text small text-muted">Tổng số lượng bánh được nướng/chế biến trong mẻ này.</div>
+                        <div class="form-text small text-muted">
+                            Kho hiện tại cho phép sản xuất tối đa: <strong>@Model.MaxFeasibleQty cái</strong>.
+                        </div>
                     </div>
 
                     <div class="mb-3">

@@ -16,5 +16,11 @@ namespace SWP391_G5.Models.ViewModels
         public int DefectQty { get; set; }
 
         public string? Note { get; set; }
+
+        /// <summary>Số lượng bánh tối đa có thể sản xuất dựa trên tồn kho nguyên liệu hiện tại.</summary>
+        public int MaxFeasibleQty { get; set; }
+
+        /// <summary>Tên nguyên liệu đang bị giới hạn/thiếu nhiều nhất.</summary>
+        public string? LimitingIngredientName { get; set; }
     }
 }

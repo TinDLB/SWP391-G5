@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -35,9 +35,15 @@
                 <div class="collapse navbar-collapse" id="navbarBakery">
                     <ul class="navbar-nav me-auto baker-subnav">
                         <li class="nav-item">
-                            <a class="nav-link @(controller == "Baker" ? "active" : "")"
+                            <a class="nav-link @(controller == "Baker" && action != "History" ? "active" : "")"
                                asp-controller="Baker" asp-action="Index">
                                 <i class="bi bi-speedometer2 me-1"></i> Công việc
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(controller == "Baker" && action == "History" ? "active" : "")"
+                               asp-controller="Baker" asp-action="History">
+                                <i class="bi bi-clock-history me-1"></i> Lịch sử sản xuất
                             </a>
                         </li>
                         <li class="nav-item">

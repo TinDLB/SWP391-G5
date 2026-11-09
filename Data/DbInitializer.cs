@@ -43,7 +43,13 @@ namespace SWP391_G5.Data
                 }
             }
 
-            // Nếu DB đã có dữ liệu thì không seed lại
+            // 0. Luôn đồng bộ nguyên liệu cho các Task đang bị thiếu bảng chi tiết
+            SyncMissingTaskIngredients(context);
+
+            // Đảm bảo luôn có ít nhất 1 Task đang hoạt động cho Baker test luồng
+            EnsureActiveTasksForBaker(context);
+
+            // Nếu DB đã có dữ liệu users thì không seed lại các bảng cơ bản
             if (context.Users.Any())
             {
                 return;
@@ -375,7 +381,39 @@ namespace SWP391_G5.Data
                     CreatedAt = DateTime.Now.AddHours(-1)
                 };
 
-                context.ProductionTasks.AddRange(task1, task2);
+                var task3 = new ProductionTask
+                {
+                    ProductId = prod3.ProductId,
+                    TargetQty = 24,
+                    ActualYield = 24,
+                    DefectQty = 1,
+                    Status = "Completed",
+                    CreatedBy = admin.UserId,
+                    AssignedBaker = baker.UserId,
+                    Deadline = DateTime.Now.AddDays(-1).AddHours(2),
+                    StartedAt = DateTime.Now.AddDays(-1).AddHours(-3),
+                    CompletedAt = DateTime.Now.AddDays(-1).AddHours(-1),
+                    Note = "Hoàn tất mẻ cupcake socola, 1 cái bị vỡ khuôn",
+                    CreatedAt = DateTime.Now.AddDays(-1).AddHours(-4)
+                };
+
+                var task4 = new ProductionTask
+                {
+                    ProductId = prod4.ProductId,
+                    TargetQty = 60,
+                    ActualYield = 60,
+                    DefectQty = 0,
+                    Status = "Completed",
+                    CreatedBy = admin.UserId,
+                    AssignedBaker = baker.UserId,
+                    Deadline = DateTime.Now.AddDays(-2).AddHours(1),
+                    StartedAt = DateTime.Now.AddDays(-2).AddHours(-4),
+                    CompletedAt = DateTime.Now.AddDays(-2).AddHours(-2),
+                    Note = "Mẻ bánh quy bơ đạt chuẩn 100%",
+                    CreatedAt = DateTime.Now.AddDays(-2).AddHours(-5)
+                };
+
+                context.ProductionTasks.AddRange(task1, task2, task3, task4);
                 context.SaveChanges();
 
                 // Định lượng nguyên liệu cho từng task
@@ -394,7 +432,21 @@ namespace SWP391_G5.Data
                     new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing4.IngredientId, RequiredQty = 0.15m },
                     new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing5.IngredientId, RequiredQty = 3m },
                     new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing6.IngredientId, RequiredQty = 0.6m },
-                    new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing8.IngredientId, RequiredQty = 15m }
+                    new ProductionTaskIngredient { TaskId = task2.TaskId, IngredientId = ing8.IngredientId, RequiredQty = 15m },
+
+                    // Task 3: Cupcake socola (24 cái - 2 mẻ)
+                    new ProductionTaskIngredient { TaskId = task3.TaskId, IngredientId = ing1.IngredientId, RequiredQty = 0.5m },
+                    new ProductionTaskIngredient { TaskId = task3.TaskId, IngredientId = ing3.IngredientId, RequiredQty = 0.3m },
+                    new ProductionTaskIngredient { TaskId = task3.TaskId, IngredientId = ing4.IngredientId, RequiredQty = 0.2m },
+                    new ProductionTaskIngredient { TaskId = task3.TaskId, IngredientId = ing5.IngredientId, RequiredQty = 6m },
+                    new ProductionTaskIngredient { TaskId = task3.TaskId, IngredientId = ing10.IngredientId, RequiredQty = 80m },
+
+                    // Task 4: Bánh quy bơ (60 cái - 2 mẻ)
+                    new ProductionTaskIngredient { TaskId = task4.TaskId, IngredientId = ing1.IngredientId, RequiredQty = 0.6m },
+                    new ProductionTaskIngredient { TaskId = task4.TaskId, IngredientId = ing4.IngredientId, RequiredQty = 0.3m },
+                    new ProductionTaskIngredient { TaskId = task4.TaskId, IngredientId = ing3.IngredientId, RequiredQty = 0.2m },
+                    new ProductionTaskIngredient { TaskId = task4.TaskId, IngredientId = ing5.IngredientId, RequiredQty = 2m },
+                    new ProductionTaskIngredient { TaskId = task4.TaskId, IngredientId = ing12.IngredientId, RequiredQty = 6m }
                 );
                 context.SaveChanges();
             }
@@ -421,6 +473,105 @@ namespace SWP391_G5.Data
                 }
             );
             context.SaveChanges();
+        }
+
+        private static void SyncMissingTaskIngredients(BakeryManagementDbContext context)
+        {
+            try
+            {
+                var tasksMissingIng = context.ProductionTasks
+                    .Include(t => t.ProductionTaskIngredients)
+                    .Where(t => !t.ProductionTaskIngredients.Any())
+                    .ToList();
+
+                if (!tasksMissingIng.Any()) return;
+
+                foreach (var task in tasksMissingIng)
+                {
+                    var recipe = context.Recipes
+                        .Include(r => r.RecipeItems)
+                        .FirstOrDefault(r => r.ProductId == task.ProductId && r.IsActive);
+
+                    if (recipe != null && recipe.RecipeItems.Any())
+                    {
+                        decimal mult = recipe.YieldQty > 0 ? (decimal)task.TargetQty / recipe.YieldQty : 1;
+                        foreach (var ri in recipe.RecipeItems)
+                        {
+                            context.ProductionTaskIngredients.Add(new ProductionTaskIngredient
+                            {
+                                TaskId = task.TaskId,
+                                IngredientId = ri.IngredientId,
+                                RequiredQty = Math.Round(ri.Quantity * mult, 3)
+                            });
+                        }
+                    }
+                }
+                context.SaveChanges();
+            }
+            catch
+            {
+                // Bỏ qua nếu lỗi
+            }
+        }
+
+        private static void EnsureActiveTasksForBaker(BakeryManagementDbContext context)
+        {
+            try
+            {
+                var baker = context.Users.FirstOrDefault(u => u.Role == Role.Baker);
+                var admin = context.Users.FirstOrDefault(u => u.Role == Role.Admin);
+                if (baker == null) return;
+
+                bool hasActiveTask = context.ProductionTasks.Any(t =>
+                    t.AssignedBaker == baker.UserId &&
+                    (t.Status == "Assigned" || t.Status == "InProgress"));
+
+                if (!hasActiveTask)
+                {
+                    var prodBread = context.Products.FirstOrDefault(p => p.Name.Contains("bơ sữa") || p.ProductId == 2)
+                                 ?? context.Products.FirstOrDefault();
+
+                    if (prodBread != null)
+                    {
+                        var newTask = new ProductionTask
+                        {
+                            ProductId = prodBread.ProductId,
+                            TargetQty = 20,
+                            Status = "Assigned",
+                            CreatedBy = admin?.UserId ?? baker.UserId,
+                            AssignedBaker = baker.UserId,
+                            Deadline = DateTime.Now.AddDays(1),
+                            Note = "Mẻ bánh mì bơ sữa phục vụ bán lẻ trong ngày",
+                            CreatedAt = DateTime.Now
+                        };
+                        context.ProductionTasks.Add(newTask);
+                        context.SaveChanges();
+
+                        var recipe = context.Recipes
+                            .Include(r => r.RecipeItems)
+                            .FirstOrDefault(r => r.ProductId == prodBread.ProductId);
+
+                        if (recipe != null && recipe.RecipeItems.Any())
+                        {
+                            decimal mult = recipe.YieldQty > 0 ? (decimal)newTask.TargetQty / recipe.YieldQty : 1;
+                            foreach (var ri in recipe.RecipeItems)
+                            {
+                                context.ProductionTaskIngredients.Add(new ProductionTaskIngredient
+                                {
+                                    TaskId = newTask.TaskId,
+                                    IngredientId = ri.IngredientId,
+                                    RequiredQty = Math.Round(ri.Quantity * mult, 3)
+                                });
+                            }
+                            context.SaveChanges();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Bỏ qua nếu lỗi
+            }
         }
     }
 }
