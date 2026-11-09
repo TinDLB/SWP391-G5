@@ -57,6 +57,14 @@ function preview() {
     const option = ingredient.selectedOptions[0];
     const output = document.getElementById('stockPreview');
     note.required = reason.value === 'Other';
+    const wholeUnit = option && option.value && option.dataset.unit.trim().toLocaleLowerCase() === 'quả';
+    quantity.min = wholeUnit ? '1' : '0.001';
+    quantity.step = wholeUnit ? '1' : '0.001';
+    quantity.setCustomValidity(
+        wholeUnit && quantity.value && !Number.isInteger(Number(quantity.value))
+            ? 'Số lượng tính theo quả phải là số nguyên.'
+            : ''
+    );
     if (!option || !option.value) { output.textContent = 'Chọn nguyên liệu để xem tồn kho.'; return; }
     const current = Number(option.dataset.stock);
     const value = Number(quantity.value) || 0;
@@ -65,6 +73,7 @@ function preview() {
     output.classList.toggle('text-danger', after < 0);
 }
 [ingredient, type, quantity, reason].forEach(element => element.addEventListener('input', preview));
+ingredient.addEventListener('change', preview);
 preview();
 </script>
 }
