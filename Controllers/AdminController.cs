@@ -31,24 +31,7 @@ namespace SWP391_G5.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Report(DateTime? from, DateTime? to)
-        {
-            var start = (from?.Date ?? DateTime.Today.AddDays(-29));
-            var end = (to?.Date ?? DateTime.Today).AddDays(1);
-            var orders = _context.Orders.Where(o => o.CreatedAt >= start && o.CreatedAt < end);
-            var model = new AdminReportViewModel
-            {
-                From = start,
-                To = end.AddDays(-1),
-                OrderCount = await orders.CountAsync(),
-                CompletedOrderCount = await orders.CountAsync(o => o.Status == "Completed"),
-                CancelledOrderCount = await orders.CountAsync(o => o.Status == "Cancelled"),
-                NewUserCount = await _context.Users.CountAsync(u => u.CreatedAt >= start && u.CreatedAt < end),
-                Revenue = await orders.Where(o => o.Status == "Completed" && o.PaymentStatus == "Paid")
-                    .SumAsync(o => (decimal?)o.TotalAmount) ?? 0
-            };
-            return View(model);
-        }
+        public IActionResult Report(DateTime? from, DateTime? to) => RedirectToAction(nameof(Dashboard), new { from, to });
 
         [HttpGet]
         public async Task<IActionResult> IngredientUsage(DateTime? from, DateTime? to, string period = "day")
@@ -144,9 +127,12 @@ namespace SWP391_G5.Controllers
         private static string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
 
         // GET: /Admin/Dashboard
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(DateTime? from, DateTime? to)
         {
             var today = DateTime.Today;
+            var start = from?.Date ?? today.AddDays(-29);
+            var end = (to?.Date ?? today).AddDays(1);
+            var reportOrders = _context.Orders.Where(o => o.CreatedAt >= start && o.CreatedAt < end);
             var model = new AdminDashboardViewModel
             {
                 ProductCount = await _context.Products.CountAsync(p => p.IsActive),
@@ -154,6 +140,14 @@ namespace SWP391_G5.Controllers
                 ActiveUserCount = await _context.Users.CountAsync(u => u.IsActive),
                 TodayRevenue = await _context.Orders
                     .Where(o => o.CreatedAt >= today && o.Status == "Completed" && o.PaymentStatus == "Paid")
+                    .SumAsync(o => (decimal?)o.TotalAmount) ?? 0,
+                From = start,
+                To = end.AddDays(-1),
+                ReportOrderCount = await reportOrders.CountAsync(),
+                CompletedOrderCount = await reportOrders.CountAsync(o => o.Status == "Completed"),
+                CancelledOrderCount = await reportOrders.CountAsync(o => o.Status == "Cancelled"),
+                NewUserCount = await _context.Users.CountAsync(u => u.CreatedAt >= start && u.CreatedAt < end),
+                ReportRevenue = await reportOrders.Where(o => o.Status == "Completed" && o.PaymentStatus == "Paid")
                     .SumAsync(o => (decimal?)o.TotalAmount) ?? 0
             };
 

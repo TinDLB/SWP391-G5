@@ -71,6 +71,13 @@ public class ProductionTaskController : Controller
         }
         var previousBakerId = task.AssignedBaker;
         var reassigned = task.AssignedBaker != model.AssignedBaker;
+        var bakerName = await _context.Users
+            .Where(u => u.UserId == model.AssignedBaker)
+            .Select(u => u.FullName)
+            .FirstAsync();
+        var previousBakerName = previousBakerId.HasValue
+            ? await _context.Users.Where(u => u.UserId == previousBakerId.Value).Select(u => u.FullName).FirstOrDefaultAsync()
+            : null;
         task.ProductId = model.ProductId;
         task.TargetQty = model.TargetQty;
         task.AssignedBaker = model.AssignedBaker;
@@ -99,7 +106,7 @@ public class ProductionTaskController : Controller
                 task.AssignedBaker.Value,
                 reassigned ? "TaskReassigned" : "TaskUpdated",
                 reassigned ? "Bạn được giao lại công việc sản xuất" : "Công việc sản xuất đã được cập nhật",
-                $"Task #{task.TaskId} đã được cập nhật bởi Admin.");
+                $"Task #{task.TaskId} đã được cập nhật cho Baker {bakerName} bởi Admin.");
         }
         if (reassigned && previousBakerId.HasValue && previousBakerId != task.AssignedBaker)
         {
@@ -107,14 +114,14 @@ public class ProductionTaskController : Controller
                 previousBakerId.Value,
                 "TaskReassigned",
                 "Công việc sản xuất đã được phân công lại",
-                $"Task #{task.TaskId} đã được giao cho Baker khác.");
+                $"Task #{task.TaskId} đã được giao cho Baker {bakerName}.");
         }
         if (reassigned)
         {
             await _notificationService.NotifyAdminsAsync(
                 "TaskReassigned",
                 "Đã phân công lại task sản xuất",
-                $"Task #{task.TaskId} đã được giao cho Baker mới.");
+                $"Task #{task.TaskId} đã được chuyển từ Baker {previousBakerName ?? "chưa xác định"} sang Baker {bakerName}.");
         }
         // [Database - lưu] SaveChanges ghi UPDATE ProductionTasks, xóa/thêm
         // ProductionTaskIngredients và INSERT Notifications nếu có đổi Baker.
@@ -341,6 +348,11 @@ public class ProductionTaskController : Controller
         if (!int.TryParse(creatorClaim, out var createdBy))
             return Unauthorized();
 
+        var bakerName = await _context.Users
+            .Where(u => u.UserId == model.AssignedBaker)
+            .Select(u => u.FullName)
+            .FirstAsync();
+
         // Tạo entity ProductionTask task từ dữ liệu form 
         var task = new ProductionTask
         {
@@ -374,7 +386,7 @@ public class ProductionTaskController : Controller
             UserId = model.AssignedBaker!.Value,
             NotificationType = "TaskAssigned",
             Title = "Bạn được giao công việc sản xuất",
-            Message = $"Task #{task.TaskId} - {model.TargetQty} sản phẩm.",
+            Message = $"Task #{task.TaskId} được giao cho Baker {bakerName} - {model.TargetQty} sản phẩm.",
             CreatedAt = DateTime.Now
         });
         await _context.SaveChangesAsync();
@@ -384,7 +396,7 @@ public class ProductionTaskController : Controller
         await _notificationService.NotifyAdminsAsync(
             "TaskAssigned",
             "Đã giao task sản xuất",
-            $"Task #{task.TaskId} đã được giao cho Baker.");
+            $"Task #{task.TaskId} đã được giao cho Baker {bakerName}.");
         if (shortageMessage is not null)
         {
             // Task vẫn được tạo, nhưng ghi thông báo cho Admin và Baker để xử lý bổ sung kho.

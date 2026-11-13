@@ -174,6 +174,9 @@ namespace SWP391_G5.Services
             if (task.Status != "InProgress")
                 return ServiceResult.Fail($"Chỉ có thể hoàn tất task đang 'InProgress'. Trạng thái hiện tại: '{task.Status}'.");
 
+            if (model.ActualYield > task.TargetQty)
+                return ServiceResult.Fail($"Sản lượng đạt không được lớn hơn mục tiêu ban đầu ({task.TargetQty} cái).");
+
             // Tự động kiểm tra và đồng bộ nguyên liệu từ Recipe nếu task chưa có
             if (!task.ProductionTaskIngredients.Any())
             {

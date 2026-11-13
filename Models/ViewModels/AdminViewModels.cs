@@ -9,6 +9,13 @@ public class AdminDashboardViewModel
     public int ActiveUserCount { get; set; }
     public int LowStockCount { get; set; }
     public decimal TodayRevenue { get; set; }
+    public DateTime From { get; set; }
+    public DateTime To { get; set; }
+    public int ReportOrderCount { get; set; }
+    public int CompletedOrderCount { get; set; }
+    public int CancelledOrderCount { get; set; }
+    public int NewUserCount { get; set; }
+    public decimal ReportRevenue { get; set; }
     public IReadOnlyList<LowStockItemViewModel> LowStockItems { get; set; } = [];
 }
 

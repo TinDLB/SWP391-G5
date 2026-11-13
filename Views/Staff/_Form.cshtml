@@ -12,7 +12,7 @@
                 </span>
             </div><div class="col-md-6">
                 <label asp-for="Email" class="form-label">Email đăng nhập</label>
-                <input asp-for="Email" class="form-control" />
+                <input asp-for="Email" class="form-control" autocomplete="off" />
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div><div class="col-md-6">
                 <label asp-for="Phone" class="form-label">Sdt</label>
@@ -27,10 +27,10 @@
             <div class="col-md-6">
                 <label asp-for="Role" class="form-label">Vai trò</label>
                 <select asp-for="Role" class="form-select"><option value="Cashier">Cashier</option><option value="Baker">Baker</option></select>
+             </div><div class="col-md-6">
+                <label asp-for="Password" class="form-label">Mật khẩu @(Model.UserId == 0 ? "" : "mới, không bắt buộc")</label><input asp-for="Password" class="form-control" autocomplete="new-password" /><span asp-validation-for="Password" class="text-danger"></span>
             </div><div class="col-md-6">
-                <label asp-for="Password" class="form-label">Mật khẩu @(Model.UserId == 0 ? "" : "mới, không bắt buộc")</label><input asp-for="Password" class="form-control" /><span asp-validation-for="Password" class="text-danger"></span>
-            </div><div class="col-md-6">
-                <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label><input asp-for="ConfirmPassword" class="form-control" />
+                <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label><input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div><div class="col-12 form-check form-switch"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive" class="form-check-label">Tài khoản đang hoạt động</label></div>
         </div>

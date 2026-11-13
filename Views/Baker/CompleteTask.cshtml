@@ -72,12 +72,12 @@
                             Sản lượng thực tế làm ra <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
-                            <input asp-for="ActualYield" class="form-control" type="number" min="0" max="@Model.MaxFeasibleQty" placeholder="Tối đa @Model.MaxFeasibleQty cái" required />
+                            <input asp-for="ActualYield" class="form-control" type="number" min="0" max="@Model.TargetQty" placeholder="Tối đa @Model.TargetQty cái" required />
                             <span class="input-group-text">cái</span>
                         </div>
                         <span asp-validation-for="ActualYield" class="text-danger small"></span>
                         <div class="form-text small text-muted">
-                            Kho hiện tại cho phép sản xuất tối đa: <strong>@Model.MaxFeasibleQty cái</strong>.
+                            Số lượng đạt tối đa theo task: <strong>@Model.TargetQty cái</strong>. Kho hiện tại có thể giới hạn thấp hơn mức này.
                         </div>
                     </div>
 
