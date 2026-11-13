@@ -83,6 +83,8 @@ namespace SWP391_G5.Controllers
         [HttpGet]
         public async Task<IActionResult> CounterOrder()
         {
+            // Màn hình tạo đơn offline đọc Products (chỉ sản phẩm đang bán và còn hàng),
+            // rồi truyền danh sách sản phẩm qua ViewBag.Products cho Views/Cashier/CounterOrder.cshtml.
             ViewBag.Products = await _context.Products
                 .Where(p => p.IsActive && p.StockQty > 0)
                 .OrderBy(p => p.Name)
@@ -98,6 +100,7 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CounterOrder(CashierCounterOrderViewModel model)
         {
+            // Nhận Items/ProductId/Quantity và PaymentMethod/VoucherCode từ form tạo đơn tại quầy.
             var items = model.Items.Where(i => i.ProductId > 0 && i.Quantity > 0).ToList();
             if (items.Count == 0)
                 ModelState.AddModelError(nameof(model.Items), "Vui lòng thêm ít nhất một sản phẩm.");
@@ -105,6 +108,7 @@ namespace SWP391_G5.Controllers
                 ModelState.AddModelError(nameof(model.PaymentMethod), "Đơn offline chỉ thanh toán bằng tiền mặt.");
 
             var productIds = items.Select(i => i.ProductId).Distinct().ToList();
+            // Dùng ProductId truyền lên để đọc Products, kiểm tra IsActive và StockQty trước khi lưu.
             var products = await _context.Products.Where(p => productIds.Contains(p.ProductId) && p.IsActive).ToDictionaryAsync(p => p.ProductId);
             foreach (var item in items)
             {
@@ -117,6 +121,7 @@ namespace SWP391_G5.Controllers
             Voucher? voucher = null;
             if (!string.IsNullOrWhiteSpace(model.VoucherCode))
             {
+                // VoucherCode được chuẩn hóa rồi dùng để đọc Vouchers; UsedCount được tăng khi đơn hợp lệ.
                 var today = DateOnly.FromDateTime(DateTime.Today);
                 voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Code == model.VoucherCode.Trim().ToUpper() && v.IsActive);
                 if (voucher == null || today < voucher.StartDate || today > voucher.EndDate || (voucher.UsageLimit.HasValue && voucher.UsedCount >= voucher.UsageLimit.Value))
@@ -143,6 +148,8 @@ namespace SWP391_G5.Controllers
                 Note = "Đơn bán tại quầy",
                 CreatedAt = DateTime.Now, CompletedAt = DateTime.Now
             };
+            // Ghi Orders và OrderItems; đồng thời cập nhật Products.StockQty và Vouchers.UsedCount
+            // trong cùng transaction, sau đó truyền OrderId qua redirect tới màn hình chi tiết.
             foreach (var item in items)
             {
                 var product = products[item.ProductId];
@@ -227,12 +234,12 @@ namespace SWP391_G5.Controllers
             order.CashierId = CurrentUserId;
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
-            await _notificationService.NotifyAdminsAsync("OrderStatusChanged", "Đơn hàng được cập nhật", $"Đơn hàng {order.OrderCode} chuyển sang trạng thái {status}.");
+            await _notificationService.NotifyAdminsAsync("System", "Đơn hàng được cập nhật", $"Đơn hàng {order.OrderCode} chuyển sang trạng thái {status}.");
             if (order.CustomerId.HasValue)
             {
                 await _notificationService.CreateNotificationAsync(
                     order.CustomerId.Value,
-                    "OrderStatusChanged",
+                    "System",
                     $"Đơn hàng {order.OrderCode} đã được cập nhật",
                     $"Đơn hàng của bạn hiện ở trạng thái: {GetOrderStatusText(status)}.");
             }

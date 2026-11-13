@@ -29,13 +29,10 @@ html {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
-body {
-    background: #191815;
-    color: #f4efe9;
-}
+body { background: #fffaf4; color: #3d2b1f; }
 
 .home-page {
-    background: #191815;
+    background: #fffaf4;
     min-height: 100vh;
 }
 
@@ -49,7 +46,7 @@ body {
             rgba(0, 0, 0, 0.35),
             rgba(0, 0, 0, 0.65)
         ),
-        url("../uploads/products/5.jpg");
+        url("../images/bakery-hero.svg");
 
     background-size: cover;
     background-position: center;
@@ -132,7 +129,7 @@ body {
 .search-box input {
     flex: 1;
     height: 52px;
-    background: #1d1c19;
+    background: #fff;
     border: 1px solid #444;
     color: white;
     border-radius: 12px;
@@ -142,7 +139,7 @@ body {
 
 .search-box select {
     height: 52px;
-    background: #1d1c19;
+    background: #fff;
     color: white;
     border: 1px solid #444;
     border-radius: 12px;

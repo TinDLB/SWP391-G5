@@ -19,6 +19,8 @@
                 </h5>
             </div>
             <div class="card-body p-4">
+                <!-- POST dữ liệu từ UI về IngredientController.Create/Edit. Model binding nhận
+                     IngredientId (khi sửa), Name, Unit và MinThreshold từ các input asp-for. -->
                 <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post">
                     @Html.AntiForgeryToken()
                     @if (Model.IsEdit)
@@ -38,6 +40,7 @@
 
                     <div class="mb-3">
                         <label asp-for="Name" class="form-label fw-semibold"></label>
+                        <!-- Giá trị input này được gửi vào IngredientFormViewModel.Name. -->
                         <input asp-for="Name" class="form-control" placeholder="VD: Bột mì số 13, Bơ lạt, Trứng gà..." />
                         <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
@@ -60,6 +63,7 @@
 
                     <div class="mb-4">
                         <label asp-for="MinThreshold" class="form-label fw-semibold"></label>
+                        <!-- Giá trị input này được gửi vào IngredientFormViewModel.MinThreshold. -->
                         <input asp-for="MinThreshold" class="form-control" type="number" step="0.001" min="0" placeholder="VD: 5" />
                         <span asp-validation-for="MinThreshold" class="text-danger small"></span>
                         <div class="form-text small text-muted">

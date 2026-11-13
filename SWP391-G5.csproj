@@ -19,6 +19,9 @@
 
   <ItemGroup>
     <Compile Remove="Tests/**/*.cs" />
+    <Compile Remove="scripts/**/*.cs" />
+    <Compile Remove="**/obj/**/*.cs" />
+    <Compile Remove="**/bin/**/*.cs" />
     <Content Remove="Tests/**" />
     <None Remove="Tests/**" />
   </ItemGroup>

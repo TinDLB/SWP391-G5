@@ -31,23 +31,61 @@ namespace SWP391_G5.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Report(DateTime? from, DateTime? to)
+        public IActionResult Report(DateTime? from, DateTime? to) => RedirectToAction(nameof(Dashboard), new { from, to });
+
+        [HttpGet]
+        public async Task<IActionResult> IngredientUsage(DateTime? from, DateTime? to, string period = "day")
         {
-            var start = (from?.Date ?? DateTime.Today.AddDays(-29));
-            var end = (to?.Date ?? DateTime.Today).AddDays(1);
-            var orders = _context.Orders.Where(o => o.CreatedAt >= start && o.CreatedAt < end);
-            var model = new AdminReportViewModel
+            period = period.Equals("month", StringComparison.OrdinalIgnoreCase) ? "month" : "day";
+            var selectedFrom = (from ?? DateTime.Today).Date;
+            var selectedTo = (to ?? selectedFrom).Date;
+
+            if (period == "month")
             {
-                From = start,
-                To = end.AddDays(-1),
-                OrderCount = await orders.CountAsync(),
-                CompletedOrderCount = await orders.CountAsync(o => o.Status == "Completed"),
-                CancelledOrderCount = await orders.CountAsync(o => o.Status == "Cancelled"),
-                NewUserCount = await _context.Users.CountAsync(u => u.CreatedAt >= start && u.CreatedAt < end),
-                Revenue = await orders.Where(o => o.Status == "Completed" && o.PaymentStatus == "Paid")
-                    .SumAsync(o => (decimal?)o.TotalAmount) ?? 0
-            };
-            return View(model);
+                selectedFrom = new DateTime(selectedFrom.Year, selectedFrom.Month, 1);
+                selectedTo = new DateTime(selectedTo.Year, selectedTo.Month, 1)
+                    .AddMonths(1).AddDays(-1);
+            }
+            else if (selectedTo < selectedFrom)
+            {
+                (selectedFrom, selectedTo) = (selectedTo, selectedFrom);
+            }
+
+            var endExclusive = selectedTo.AddDays(1);
+            var usage = await _context.InventoryTransactions
+                .AsNoTracking()
+                .Where(t => t.TxnType == "ProductionUse" &&
+                            t.CreatedAt >= selectedFrom && t.CreatedAt < endExclusive &&
+                            t.QtyChange < 0)
+                .GroupBy(t => new
+                {
+                    t.IngredientId,
+                    t.Ingredient.Name,
+                    t.Ingredient.Unit,
+                    t.Ingredient.StockQty,
+                    t.Ingredient.MinThreshold
+                })
+                .Select(g => new IngredientUsageItemViewModel
+                {
+                    IngredientId = g.Key.IngredientId,
+                    IngredientName = g.Key.Name,
+                    Unit = g.Key.Unit,
+                    UsedQty = g.Sum(t => -t.QtyChange),
+                    TaskCount = g.Select(t => t.RefId).Where(id => id.HasValue).Distinct().Count(),
+                    CurrentStock = g.Key.StockQty,
+                    MinThreshold = g.Key.MinThreshold
+                })
+                .OrderByDescending(item => item.UsedQty)
+                .ToListAsync();
+
+            return View(new IngredientUsageReportViewModel
+            {
+                From = selectedFrom,
+                To = selectedTo,
+                Period = period,
+                TotalUsage = usage.Sum(item => item.UsedQty),
+                Items = usage
+            });
         }
 
         [HttpGet]
@@ -89,9 +127,12 @@ namespace SWP391_G5.Controllers
         private static string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
 
         // GET: /Admin/Dashboard
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(DateTime? from, DateTime? to)
         {
             var today = DateTime.Today;
+            var start = from?.Date ?? today.AddDays(-29);
+            var end = (to?.Date ?? today).AddDays(1);
+            var reportOrders = _context.Orders.Where(o => o.CreatedAt >= start && o.CreatedAt < end);
             var model = new AdminDashboardViewModel
             {
                 ProductCount = await _context.Products.CountAsync(p => p.IsActive),
@@ -99,11 +140,19 @@ namespace SWP391_G5.Controllers
                 ActiveUserCount = await _context.Users.CountAsync(u => u.IsActive),
                 TodayRevenue = await _context.Orders
                     .Where(o => o.CreatedAt >= today && o.Status == "Completed" && o.PaymentStatus == "Paid")
+                    .SumAsync(o => (decimal?)o.TotalAmount) ?? 0,
+                From = start,
+                To = end.AddDays(-1),
+                ReportOrderCount = await reportOrders.CountAsync(),
+                CompletedOrderCount = await reportOrders.CountAsync(o => o.Status == "Completed"),
+                CancelledOrderCount = await reportOrders.CountAsync(o => o.Status == "Cancelled"),
+                NewUserCount = await _context.Users.CountAsync(u => u.CreatedAt >= start && u.CreatedAt < end),
+                ReportRevenue = await reportOrders.Where(o => o.Status == "Completed" && o.PaymentStatus == "Paid")
                     .SumAsync(o => (decimal?)o.TotalAmount) ?? 0
             };
 
             model.LowStockItems = await _context.Ingredients
-                .Where(i => i.IsActive && i.StockQty < i.MinThreshold)
+                .Where(i => i.IsActive && i.StockQty <= i.MinThreshold)
                 .OrderBy(i => i.StockQty / (i.MinThreshold == 0 ? 1 : i.MinThreshold))
                 .Select(i => new LowStockItemViewModel
                 {
@@ -171,7 +220,7 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateLowStockNotifications()
         {
-            var lowStock = await _context.Ingredients.Where(i => i.IsActive && i.StockQty < i.MinThreshold).ToListAsync();
+            var lowStock = await _context.Ingredients.Where(i => i.IsActive && i.StockQty <= i.MinThreshold).ToListAsync();
             var adminIds = await _context.Users.Where(u => u.Role == "Admin" && u.IsActive).Select(u => u.UserId).ToListAsync();
             var today = DateTime.Today;
             foreach (var ingredient in lowStock)

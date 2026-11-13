@@ -118,8 +118,6 @@
             </div>
             <a asp-controller="Product" asp-action="Index" class="view-all">Xem tất cả →</a>
 
-            <a asp-controller="Home" asp-action="Index" asp-fragment="products" class="view-all">Xem tất cả →</a>
-
         </div>
 
         @if (Model.Products.Count == 0)
@@ -143,7 +141,7 @@
                     }
                     if (!System.IO.File.Exists(System.IO.Path.Combine(HostEnvironment.WebRootPath, imageUrl.TrimStart('/'))))
                     {
-                        imageUrl = "/uploads/products/1.jpg";
+                        imageUrl = "/images/bakery-placeholder.svg";
                     }
                     <div class="product-card">
                         <div class="product-image">
@@ -160,12 +158,6 @@
                                     @product.Name
                                 </a>
                             </h3>
-
-                            <a asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId"><img src="@Url.Content("~" + imageUrl)" alt="@product.Name" loading="lazy" /></a>
-                        </div>
-                        <div class="product-info">
-                            <span class="product-category">@product.Category.Name</span>
-                            <h3><a asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId" class="text-reset text-decoration-none">@product.Name</a></h3>
 
                             <p>@product.Description</p>
                             <div class="price">@product.Price.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")) đ</div>

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SWP391_G5.Data;
 using SWP391_G5.Models.Entities;
 using SWP391_G5.Models.ViewModels;
+using SWP391_G5.Services;
 
 namespace SWP391_G5.Controllers;
 
@@ -11,14 +12,22 @@ namespace SWP391_G5.Controllers;
 public class VoucherController : Controller
 {
     private readonly BakeryManagementDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public VoucherController(BakeryManagementDbContext context)
+    public VoucherController(
+        BakeryManagementDbContext context,
+        INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<IActionResult> Index(string? search, string? status)
     {
+        // UI gửi search/status qua query string. Controller đọc Vouchers, tạo
+        // VoucherListItemViewModel rồi truyền View(items) về Views/Voucher/Index.cshtml.
+        // Nhận search/status từ query string, đọc Vouchers, tạo VoucherListItemViewModel
+        // và trả danh sách đã lọc cho View quản lý voucher.
         var today = DateOnly.FromDateTime(DateTime.Today);
         var query = _context.Vouchers.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(search))
@@ -53,6 +62,8 @@ public class VoucherController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(VoucherEditViewModel model)
     {
+        // UI POST gửi mã, loại giảm, giá trị, thời hạn và giới hạn dùng.
+        // Sau validation, các field được map và INSERT vào bảng Vouchers.
         // Nh?n Code, DiscountType, m?c gi?m, th?i h?n v� gi?i h?n d�ng t? form t?o voucher.
         model.Code = model.Code.Trim().ToUpperInvariant();
         await ValidateCodeAsync(model.Code);
@@ -73,6 +84,11 @@ public class VoucherController : Controller
             UsedCount = 0
         });
         await _context.SaveChangesAsync();
+        // Ghi thông báo cho các Admin vào Notifications sau khi voucher đã được lưu thành công.
+        await _notificationService.NotifyAdminsAsync(
+            "VoucherCreated",
+            "Đã tạo voucher mới",
+            $"Voucher {model.Code} đã được tạo và sẵn sàng sử dụng.");
         TempData["SuccessMessage"] = "Đã tạo voucher thành công.";
         return RedirectToAction(nameof(Index));
     }
@@ -100,6 +116,8 @@ public class VoucherController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, VoucherEditViewModel model)
     {
+        // Nhận VoucherId từ route/model, query Vouchers để lấy bản ghi hiện tại,
+        // sau đó UPDATE các cột voucher và trả redirect về danh sách.
         // Nh?n VoucherId t? route v� d? li?u voucher m?i t? form ch?nh s?a.
         if (id != model.VoucherId) return BadRequest();
         model.Code = model.Code.Trim().ToUpperInvariant();
@@ -122,6 +140,11 @@ public class VoucherController : Controller
         existing.UsageLimit = model.UsageLimit;
         existing.IsActive = model.IsActive;
         await _context.SaveChangesAsync();
+        // Chỉ gửi thông báo sau SaveChanges để tránh báo thành công khi UPDATE Vouchers thất bại.
+        await _notificationService.NotifyAdminsAsync(
+            "VoucherUpdated",
+            "Đã cập nhật voucher",
+            $"Voucher {existing.Code} đã được cập nhật.");
         TempData["SuccessMessage"] = "Đã cập nhật voucher thành công.";
         return RedirectToAction(nameof(Index));
     }
@@ -130,10 +153,16 @@ public class VoucherController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleStatus(int id)
     {
+        // UI gửi VoucherId; Controller đọc Vouchers, đổi IsActive, SaveChanges và redirect Index.
+        // Nhận VoucherId từ form và lưu trạng thái IsActive vào Vouchers.
         var voucher = await _context.Vouchers.FindAsync(id);
         if (voucher is null) return NotFound();
         voucher.IsActive = !voucher.IsActive;
         await _context.SaveChangesAsync();
+        await _notificationService.NotifyAdminsAsync(
+            "VoucherStatusChanged",
+            "Đã thay đổi trạng thái voucher",
+            $"Voucher {voucher.Code} đã {(voucher.IsActive ? "được kích hoạt" : "bị tạm ngưng")}.");
         TempData["SuccessMessage"] = $"Đã {(voucher.IsActive ? "bật" : "tắt")} voucher {voucher.Code}.";
         return RedirectToAction(nameof(Index));
     }

@@ -29,6 +29,20 @@
                         <i class="bi bi-speedometer2"></i> Trang Admin Dashboard
                     </a>
                 </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Notification" asp-action="Index">
+                        <i class="bi bi-bell text-warning"></i> Thông báo của tôi
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+            }
+            @if (role.Equals("Cashier", StringComparison.OrdinalIgnoreCase))
+            {
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 text-dark rounded-2 py-2" asp-controller="Notification" asp-action="Index">
+                        <i class="bi bi-bell text-warning"></i> Thông báo của tôi
+                    </a>
+                </li>
                 <li><hr class="dropdown-divider my-1"></li>
             }
             @if (role.Equals("Cashier", StringComparison.OrdinalIgnoreCase))

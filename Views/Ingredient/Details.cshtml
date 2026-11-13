@@ -4,6 +4,8 @@
     var isAdmin = User.IsInRole("Admin");
 }
 
+<!-- Model được tạo tại IngredientService từ Ingredients, RecipeItems, ProductionTaskIngredients
+     và InventoryTransactions; Controller truyền model này vào View để render toàn bộ trang. -->
 <div class="mb-3">
     <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách kho
@@ -68,6 +70,8 @@
                         <a asp-action="Edit" asp-route-id="@Model.IngredientId" class="btn btn-outline-primary btn-sm flex-grow-1">
                             <i class="bi bi-pencil me-1"></i>Chỉnh sửa
                         </a>
+                        <!-- Form gửi IngredientId và trạng thái mới về IngredientController.SetActive;
+                             Controller/service lưu Ingredients.IsActive rồi redirect lại Details. -->
                         <form asp-action="SetActive" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.IngredientId" />

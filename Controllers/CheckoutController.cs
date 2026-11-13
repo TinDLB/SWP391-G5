@@ -161,6 +161,8 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PlaceOrder(CheckoutViewModel model)
         {
+            // Nhận toàn bộ dữ liệu checkout từ form online: địa chỉ, voucher, điểm, phương thức
+            // thanh toán và ghi chú; userId lấy từ Claims, không nhận từ client.
             var userId = GetCurrentUserId();
             if (userId == null)
             {
@@ -192,7 +194,14 @@ namespace SWP391_G5.Controllers
             {
                 if (item.Product.StockQty < item.Quantity)
                 {
-                    TempData["ErrorMessage"] = $"Bánh \"{item.Product.Name}\" hiện chỉ còn {item.Product.StockQty} cái trong kho, không đủ số lượng đặt ({item.Quantity}).";
+                    var shortageMessage = $"Bánh \"{item.Product.Name}\" hiện chỉ còn {item.Product.StockQty} cái trong kho, không đủ số lượng đặt ({item.Quantity}).";
+                    TempData["ErrorMessage"] = shortageMessage;
+                    // Không tạo Order khi thiếu tồn kho; thay vào đó thông báo cho Admin để
+                    // theo dõi sản phẩm sắp hết hàng và xử lý bổ sung tồn kho.
+                    await _notificationService.NotifyAdminsAsync(
+                        "ProductStockShortage",
+                        "Không đủ tồn kho khi đặt hàng",
+                        shortageMessage);
                     return RedirectToAction(nameof(Index));
                 }
             }
@@ -220,6 +229,7 @@ namespace SWP391_G5.Controllers
 
                 _context.Addresses.Add(newAddress);
                 await _context.SaveChangesAsync();
+                // Địa chỉ mới được lưu vào Addresses, sau đó addressId được dùng làm FK của Orders.
                 addressId = newAddress.AddressId;
             }
             else
@@ -316,6 +326,7 @@ namespace SWP391_G5.Controllers
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
+            // Lưu thông tin đơn online vào Orders trước để có OrderId cho các OrderItems.
 
             // 7. Tạo OrderItems và trừ tồn kho sản phẩm
             foreach (var item in cartItems)
@@ -335,6 +346,8 @@ namespace SWP391_G5.Controllers
             _context.CartItems.RemoveRange(cartItems);
 
             await _context.SaveChangesAsync();
+            // SaveChanges ở đây ghi OrderItems, Products.StockQty, CartItems và các thay đổi
+            // liên quan đến Users/Vouchers; sau đó trả OrderId qua redirect thanh toán/thành công.
 
             // 9. Gửi thông báo đặt hàng thành công (UC-08)
             await _notificationService.CreateNotificationAsync(

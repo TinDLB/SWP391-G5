@@ -14,9 +14,11 @@ public class IngredientService : IIngredientService
     // ---------- Danh sách ----------
     public async Task<IngredientListViewModel> GetListAsync(string? keyword, string? filter)
     {
+        // Dữ liệu vào từ Controller: keyword/filter của query string.
+        // Dữ liệu ra: IngredientListViewModel trả ngược Controller -> Index.cshtml.
         var f = (filter == "low" || filter == "inactive") ? filter : "active";
 
-        // Bảng nguyên liệu nhỏ (vài chục dòng) nên kéo hết về rồi lọc trong bộ nhớ cho đơn giản
+        // Query SELECT từ bảng Ingredients; chỉ chiếu các cột cần hiển thị sang ViewModel.
         var all = await _context.Ingredients.AsNoTracking()
             .Select(i => new IngredientItemViewModel
             {
@@ -56,11 +58,14 @@ public class IngredientService : IIngredientService
     // ---------- Chi tiết ----------
     public async Task<IngredientDetailViewModel?> GetDetailAsync(int id)
     {
+        // id nhận từ Controller. Query đọc Ingredients theo IngredientId để lấy thông tin chính.
         var i = await _context.Ingredients.AsNoTracking().FirstOrDefaultAsync(x => x.IngredientId == id);
         if (i == null) return null;
 
+        // GetUsageAsync đọc RecipeItems, ProductionTasks, ProductionTaskIngredients để đếm nơi sử dụng.
         var usage = await GetUsageAsync(id);
 
+        // Query đọc 20 giao dịch gần nhất từ InventoryTransactions và truyền vào RecentTransactions.
         var txns = await _context.InventoryTransactions.AsNoTracking()
             .Where(t => t.IngredientId == id)
             .OrderByDescending(t => t.CreatedAt)
@@ -110,6 +115,8 @@ public class IngredientService : IIngredientService
     // ---------- Thêm ----------
     public async Task<ServiceResult> CreateAsync(IngredientFormViewModel m)
     {
+        // m được truyền từ Controller sau khi UI submit form. Các trường hợp lệ được map
+        // sang entity Ingredient; SaveChangesAsync INSERT một dòng vào bảng Ingredients.
         var name = m.Name.Trim();
         var unit = m.Unit.Trim();
 
@@ -141,6 +148,8 @@ public class IngredientService : IIngredientService
     // ---------- Sửa ----------
     public async Task<ServiceResult> UpdateAsync(IngredientFormViewModel m)
     {
+        // m được truyền từ Controller. Query lấy dòng Ingredients cần sửa, sau đó chỉ UPDATE
+        // Name, Unit và MinThreshold; StockQty không được nhận từ UI và không bị thay đổi tại đây.
         var item = await _context.Ingredients.FirstOrDefaultAsync(i => i.IngredientId == m.IngredientId);
         if (item == null) return ServiceResult.Fail("Không tìm thấy nguyên liệu.");
 
@@ -177,6 +186,8 @@ public class IngredientService : IIngredientService
     // ---------- Ngừng / kích hoạt ----------
     public async Task<ServiceResult> SetActiveAsync(int id, bool isActive)
     {
+        // id/isActive đến từ form Details.cshtml. Query lấy Ingredients, kiểm tra ProductionTasks,
+        // rồi UPDATE cột Ingredients.IsActive; ServiceResult trả về Controller để redirect/UI báo lỗi.
         var item = await _context.Ingredients.FirstOrDefaultAsync(i => i.IngredientId == id);
         if (item == null) return ServiceResult.Fail("Không tìm thấy nguyên liệu.");
 

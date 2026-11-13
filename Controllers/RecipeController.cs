@@ -19,6 +19,9 @@ public class RecipeController : Controller
 
     public async Task<IActionResult> Index(string? search, string? status) //Trả về danh sách công thức dựa trên từ khóa tìm kiếm và trạng thái hoạt động
     {
+        // UI gửi search/status qua query string từ Views/Recipe/Index.cshtml.
+        // Controller query Recipes, Products và RecipeItems, map sang RecipeListItemViewModel,
+        // rồi truyền danh sách bằng View(recipes) ngược lại cho Razor render.
         // Query từ bảng Recipes lấy thông tin bánh liên kết với công thức
         var query = _context.Recipes
             .Include(r => r.Product)
@@ -49,6 +52,8 @@ public class RecipeController : Controller
 
     public async Task<IActionResult> Details(int id)
     {
+        // Nhận RecipeId từ route; đọc Recipes, Products, RecipeItems và Ingredients,
+        // rồi truyền entity recipe đã nạp quan hệ sang View chi tiết.
         var recipe = await _context.Recipes
             .Include(r => r.Product)
             .Include(r => r.RecipeItems).ThenInclude(i => i.Ingredient)
@@ -61,6 +66,7 @@ public class RecipeController : Controller
     //Mở form
     public async Task<IActionResult> Create()
     {
+        // GET chỉ nạp Products và Ingredients đang active vào ViewBag để UI tạo form.
         await LoadOptionsAsync(); //Lấy danh sách bánh và nguyên liệu
         return View(new RecipeEditViewModel());
     }
@@ -70,6 +76,8 @@ public class RecipeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(RecipeEditViewModel model)
     {
+        // POST nhận ProductId, Instructions, IsActive và danh sách Ingredients từ form UI.
+        // Dữ liệu hợp lệ được map thành Recipe và RecipeItems, sau đó lưu vào Recipes/RecipeItems.
         // Nh?n ProductId, YieldQty, Instructions v� danh s�ch Ingredients t? form t?o c�ng th?c.
         NormalizeIngredients(model);
         await ValidateRecipeAsync(model);
@@ -117,6 +125,10 @@ public class RecipeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, RecipeEditViewModel model)
     {
+        // Nhận id từ route và model từ form; query Recipes theo RecipeId, sau đó UPDATE Recipes
+        // và thay thế các dòng liên quan trong RecipeItems. Kết quả redirect về danh sách UI.
+        // Nhận id từ route và RecipeEditViewModel từ form; cập nhật Recipes,
+        // xóa RecipeItems cũ và tạo lại RecipeItems theo danh sách nguyên liệu gửi lên.
         if (id != model.RecipeId) return BadRequest(); //Đảm bảo RepId truyền từ route và form là giống nhau
         NormalizeIngredients(model);
         await ValidateRecipeAsync(model, id);
@@ -151,6 +163,7 @@ public class RecipeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleStatus(int id)
     {
+        // Nhận RecipeId từ form; đọc và cập nhật IsActive trong Recipes.
         var recipe = await _context.Recipes.Include(r => r.Product).FirstOrDefaultAsync(r => r.RecipeId == id);
         if (recipe is null) return NotFound();
         recipe.IsActive = !recipe.IsActive;
@@ -161,6 +174,7 @@ public class RecipeController : Controller
 
     private async Task LoadOptionsAsync(int? includeProductId = null)
     {
+        // Dữ liệu dropdown truyền từ DB lên UI qua ViewBag.Products/ViewBag.Ingredients.
         // Query lấy từ bàng Products chỉ lấy các sản phẩm isActive = true và lưu vào ViewBag.Products
         ViewBag.Products = await _context.Products
             .Where(p => p.IsActive &&

@@ -18,30 +18,42 @@ namespace SWP391_G5.Services
 
         public async Task NotifyAdminsAsync(string type, string title, string? message)
         {
-            var adminIds = await _context.Users
-                .Where(u => u.Role == "Admin" && u.IsActive)
-                .Select(u => u.UserId)
-                .ToListAsync();
-
-            foreach (var adminId in adminIds)
+            // Đọc UserId của admin từ Users, nhận nội dung thông báo từ luồng nghiệp vụ,
+            // rồi ghi từng thông báo vào Notifications.
+            try
             {
-                _context.Notifications.Add(new Notification
-                {
-                    UserId = adminId,
-                    NotificationType = type,
-                    Title = title,
-                    Message = message,
-                    IsRead = false,
-                    CreatedAt = DateTime.UtcNow
-                });
-            }
+                var adminIds = await _context.Users
+                    .Where(u => u.Role == "Admin" && u.IsActive)
+                    .Select(u => u.UserId)
+                    .ToListAsync();
 
-            if (adminIds.Count > 0)
-                await _context.SaveChangesAsync();
+                foreach (var adminId in adminIds)
+                {
+                    _context.Notifications.Add(new Notification
+                    {
+                        UserId = adminId,
+                        NotificationType = type,
+                        Title = title,
+                        Message = message,
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                if (adminIds.Count > 0)
+                    await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Không để lỗi ghi Notifications làm hỏng thao tác chính như tạo task/voucher.
+                _logger.LogError(ex, "Lỗi khi tạo thông báo cho Admin: {NotificationType}", type);
+            }
         }
 
         public async Task CreateNotificationAsync(int userId, string type, string title, string? message)
         {
+            // userId/type/title/message được truyền từ controller/service; lưu vào Notifications
+            // để hiển thị lại trong NotificationController và Views/Notification/Index.cshtml.
             try
             {
                 var notif = new Notification
