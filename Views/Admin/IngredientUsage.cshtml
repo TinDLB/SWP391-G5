@@ -1,0 +1,80 @@
+@model SWP391_G5.Models.ViewModels.IngredientUsageReportViewModel
+@{
+    ViewData["Title"] = "Tiêu hao nguyên li?u";
+    ViewData["PageTitle"] = "Theo dõi tiêu hao nguyên li?u";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-1">Theo dõi tiêu hao nguyên li?u</h4>
+        <div class="text-muted small">D? li?u l?y t? các giao d?ch xu?t kho khi task s?n xu?t hoàn t?t.</div>
+    </div>
+    <a asp-controller="ProductionTask" asp-action="Index" class="btn btn-outline-secondary">Quay l?i task</a>
+</div>
+
+<form method="get" asp-action="IngredientUsage" class="card border-0 shadow-sm mb-4">
+    <div class="card-body row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label">Ki?u xem</label>
+            <select name="period" class="form-select" id="period">
+                <option value="day" selected="@(Model.Period == "day")">Theo ngày</option>
+                <option value="month" selected="@(Model.Period == "month")">Theo tháng</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">T? ngày/tháng</label>
+            <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">??n ngày/tháng</label>
+            <input type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100"><i class="bi bi-search"></i> Xem báo cáo</button>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Kho?ng th?i gian</div><div class="fw-semibold">@Model.From.ToString("dd/MM/yyyy") - @Model.To.ToString("dd/MM/yyyy")</div></div></div></div>
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">T?ng l??ng tiêu hao</div><div class="fs-4 fw-bold text-danger">@Model.TotalUsage.ToString("#,##0.###")</div></div></div></div>
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Nguyên li?u c?n xem xét nh?p</div><div class="fs-4 fw-bold text-warning">@Model.Items.Count(i => i.RequiresRestock)</div></div></div></div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>Nguyên li?u</th><th>?ã s? d?ng</th><th>S? task</th><th>T?n hi?n t?i</th><th>Ng??ng t?i thi?u</th><th>Khuy?n ngh?</th></tr></thead>
+            <tbody>
+            @if (!Model.Items.Any())
+            {
+                <tr><td colspan="6" class="text-center text-muted py-5">Ch?a có phát sinh tiêu hao trong kho?ng th?i gian này.</td></tr>
+            }
+            else
+            {
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td><span class="fw-semibold">@item.IngredientName</span><div class="small text-muted">#@item.IngredientId</div></td>
+                        <td class="text-danger fw-semibold">@item.UsedQty.ToString("#,##0.###") @item.Unit</td>
+                        <td>@item.TaskCount</td>
+                        <td>@item.CurrentStock.ToString("#,##0.###") @item.Unit</td>
+                        <td>@item.MinThreshold.ToString("#,##0.###") @item.Unit</td>
+                        <td>
+                            @if (item.RequiresRestock)
+                            {
+                                <span class="badge bg-warning text-dark">Nên nh?p thêm</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">T?n kho ?n</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -38,41 +38,6 @@ namespace SWP391_G5.Services
                 .ThenBy(t => t.Deadline)
                 .ToListAsync();
 
-            // Nếu Baker không còn task nào đang làm (do đã hoàn tất hết), tự động tạo 1 task mới để test
-            if (!activeTasks.Any())
-            {
-                var prod = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == 2 || p.Name.Contains("bơ sữa"))
-                        ?? await _context.Products.FirstOrDefaultAsync();
-
-                if (prod != null)
-                {
-                    var newTask = new ProductionTask
-                    {
-                        ProductId     = prod.ProductId,
-                        TargetQty     = 20,
-                        Status        = "Assigned",
-                        CreatedBy     = bakerId,
-                        AssignedBaker = bakerId,
-                        Deadline      = DateTime.Now.AddDays(1),
-                        Note          = "Mẻ bánh mì bơ sữa trong ngày",
-                        CreatedAt     = DateTime.Now
-                    };
-                    _context.ProductionTasks.Add(newTask);
-                    await _context.SaveChangesAsync();
-
-                    await EnsureTaskIngredientsLoadedAsync(newTask);
-
-                    activeTasks.Add(new BakerProductionTaskViewModel
-                    {
-                        TaskId      = newTask.TaskId,
-                        ProductName = prod.Name,
-                        TargetQty   = newTask.TargetQty,
-                        Status      = newTask.Status,
-                        Deadline    = newTask.Deadline
-                    });
-                }
-            }
-
             return activeTasks;
         }
 
@@ -95,44 +60,8 @@ namespace SWP391_G5.Services
                 await EnsureTaskIngredientsLoadedAsync(task);
             }
 
-            // NẾU TASK ĐÃ HOÀN TẤT NHƯNG CHƯA ĐƯỢC TRỪ KHO & GHI SỔ (Do lỗi dữ liệu trước đó)
-            // Tự động bù trừ và ghi sổ kho ngay lập tức!
-            if (task.Status == "Completed" && task.ProductionTaskIngredients.Any())
-            {
-                bool hasTxn = await _context.InventoryTransactions
-                    .AnyAsync(t => t.RefTable == "ProductionTasks" && t.RefId == task.TaskId);
-
-                if (!hasTxn)
-                {
-                    var ingIds = task.ProductionTaskIngredients.Select(ti => ti.IngredientId).ToList();
-                    var dbIngs = await _context.Ingredients.Where(i => ingIds.Contains(i.IngredientId)).ToListAsync();
-                    var completedDate = task.CompletedAt ?? DateTime.Now;
-
-                    foreach (var ti in task.ProductionTaskIngredients)
-                    {
-                        var ing = dbIngs.FirstOrDefault(i => i.IngredientId == ti.IngredientId);
-                        if (ing != null)
-                        {
-                            ing.StockQty -= ti.RequiredQty;
-                        }
-
-                        _context.InventoryTransactions.Add(new InventoryTransaction
-                        {
-                            IngredientId = ti.IngredientId,
-                            TxnType      = "ProductionUse",
-                            QtyChange    = -ti.RequiredQty,
-                            RefTable     = "ProductionTasks",
-                            RefId        = task.TaskId,
-                            Note         = $"Xuất sản xuất: {task.Product.Name} (Task #{task.TaskId})",
-                            CreatedBy    = bakerId,
-                            CreatedAt    = completedDate
-                        });
-                    }
-                    await _context.SaveChangesAsync();
-                }
-            }
-
-            // Nạp lại dữ liệu tồn kho mới nhất để hiển thị chính xác
+            // Chỉ đọc tồn kho mới nhất để hiển thị; việc trừ kho chỉ thực hiện một lần
+            // trong CompleteTaskAsync khi Baker xác nhận hoàn tất task.
             var allIngIds = task.ProductionTaskIngredients.Select(ti => ti.IngredientId).ToList();
             var latestIngs = await _context.Ingredients.AsNoTracking()
                 .Where(i => allIngIds.Contains(i.IngredientId))

@@ -24,6 +24,8 @@ public class StaffController : Controller
 
     public async Task<IActionResult> Index(string? search, string? role, string? status) //Nhận các tham số search, role, status từ query string để lọc danh sách nhân viên
     {
+        // UI gửi search/role/status từ query string. Controller query Users và Addresses,
+        // map sang StaffListItemViewModel rồi View(staff) trả dữ liệu về Views/Staff/Index.cshtml.
         // Nhận các tham số search, role, status từ query string để lọc danh sách nhân viên
         ViewBag.Search = search;
         ViewBag.Role = role;
@@ -72,6 +74,8 @@ public class StaffController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(StaffEditViewModel model) // Nhận dữ liệu từ form POST để tạo nhân viên mới
     {
+        // UI POST gửi thông tin tài khoản và địa chỉ. Controller nhận model, hash password,
+        // INSERT Users rồi INSERT/UPDATE Addresses; sau đó tạo Notifications và redirect Index.
         // Chuẩn hóa trước khi kiểm tra dữ liệu.
         Normalize(model); // Chuẩn hóa dữ liệu trước khi kiểm tra: loại bỏ khoảng trắng, chuyển email về chữ thường
         await ValidateEmailAsync(model.Email); // Kiểm tra email đã tồn tại trong cơ sở dữ liệu hay chưa
@@ -124,6 +128,8 @@ public class StaffController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, StaffEditViewModel model) // Nhận dữ liệu từ form POST để cập nhật thông tin nhân viên
     {
+        // UI gửi UserId từ route/hidden input cùng dữ liệu mới. Controller query Users + Addresses,
+        // UPDATE Users và địa chỉ mặc định trong Addresses rồi trả redirect về danh sách.
         // Nhận UserId từ route và kiểm tra xem có trùng với UserId trong model hay không để tránh lỗi bảo mật.
         if (id != model.UserId) return BadRequest();
         Normalize(model);
@@ -155,6 +161,7 @@ public class StaffController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleStatus(int id)
     {
+        // Nhận UserId từ UI, query Users, UPDATE Users.IsActive, tạo thông báo và redirect Index.
         // Nhận UserId từ route và truy vấn dữ liệu nhân viên từ cơ sở dữ liệu để thay đổi trạng thái hoạt động (active/inactive).
         var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == id && (u.Role == "Cashier" || u.Role == "Baker"));
         if (user is null) return NotFound();

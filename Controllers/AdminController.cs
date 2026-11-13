@@ -51,6 +51,61 @@ namespace SWP391_G5.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> IngredientUsage(DateTime? from, DateTime? to, string period = "day")
+        {
+            period = period.Equals("month", StringComparison.OrdinalIgnoreCase) ? "month" : "day";
+            var selectedFrom = (from ?? DateTime.Today).Date;
+            var selectedTo = (to ?? selectedFrom).Date;
+
+            if (period == "month")
+            {
+                selectedFrom = new DateTime(selectedFrom.Year, selectedFrom.Month, 1);
+                selectedTo = new DateTime(selectedTo.Year, selectedTo.Month, 1)
+                    .AddMonths(1).AddDays(-1);
+            }
+            else if (selectedTo < selectedFrom)
+            {
+                (selectedFrom, selectedTo) = (selectedTo, selectedFrom);
+            }
+
+            var endExclusive = selectedTo.AddDays(1);
+            var usage = await _context.InventoryTransactions
+                .AsNoTracking()
+                .Where(t => t.TxnType == "ProductionUse" &&
+                            t.CreatedAt >= selectedFrom && t.CreatedAt < endExclusive &&
+                            t.QtyChange < 0)
+                .GroupBy(t => new
+                {
+                    t.IngredientId,
+                    t.Ingredient.Name,
+                    t.Ingredient.Unit,
+                    t.Ingredient.StockQty,
+                    t.Ingredient.MinThreshold
+                })
+                .Select(g => new IngredientUsageItemViewModel
+                {
+                    IngredientId = g.Key.IngredientId,
+                    IngredientName = g.Key.Name,
+                    Unit = g.Key.Unit,
+                    UsedQty = g.Sum(t => -t.QtyChange),
+                    TaskCount = g.Select(t => t.RefId).Where(id => id.HasValue).Distinct().Count(),
+                    CurrentStock = g.Key.StockQty,
+                    MinThreshold = g.Key.MinThreshold
+                })
+                .OrderByDescending(item => item.UsedQty)
+                .ToListAsync();
+
+            return View(new IngredientUsageReportViewModel
+            {
+                From = selectedFrom,
+                To = selectedTo,
+                Period = period,
+                TotalUsage = usage.Sum(item => item.UsedQty),
+                Items = usage
+            });
+        }
+
+        [HttpGet]
         public async Task<IActionResult> ExportReport(DateTime? from, DateTime? to)
         {
             var start = from?.Date ?? DateTime.Today.AddDays(-29);
@@ -103,7 +158,7 @@ namespace SWP391_G5.Controllers
             };
 
             model.LowStockItems = await _context.Ingredients
-                .Where(i => i.IsActive && i.StockQty < i.MinThreshold)
+                .Where(i => i.IsActive && i.StockQty <= i.MinThreshold)
                 .OrderBy(i => i.StockQty / (i.MinThreshold == 0 ? 1 : i.MinThreshold))
                 .Select(i => new LowStockItemViewModel
                 {
@@ -171,7 +226,7 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateLowStockNotifications()
         {
-            var lowStock = await _context.Ingredients.Where(i => i.IsActive && i.StockQty < i.MinThreshold).ToListAsync();
+            var lowStock = await _context.Ingredients.Where(i => i.IsActive && i.StockQty <= i.MinThreshold).ToListAsync();
             var adminIds = await _context.Users.Where(u => u.Role == "Admin" && u.IsActive).Select(u => u.UserId).ToListAsync();
             var today = DateTime.Today;
             foreach (var ingredient in lowStock)

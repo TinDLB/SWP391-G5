@@ -29,6 +29,9 @@
                 <div class="col-12">
                     <div id="ingredientRequirements" class="d-none mt-2">
                         <h6 class="mb-2">So sánh nguyên liệu cần dùng và tồn kho</h6>
+                         <div id="ingredientShortageAlert" class="alert alert-warning d-none" role="alert">
+                             Có nguyên liệu không đủ tồn kho. Hệ thống sẽ lưu task nhưng đồng thời gửi thông báo cho Admin và Baker.
+                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered align-middle mb-0">
                                 <thead class="table-light"><tr><th>Nguyên liệu</th><th>Đơn vị</th><th>Sẽ dùng</th><th>Tồn kho</th><th>Thiếu</th><th>Trạng thái</th></tr></thead>
@@ -52,6 +55,7 @@
         const quantityInput = document.getElementById('TargetQty');
         const requirementsBox = document.getElementById('ingredientRequirements');
         const requirementsBody = document.getElementById('ingredientRequirementsBody');
+        const shortageAlert = document.getElementById('ingredientShortageAlert');
         const formatQuantity = value => Number(value).toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 3 });
 
         async function loadIngredientRequirements() {
@@ -60,12 +64,14 @@
 
             if (!productId || targetQty <= 0) {
                 requirementsBox.classList.add('d-none');
+                shortageAlert.classList.add('d-none');
                 requirementsBody.innerHTML = '';
                 return;
             }
 
             const response = await fetch(`${requirementUrl}?productId=${productId}&targetQty=${targetQty}`);
             const items = await response.json();
+            shortageAlert.classList.toggle('d-none', !items.some(item => item.shortageQty > 0));
 
             requirementsBody.innerHTML = items.length === 0
                 ? '<tr><td colspan="6" class="text-center text-muted">Sản phẩm chưa có công thức hoạt động.</td></tr>'
@@ -73,7 +79,7 @@
                     <tr>
                         <td>${item.ingredientName}</td>
                         <td>${item.unit}</td>
-                        <td>${formatQuantity(item.availableQty)}</td>
+                        <td>${formatQuantity(item.requiredQty)}</td>
                         <td>${formatQuantity(item.stockQty)}</td>
                         <td class="${item.shortageQty > 0 ? 'text-danger fw-semibold' : 'text-success'}">${formatQuantity(item.shortageQty)}</td>
                         <td><span class="badge ${item.isEnough ? 'bg-success' : 'bg-danger'}">${item.isEnough ? '\u0110\u1ee7' : 'Thi\u1ebfu'}</span></td>

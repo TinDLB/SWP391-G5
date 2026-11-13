@@ -5,10 +5,15 @@
 }
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">Công việc sản xuất</h4>
-    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tạo công việc</a>
+    <div class="d-flex gap-2">
+        <a asp-controller="Admin" asp-action="IngredientUsage" class="btn btn-outline-success">
+            <i class="bi bi-bar-chart-line"></i> Tiêu hao nguyên liệu
+        </a>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tạo công việc</a>
+    </div>
 </div>
 <form method="get" class="row g-2 mb-3">
-    <div class="col-md-5"><input name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm theo mã task hoặc sản phẩm..." /></div><div class="col-md-3"><select name="status" class="form-select"><option value="">Tất cả trạng thái</option><option value="Assigned">Chờ bắt đầu</option><option value="InProgress">Đang làm</option><option value="Completed">Hoàn tất</option></select></div><div class="col-auto"><button class="btn btn-outline-secondary">Lọc</button></div>
+    <div class="col-md-5"><input name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm theo mã task hoặc sản phẩm..." /></div><div class="col-md-3"><select name="status" class="form-select"><option value="">Tất cả trạng thái</option><option value="Planned">Lập kế hoạch</option><option value="Assigned">Chờ bắt đầu</option><option value="InProgress">Đang làm</option><option value="Completed">Hoàn tất</option><option value="Cancelled">Đã hủy</option></select></div><div class="col-auto"><button class="btn btn-outline-secondary">Lọc</button></div>
 </form>
 <div class="card border-0 shadow-sm">
     <div class="table-responsive">

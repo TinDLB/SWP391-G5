@@ -22,6 +22,8 @@
     }
 </div>
 
+<!-- UI gửi filter/keyword lên Controller qua query string bằng asp-route-* hoặc form GET. -->
+<!-- Controller -> Service -> Ingredients -> IngredientListViewModel -> View(Model) quay lại đây. -->
 <!-- Bộ lọc tab & Ô tìm kiếm -->
 <div class="card stat-card mb-4 border-0">
     <div class="card-body p-3">
@@ -70,6 +72,8 @@
     </div>
 </div>
 
+<!-- Model.Items là dữ liệu Controller truyền từ IngredientListViewModel; các link id
+     tiếp tục truyền IngredientId về Details/Edit Controller khi người dùng click. -->
 <!-- Danh sách nguyên liệu -->
 @if (Model.Items == null || !Model.Items.Any())
 {

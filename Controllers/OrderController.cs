@@ -148,6 +148,8 @@ namespace SWP391_G5.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelOrder(int id, string? reason)
         {
+            // Nhận OrderId từ route và reason từ form của người mua online; chỉ truy vấn được
+            // đơn thuộc CustomerId lấy từ Claims. Dữ liệu hủy được ghi vào Orders.Note/Status.
             var userId = GetCurrentUserId();
             if (userId == null)
             {
@@ -204,6 +206,8 @@ namespace SWP391_G5.Controllers
             }
 
             await _context.SaveChangesAsync();
+            // Cùng lần lưu trên cập nhật Products.StockQty, Vouchers.UsedCount và Users.LoyaltyPoints;
+            // thông báo sau đó được ghi vào Notifications cho admin và người mua.
 
             await _notificationService.NotifyAdminsAsync(
                 "OrderCancelled",
